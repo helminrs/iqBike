@@ -775,20 +775,22 @@
         </div>
     </div>
 
-    <!-- MODAL PENUMPANG -->
+    <!-- MODAL PENUMPANG: Perubahan Tujuan dengan Label Penambahan Ongkos Jelas -->
     <div id="confirmDestinationChangeModal" class="modal-overlay" style="display: none;">
         <div class="login-card" style="background:#fff; color:#222; text-align:left;">
             <div style="text-align:center; border-bottom:1px solid #eee; padding-bottom:10px;">
                 <i class="fa-solid fa-route" style="font-size:36px; color:var(--accent-blue);"></i>
                 <h3 style="margin-top:6px;">Konfirmasi Ubah Tujuan</h3>
-                <p style="font-size:11px; color:#777;">Perubahan tujuan dihitung sebagai Rute Singgah Tambahan</p>
+                <p style="font-size:11px; color:#777;">Perubahan tujuan dihitung sebagai rute singgah tambahan</p>
             </div>
             
             <div style="font-size:12px; display:flex; flex-direction:column; gap:6px; background:#f9f9f9; padding:10px; border-radius:8px;">
-                <p><strong>Tujuan Lama:</strong> <span id="modalOldDest">-</span></p>
+                <p><strong>Tujuan Semula:</strong> <span id="modalOldDest">-</span></p>
                 <p><strong>Tujuan Baru:</strong> <span id="modalNewDest">-</span></p>
                 <p style="color:var(--accent-blue); font-weight:bold;"><strong>Selisih Jarak Tambahan:</strong> <span id="modalAddKm">0 km</span></p>
-                <p style="color:#27ae60; font-weight:bold; font-size:14px;"><strong>Total Ongkos Baru:</strong> <span id="modalNewFare">Rp 0</span></p>
+                <p style="color:#eb5757; font-weight:bold;"><strong>Biaya Tambahan Rute:</strong> <span id="modalAddFare">Rp 0</span></p>
+                <hr style="border:0; border-top:1px solid #ddd; margin:4px 0;">
+                <p style="color:#27ae60; font-weight:bold; font-size:14px;"><strong>Total Keseluruhan Ongkos Baru:</strong> <span id="modalNewFare">Rp 0</span></p>
             </div>
 
             <div style="display:flex; gap:8px; margin-top:10px;">
@@ -798,10 +800,9 @@
         </div>
     </div>
 
-    <!-- MODAL DRIVER (Dilengkapi tombol X di sudut kanan atas) -->
+    <!-- MODAL DRIVER -->
     <div id="driverRouteUpdateModal" class="modal-overlay" style="display: none;">
         <div class="login-card" style="background:#fff; color:#222; text-align:left; position:relative;">
-            <!-- Tombol X Silang di Pojok Kanan Atas -->
             <button onclick="closeDriverRouteUpdateModal()" style="position:absolute; top:12px; right:12px; background:none; border:none; font-size:18px; color:#666; cursor:pointer; font-weight:bold;">
                 <i class="fa-solid fa-xmark"></i>
             </button>
@@ -809,12 +810,13 @@
             <div style="text-align:center; border-bottom:1px solid #eee; padding-bottom:10px; padding-right:16px;">
                 <i class="fa-solid fa-circle-check" style="font-size:36px; color:#27ae60;"></i>
                 <h3 style="margin-top:6px;">Perubahan Terkonfirmasi</h3>
-                <p style="font-size:11px; color:#777;">Penumpang telah menyetujui perubahan rute tujuan</p>
+                <p style="font-size:11px; color:#777;">Penumpang telah menyetujui penambahan rute & ongkos tujuan</p>
             </div>
             
             <div style="font-size:12px; display:flex; flex-direction:column; gap:6px; background:#f9f9f9; padding:10px; border-radius:8px;">
                 <p><strong>Tujuan Baru:</strong> <span id="driverModalNewDest">-</span></p>
-                <p style="color:#27ae60; font-weight:bold;"><strong>Total Ongkos Baru:</strong> <span id="driverModalNewFare">Rp 0</span></p>
+                <p style="color:#eb5757; font-weight:bold;"><strong>Tambahan Biaya:</strong> <span id="driverModalAddFare">Rp 0</span></p>
+                <p style="color:#27ae60; font-weight:bold; font-size:13px;"><strong>Total Ongkos Baru:</strong> <span id="driverModalNewFare">Rp 0</span></p>
             </div>
 
             <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
@@ -853,7 +855,7 @@
                 <h3 style="font-size:15px; font-weight:bold;"><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Perjalanan</h3>
                 <button onclick="closePassengerHistoryModal()" style="background:none; border:none; font-size:18px; color:#666; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <p style="font-size:11px; color:#666;">Semua pesanan selesai, diubah tujuannya, atau dibatalkan tercatat rapi di sini.</p>
+            <p style="font-size:11px; color:#666;">Detail rute awal, perubahan titik singgah, status selesai, atau pembatalan tersimpan lengkap.</p>
             
             <div id="passengerHistoryContainer" style="display:flex; flex-direction:column; gap:8px; max-height:50vh; overflow-y:auto;">
                 <p style="font-size: 11px; color: #a0a0a0; text-align:center;">Belum ada riwayat pesanan.</p>
@@ -902,13 +904,14 @@
                 <p><strong>Penumpang:</strong> <span id="recName">-</span></p>
                 <p><strong>Jemput:</strong> <span id="recPickup">-</span></p>
                 <p><strong>Tujuan Akhir:</strong> <span id="recDropoff">-</span></p>
+                <div id="recRouteChangesInfo" style="font-size:11px; color:#666; background:#f9f9f9; padding:6px; border-radius:6px; display:none;"></div>
                 <div style="background:#f4f5f7; padding:10px; border-radius:8px; font-weight:bold; font-size:16px; color:#27ae60; display:flex; justify-content:space-between;">
                     <span>Total Pendapatan:</span>
                     <span id="recFare">Rp 0</span>
                 </div>
             </div>
             <button class="btn-submit" onclick="closeReceiptModal()" style="margin-top:10px; background:var(--primary-green); color:#111;">
-                <i class="fa-solid fa-check"></i> Tutup & Simpan ke Riwayat
+                <i class="fa-solid fa-check"></i> Tutup & Siap Order Baru
             </button>
         </div>
     </div>
@@ -1002,7 +1005,6 @@
         </div>
 
         <div id="driverView" class="driver-view-container" style="display: none;">
-            <!-- Tombol Offline/Online & Input WhatsApp Driver -->
             <div class="driver-control-bar">
                 <div style="display:flex; align-items:center; gap:6px; flex:1; max-width:220px;">
                     <input type="tel" id="driverWaInput" class="form-input" placeholder="628xxxxxxxxxx" style="font-size:11px; padding:4px;" onchange="saveDriverWaNumber()">
@@ -1116,6 +1118,7 @@
 
     let pendingNewDropoffCoords = null;
     let pendingNewDropoffName = "";
+    let pendingCalculatedExtraFare = 0;
     let pendingCalculatedNewFare = 0;
 
     const savedLastPos = JSON.parse(localStorage.getItem('iqbike_last_known_pos'));
@@ -1304,14 +1307,15 @@
 
         if (addDistMeters < 50) return;
 
-        const extraFare = computeDistanceFare(addDistMeters);
-        pendingCalculatedNewFare = activeOrder.fare + extraFare;
+        pendingCalculatedExtraFare = computeDistanceFare(addDistMeters);
+        pendingCalculatedNewFare = activeOrder.fare + pendingCalculatedExtraFare;
         pendingNewDropoffCoords = newLatLng;
         pendingNewDropoffName = newPlaceName;
 
         document.getElementById('modalOldDest').innerText = activeOrder.dropoff;
         document.getElementById('modalNewDest').innerText = newPlaceName;
-        document.getElementById('modalAddKm').innerText = `+${(addDistMeters/1000).toFixed(1)} km (Rute Singgah Tambahan)`;
+        document.getElementById('modalAddKm').innerText = `+${(addDistMeters/1000).toFixed(1)} km`;
+        document.getElementById('modalAddFare').innerText = `+Rp ${pendingCalculatedExtraFare.toLocaleString('id-ID')}`;
         document.getElementById('modalNewFare').innerText = `Rp ${pendingCalculatedNewFare.toLocaleString('id-ID')}`;
 
         document.getElementById('confirmDestinationChangeModal').style.display = 'flex';
@@ -1323,6 +1327,16 @@
 
         dropoffCoords = pendingNewDropoffCoords;
         document.getElementById('dropoffLocation').value = pendingNewDropoffName;
+
+        // Catat rute lama & rute tambahan ke riwayat perubahan
+        if (!activeOrder.routeChanges) {
+            activeOrder.routeChanges = [];
+        }
+        activeOrder.routeChanges.push({
+            from: activeOrder.dropoff,
+            to: pendingNewDropoffName,
+            extraFare: pendingCalculatedExtraFare
+        });
 
         activeOrder.dropoff = pendingNewDropoffName;
         activeOrder.dropoffLat = pendingNewDropoffCoords.lat;
@@ -1349,7 +1363,7 @@
         updatePassengerAppUI();
         updateDriverAppUI();
         renderPassengerHistory();
-        alert("Titik Tujuan & Ongkos Tambahan Berhasil Diperbarui!");
+        alert("Titik Tujuan & Penambahan Ongkos Berhasil Diperbarui!");
     }
 
     function cancelDestinationChange() {
@@ -1524,10 +1538,11 @@
             updateDriverAppUI();
             renderFinanceAndHistory();
 
-            // CEK APAKAH ADA FLAG TRIGGER PENDING DI LOCALSTORAGE SAAT DRIVER LOGIN
             const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
             if (activeOrder && activeOrder.triggerPopupForDriver) {
+                const lastChange = activeOrder.routeChanges && activeOrder.routeChanges.length > 0 ? activeOrder.routeChanges[activeOrder.routeChanges.length - 1] : null;
                 document.getElementById('driverModalNewDest').innerText = activeOrder.dropoff;
+                document.getElementById('driverModalAddFare').innerText = lastChange ? `+Rp ${lastChange.extraFare.toLocaleString('id-ID')}` : `Ada Penambahan Rute`;
                 document.getElementById('driverModalNewFare').innerText = `Rp ${activeOrder.fare.toLocaleString('id-ID')}`;
                 document.getElementById('driverRouteUpdateModal').style.display = 'flex';
                 triggerVibration([300, 150, 300]);
@@ -1685,9 +1700,10 @@
                     localStorage.setItem('iqbike_active_order', JSON.stringify(cloudOrder));
                 }
 
-                // PEMICU MODAL DRIVER DENGAN PENGECEKAN FLAG YANG KUAT
                 if (userRole === 'driver' && cloudOrder.triggerPopupForDriver) {
+                    const lastChange = cloudOrder.routeChanges && cloudOrder.routeChanges.length > 0 ? cloudOrder.routeChanges[cloudOrder.routeChanges.length - 1] : null;
                     document.getElementById('driverModalNewDest').innerText = cloudOrder.dropoff;
+                    document.getElementById('driverModalAddFare').innerText = lastChange ? `+Rp ${lastChange.extraFare.toLocaleString('id-ID')}` : `Ada Penambahan Rute`;
                     document.getElementById('driverModalNewFare').innerText = `Rp ${cloudOrder.fare.toLocaleString('id-ID')}`;
                     document.getElementById('driverRouteUpdateModal').style.display = 'flex';
                     triggerVibration([300, 150, 300]);
@@ -1939,6 +1955,7 @@
             dropoffLat: dropoffCoords.lat, dropoffLng: dropoffCoords.lng,
             fare: computedTotalFare, status: 'WAITING',
             note: note,
+            routeChanges: [],
             routeVersion: Date.now(),
             triggerPopupForDriver: false,
             timestamp: Date.now(),
@@ -2157,6 +2174,16 @@
                 statusBadge = `<span style="background:#e3f2fd; color:#1565c0; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">AKTIF / PROSES</span>`;
             }
 
+            let changesHtml = '';
+            if (item.routeChanges && item.routeChanges.length > 0) {
+                changesHtml = `<div style="margin-top:2px; font-size:10px; color:#0288d1; background:#f0f8ff; padding:4px; border-radius:4px;">
+                    <strong>Catatan Perubahan Rute:</strong>`;
+                item.routeChanges.forEach((ch, idx) => {
+                    changesHtml += `<div>${idx+1}. Ubah ke: ${ch.to} (+Rp ${ch.extraFare.toLocaleString('id-ID')})</div>`;
+                });
+                changesHtml += `</div>`;
+            }
+
             let actionButtonsHTML = '';
             if (activeOrder && activeOrder.id === item.id) {
                 actionButtonsHTML = `
@@ -2191,8 +2218,9 @@
                 <div style="color:#666; font-size:11px; margin-top:2px;">
                     <div><strong>Jemput:</strong> ${item.pickup}</div>
                     <div><strong>Tujuan Akhir:</strong> ${item.dropoff}</div>
-                    <div><strong>Ongkos:</strong> Rp ${item.fare.toLocaleString('id-ID')}</div>
+                    <div><strong>Total Ongkos:</strong> Rp ${item.fare.toLocaleString('id-ID')}</div>
                 </div>
+                ${changesHtml}
                 ${actionButtonsHTML}
             `;
             container.appendChild(card);
@@ -2225,6 +2253,19 @@
             document.getElementById('recPickup').innerText = order.pickup;
             document.getElementById('recDropoff').innerText = order.dropoff;
             document.getElementById('recFare').innerText = `Rp ${order.fare.toLocaleString('id-ID')}`;
+            
+            const routeChangesInfoEl = document.getElementById('recRouteChangesInfo');
+            if (order.routeChanges && order.routeChanges.length > 0) {
+                let changesText = "<strong>Catatan Perubahan Rute:</strong><br>";
+                order.routeChanges.forEach((ch, idx) => {
+                    changesText += `${idx+1}. Ke: ${ch.to} (+Rp ${ch.extraFare.toLocaleString('id-ID')})<br>`;
+                });
+                routeChangesInfoEl.innerHTML = changesText;
+                routeChangesInfoEl.style.display = 'block';
+            } else {
+                routeChangesInfoEl.style.display = 'none';
+            }
+
             document.getElementById('receiptModal').style.display = 'flex';
 
             let history = JSON.parse(localStorage.getItem('iqbike_history') || '[]');
@@ -2242,8 +2283,14 @@
             localStorage.removeItem('iqbike_active_order');
             removeOrderFromCloud();
             
+            // RESET INPUT ALAMAT DAN ESTIMASI ONGKOS KEMBALI KE 0 DI SISI PENUMPANG
             pickupCoords = null;
             dropoffCoords = null;
+            computedTotalFare = 0;
+            document.getElementById('pickupLocation').value = '';
+            document.getElementById('dropoffLocation').value = '';
+            document.getElementById('fareText').innerText = "Rp 0";
+
             if (pickupMarker) { map.removeLayer(pickupMarker); pickupMarker = null; }
             if (dropoffMarker) { map.removeLayer(dropoffMarker); dropoffMarker = null; }
         } else {
@@ -2343,6 +2390,14 @@
                         </div>
                     `;
                 } else {
+                    let changesText = '';
+                    if (item.routeChanges && item.routeChanges.length > 0) {
+                        changesText = `<div style="font-size:10px; color:#0288d1; margin-top:2px;"><strong>Catatan Perubahan:</strong> `;
+                        item.routeChanges.forEach((ch, idx) => {
+                            changesText += `(${idx+1}) Ke: ${ch.to} (+Rp ${ch.extraFare.toLocaleString('id-ID')}) `;
+                        });
+                        changesText += `</div>`;
+                    }
                     card.innerHTML = `
                         <div style="display:flex; justify-content:space-between; font-weight:bold;">
                             <span><i class="fa-solid fa-user"></i> ${item.passengerName} (${item.time})</span>
@@ -2351,6 +2406,7 @@
                         <div style="color:#666; font-size:11px;">
                             <div><strong>Jemput:</strong> ${item.pickup}</div>
                             <div><strong>Tujuan Akhir:</strong> ${item.dropoff}</div>
+                            ${changesText}
                         </div>
                     `;
                 }
@@ -2575,7 +2631,9 @@
         if (event.data && event.data.type === 'ORDER_UPDATED') {
             const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
             if (userRole === 'driver' && order && order.triggerPopupForDriver) {
+                const lastChange = order.routeChanges && order.routeChanges.length > 0 ? order.routeChanges[order.routeChanges.length - 1] : null;
                 document.getElementById('driverModalNewDest').innerText = order.dropoff;
+                document.getElementById('driverModalAddFare').innerText = lastChange ? `+Rp ${lastChange.extraFare.toLocaleString('id-ID')}` : `Ada Penambahan Rute`;
                 document.getElementById('driverModalNewFare').innerText = `Rp ${order.fare.toLocaleString('id-ID')}`;
                 document.getElementById('driverRouteUpdateModal').style.display = 'flex';
                 triggerVibration([300, 150, 300]);
