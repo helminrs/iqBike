@@ -14,9 +14,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-    <!-- PENGATURAN NOTIFIKASI DI LUAR HTML -->
-    <script src="config.js"></script>
-
     <style>
         :root {
             --bg-dark: #121212;
@@ -130,7 +127,7 @@
             gap: 6px;
         }
 
-        .btn-header-pin {
+        .btn-header-pin, .btn-header-settings {
             background: #222;
             color: var(--primary-green);
             border: 1px solid #444;
@@ -139,6 +136,9 @@
             font-size: 11px;
             font-weight: 700;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
         .btn-switch-role {
@@ -715,6 +715,52 @@
         }
         .btn-toggle-online.online { background: #27ae60; color: #fff; }
         .btn-toggle-online.offline { background: #eb5757; color: #fff; }
+
+        /* Styling Pilihan Suara Ala Super App Profesional */
+        .settings-section-title {
+            font-size: 12px;
+            font-weight: bold;
+            color: #444;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            text-align: left;
+        }
+        .sound-option-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            width: 100%;
+        }
+        .sound-option-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            color: #333;
+            transition: all 0.2s;
+        }
+        .sound-option-item:hover {
+            background: #f1f3f5;
+        }
+        .sound-option-item.selected {
+            border-color: var(--primary-green);
+            background: #eef7e8;
+            color: #2e7d32;
+        }
+        .sound-preview-btn {
+            background: none;
+            border: none;
+            color: #0288d1;
+            cursor: pointer;
+            font-size: 13px;
+            padding: 4px 8px;
+        }
     </style>
 </head>
 <body>
@@ -731,6 +777,64 @@
             </button>
             <button class="role-btn role-driver" onclick="openDriverPinModal()">
                 <i class="fa-solid fa-id-card"></i> Masuk Sebagai DRIVER (Khusus Admin)
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL SETTING NOTIFIKASI & SUARA PROFESIONAL (Gojek/Grab/Lalamove/Shopee style) -->
+    <div id="notificationSettingsModal" class="modal-overlay" style="display: none;">
+        <div class="login-card" style="background:#fff; color:#222; text-align:left; position:relative;">
+            <button onclick="closeNotificationSettingsModal()" style="position:absolute; top:12px; right:12px; background:none; border:none; font-size:18px; color:#666; cursor:pointer; font-weight:bold;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div style="text-align:center; border-bottom:1px solid #eee; padding-bottom:10px; padding-right:16px;">
+                <i class="fa-solid fa-bell-concierge" style="font-size:32px; color:var(--primary-green);"></i>
+                <h3 style="margin-top:6px; font-size:16px;">Pengaturan Suara Notifikasi</h3>
+                <p style="font-size:11px; color:#777;">Atur nada peringatan pesanan masuk, rute, & getaran</p>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:12px; max-height:55vh; overflow-y:auto; padding-top:4px;">
+                <div>
+                    <div class="settings-section-title">Pilih Nada Suara Order Masuk</div>
+                    <div class="sound-option-group" id="soundSelectionList">
+                        <div class="sound-option-item" onclick="setNotificationSoundChoice('gopark')">
+                            <span>🔔 Gojek Style (Beep Ganda)</span>
+                            <button type="button" class="sound-preview-btn" onclick="event.stopPropagation(); previewSpecificSound('gopark')"><i class="fa-solid fa-play"></i></button>
+                        </div>
+                        <div class="sound-option-item" onclick="setNotificationSoundChoice('grabchime')">
+                            <span>🎵 Grab Style (Chime Lembut)</span>
+                            <button type="button" class="sound-preview-btn" onclick="event.stopPropagation(); previewSpecificSound('grabchime')"><i class="fa-solid fa-play"></i></button>
+                        </div>
+                        <div class="sound-option-item" onclick="setNotificationSoundChoice('lalamovebell')">
+                            <span>🛎️ Lalamove Style (Ding Tinggi)</span>
+                            <button type="button" class="sound-preview-btn" onclick="event.stopPropagation(); previewSpecificSound('lalamovebell')"><i class="fa-solid fa-play"></i></button>
+                        </div>
+                        <div class="sound-option-item" onclick="setNotificationSoundChoice('shopeeping')">
+                            <span>⚡ Shopee Style (Ping Cepat)</span>
+                            <button type="button" class="sound-preview-btn" onclick="event.stopPropagation(); previewSpecificSound('shopeeping')"><i class="fa-solid fa-play"></i></button>
+                        </div>
+                        <div class="sound-option-item" onclick="setNotificationSoundChoice('classicbeep')">
+                            <span>📢 Standar Bip Tunggal</span>
+                            <button type="button" class="sound-preview-btn" onclick="event.stopPropagation(); previewSpecificSound('classicbeep')"><i class="fa-solid fa-play"></i></button>
+                        </div>
+                        <div class="sound-option-item" onclick="setNotificationSoundChoice('silent')">
+                            <span>🔕 Senyap (Tanpa Suara)</span>
+                            <span style="font-size:11px; color:#888;">Off</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="border-top:1px solid #eee; padding-top:8px;">
+                    <div class="settings-section-title">Pengaturan Getaran (Vibration)</div>
+                    <label style="display:flex; align-items:center; gap:8px; font-size:12px; font-weight:normal; cursor:pointer;">
+                        <input type="checkbox" id="vibrationToggle" onchange="toggleVibrationSetting()" style="width:16px; height:16px; accent-color:var(--primary-green);">
+                        Aktifkan Getaran Saat Ada Orderan Masuk
+                    </label>
+                </div>
+            </div>
+
+            <button onclick="closeNotificationSettingsModal()" style="margin-top:6px; padding:10px; background:#333; color:white; border:none; border-radius:8px; font-weight:bold; font-size:12px; cursor:pointer;">
+                Simpan & Tutup
             </button>
         </div>
     </div>
@@ -941,8 +1045,11 @@
             <span>iqBike</span>
         </div>
         <div class="header-actions">
+            <button class="btn-header-settings" onclick="openNotificationSettingsModal()">
+                <i class="fa-solid fa-gear"></i> Suara
+            </button>
             <button id="btnHeaderPin" class="btn-header-pin" onclick="changeDriverPinDirect()" style="display:none;">
-                <i class="fa-solid fa-key"></i> Ubah PIN
+                <i class="fa-solid fa-key"></i> PIN
             </button>
             <button class="btn-switch-role" onclick="showLoginOverlay()">
                 <i class="fa-solid fa-right-from-bracket"></i> <span id="currentRoleText">Ganti Mode</span>
@@ -1146,6 +1253,129 @@
     let currentDriverWa = "6285934602965";
 
     const orderChannel = new BroadcastChannel('iqbike_system');
+
+    // --- MANAJEMEN SOUND & VIBRATION PROFESIONAL (Web Audio API Synthesizer) ---
+    function getStoredSoundChoice() {
+        return localStorage.getItem('iqbike_sound_choice') || 'gopark';
+    }
+
+    function getStoredVibrationChoice() {
+        const val = localStorage.getItem('iqbike_vibration_enabled');
+        return val !== 'false'; // Default aktif
+    }
+
+    function setNotificationSoundChoice(choice) {
+        localStorage.setItem('iqbike_sound_choice', choice);
+        updateSoundSettingsUI();
+        playNotificationSound();
+        triggerCustomVibration('radarOrder');
+    }
+
+    function toggleVibrationSetting() {
+        const isChecked = document.getElementById('vibrationToggle').checked;
+        localStorage.setItem('iqbike_vibration_enabled', isChecked);
+    }
+
+    function updateSoundSettingsUI() {
+        const currentChoice = getStoredSoundChoice();
+        const items = document.querySelectorAll('.sound-option-item');
+        items.forEach(item => {
+            item.classList.remove('selected');
+        });
+        
+        // Tandai yang aktif berdasarkan onclick attribute string
+        items.forEach(item => {
+            if (item.getAttribute('onclick').includes(currentChoice)) {
+                item.classList.add('selected');
+            }
+        });
+
+        const vibToggle = document.getElementById('vibrationToggle');
+        if (vibToggle) {
+            vibToggle.checked = getStoredVibrationChoice();
+        }
+    }
+
+    function openNotificationSettingsModal() {
+        updateSoundSettingsUI();
+        document.getElementById('notificationSettingsModal').style.display = 'flex';
+    }
+
+    function closeNotificationSettingsModal() {
+        document.getElementById('notificationSettingsModal').style.display = 'none';
+    }
+
+    function previewSpecificSound(choice) {
+        localStorage.setItem('iqbike_sound_choice', choice);
+        updateSoundSettingsUI();
+        playNotificationSound();
+        triggerCustomVibration('radarOrder');
+    }
+
+    // Web Audio API Synthesizer untuk Memutar Berbagai Nada Khas Transportasi Online
+    function playNotificationSound() {
+        const choice = getStoredSoundChoice();
+        if (choice === 'silent') return;
+
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const ctx = new AudioContext();
+
+            const playTone = (freq, start, duration, type = 'sine') => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
+                
+                gain.gain.setValueAtTime(0.2, ctx.currentTime + start);
+                gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + start + duration);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc.start(ctx.currentTime + start);
+                osc.stop(ctx.currentTime + start + duration);
+            };
+
+            if (choice === 'gopark') {
+                // Gojek Style: Beep ganda cepat bernada ceria
+                playTone(880, 0, 0.12, 'sine');
+                playTone(1174.66, 0.15, 0.18, 'sine');
+            } else if (choice === 'grabchime') {
+                // Grab Style: Chime harmonis naik
+                playTone(523.25, 0, 0.1, 'triangle');
+                playTone(659.25, 0.1, 0.1, 'triangle');
+                playTone(783.99, 0.2, 0.2, 'triangle');
+            } else if (choice === 'lalamovebell') {
+                // Lalamove Style: Ding bell tinggi tegas
+                playTone(1318.51, 0, 0.08, 'sine');
+                playTone(1567.98, 0.1, 0.25, 'sine');
+            } else if (choice === 'shopeeping') {
+                // Shopee Style: Ping cepat melengking
+                playTone(987.77, 0, 0.08, 'square');
+                playTone(1318.51, 0.09, 0.12, 'square');
+            } else {
+                // Classic Beep
+                playTone(800, 0, 0.2, 'sine');
+            }
+        } catch (e) {
+            console.log("Audio context error:", e);
+        }
+    }
+
+    function triggerCustomVibration(type) {
+        if (!getStoredVibrationChoice()) return;
+        if (navigator.vibrate) {
+            if (type === 'radarOrder') {
+                navigator.vibrate([200, 100, 200, 100, 300]);
+            } else if (type === 'routeConfirmed') {
+                navigator.vibrate([150, 100, 150]);
+            } else {
+                navigator.vibrate(150);
+            }
+        }
+    }
 
     const redPinIcon = L.divIcon({
         html: '<i class="fa-solid fa-location-dot" style="font-size:26px; color:#eb5757; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4));"></i>',
