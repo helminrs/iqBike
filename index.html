@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>iqBike - System Hybrid inDrive Style</title>
+    <title>iqBike - Multi-Driver System inDrive Style</title>
 
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1221,7 +1221,6 @@
     const db = firebase.firestore();
 
     const ADMIN_MASTER_KEY = "9922";
-    const DRIVER_ID = "driver_utama";
 
     function getStoredPin() {
         return localStorage.getItem('iqbike_driver_pin') || "8899";
@@ -1231,7 +1230,8 @@
     let currentPinMode = null;
     let pickupCoords = null, dropoffCoords = null;
     let pickupMarker = null, dropoffMarker = null;
-    let driverLiveMarker = null, passengerLiveMarker = null;
+    let driverMarkersMap = {}; // Menyimpan marker multi-driver: { waNumber: L.marker }
+    let passengerLiveMarker = null;
     let reverseGeocodeTimeout = null;
 
     let pendingNewDropoffCoords = null;
@@ -1248,9 +1248,9 @@
     let computedTotalFare = 0;
     let searchDebounce = null;
     
-    // Status online & offline state
-    let isDriverOnline = true; 
-    let currentDriverWa = "6285934602965";
+    // Status online & nomor WhatsApp unik driver saat ini
+    let isDriverOnline = localStorage.getItem('iqbike_driver_online_status') !== 'false';
+    let currentDriverWa = localStorage.getItem('iqbike_driver_wa') || "6285934602965";
 
     // --- MANAJEMEN SOUND & VIBRATION PROFESIONAL ---
     function getStoredSoundChoice() {
@@ -1795,6 +1795,7 @@
             mountMapToContainer('driverMapContainer');
             loadDriverWaNumber();
             
+            updateDriverBadgeUI(isDriverOnline);
             updateDriverAppUI();
             renderFinanceAndHistory();
 
@@ -1813,6 +1814,8 @@
 
     function toggleDriverOnlineStatus() {
         isDriverOnline = !isDriverOnline;
+        localStorage.setItem('iqbike_driver_online_status', isDriverOnline);
+        updateDriverBadgeUI(isDriverOnline);
         syncDriverToCloud();
         
         playNotificationSound();
@@ -1848,7 +1851,12 @@
     function saveDriverWaNumber() {
         const waVal = document.getElementById('driverWaInput').value.trim();
         if (waVal) {
-            currentDriverWa = formatWaNumber(waVal);
+            const newWa = formatWaNumber(waVal);
+            if (newWa !== currentDriverWa) {
+                // Hapus data lama dari cloud jika nomor WA berubah
+                db.collection("iqbike_drivers").doc(currentDriverWa).delete().catch(() => {});
+                currentDriverWa = newWa;
+            }
             localStorage.setItem('iqbike_driver_wa', currentDriverWa);
             syncDriverToCloud();
             alert("Nomor WhatsApp Driver berhasil disimpan ke Cloud Firebase!");
@@ -1890,19 +1898,20 @@
                     syncDriverToCloud();
                 }
 
-                renderAllRealtimeMarkers();
+                renderPassengerLocalMarkers();
             }, null, { enableHighAccuracy: true });
         }
     }
 
+    // Menggunakan koleksi Multi-Driver berdasarkan Nomor WhatsApp unik sebagai ID Dokumen
     function syncDriverToCloud() {
+        if (userRole !== 'driver') return;
         const driverGps = { lat: userCurrentLat, lng: userCurrentLng };
-        // Kirim status dan posisi GPS ke cloud secara bersamaan
-        db.collection("iqbike_system").doc(DRIVER_ID).set({
+        db.collection("iqbike_drivers").doc(currentDriverWa).set({
+            wa: currentDriverWa,
             lat: driverGps.lat,
             lng: driverGps.lng,
             isOnline: isDriverOnline,
-            wa: currentDriverWa,
             lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true }).catch(err => console.log("Sync driver error:", err));
     }
@@ -1927,25 +1936,24 @@
     }
 
     function listenCloudData() {
-        // Listener real-time untuk status online dan posisi GPS driver
-        db.collection("iqbike_system").doc(DRIVER_ID).onSnapshot((doc) => {
-            if (doc.exists) {
-                const data = doc.data();
-                if (data.isOnline !== undefined) {
-                    isDriverOnline = data.isOnline;
-                }
-                updateDriverBadgeUI(isDriverOnline);
+        // Mendengarkan SEMUA driver dalam koleksi multi-driver secara real-time
+        db.collection("iqbike_drivers").onSnapshot((snapshot) => {
+            let anyDriverOnline = false;
+            let activeDriversList = {};
 
-                if (data.lat && data.lng) {
-                    localStorage.setItem('iqbike_driver_gps', JSON.stringify({ lat: data.lat, lng: data.lng }));
-                    
-                    if (userRole === 'penumpang') {
-                        updatePassengerStatusBoxFromCloud(isDriverOnline);
-                    }
-                    if (data.wa) currentDriverWa = data.wa;
-                    
-                    renderAllRealtimeMarkers();
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                const waKey = doc.id;
+                activeDriversList[waKey] = data;
+
+                if (data.isOnline) {
+                    anyDriverOnline = true;
                 }
+            });
+
+            if (userRole === 'penumpang') {
+                updatePassengerStatusBoxGlobal(anyDriverOnline);
+                renderAllMultiDriversOnMap(activeDriversList);
             }
         });
 
@@ -1954,7 +1962,7 @@
                 const data = doc.data();
                 if (data.lat && data.lng) {
                     localStorage.setItem('iqbike_passenger_gps', JSON.stringify({ lat: data.lat, lng: data.lng }));
-                    renderAllRealtimeMarkers();
+                    renderPassengerLocalMarkers();
                 }
             }
         });
@@ -1992,12 +2000,12 @@
         });
     }
 
-    function updatePassengerStatusBoxFromCloud(onlineStatus) {
+    function updatePassengerStatusBoxGlobal(anyOnline) {
         const statusBox = document.getElementById('driverStatusBox');
         if (!statusBox) return;
         const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
         if (!order) {
-            if (onlineStatus) {
+            if (anyOnline) {
                 statusBox.className = "status-box status-online";
                 statusBox.innerHTML = `<i class="fa-solid fa-circle"></i> Driver Online & Siap Menerima Order`;
             } else {
@@ -2007,19 +2015,26 @@
         }
     }
 
-    function renderAllRealtimeMarkers() {
-        const driverGps = JSON.parse(localStorage.getItem('iqbike_driver_gps'));
-        if (driverGps && map) {
-            // Ikon motor otomatis hijau jika isDriverOnline = true, atau abu-abu (offline) secara real-time di semua device
-            const activeIcon = isDriverOnline ? driverMotorIcon : driverOfflineIcon;
-            if (!driverLiveMarker) {
-                driverLiveMarker = L.marker([driverGps.lat, driverGps.lng], {icon: activeIcon, zIndexOffset: 1000}).addTo(map);
-            } else {
-                driverLiveMarker.setLatLng([driverGps.lat, driverGps.lng]);
-                driverLiveMarker.setIcon(activeIcon);
-            }
-        }
+    function renderAllMultiDriversOnMap(driversObj) {
+        if (!map) return;
 
+        // Render atau perbarui posisi seluruh driver yang terdaftar di database
+        Object.keys(driversObj).forEach(waKey => {
+            const dData = driversObj[waKey];
+            if (!dData.lat || !dData.lng) return;
+
+            const iconToUse = dData.isOnline ? driverMotorIcon : driverOfflineIcon;
+
+            if (!driverMarkersMap[waKey]) {
+                driverMarkersMap[waKey] = L.marker([dData.lat, dData.lng], {icon: iconToUse, zIndexOffset: 1000}).addTo(map);
+            } else {
+                driverMarkersMap[waKey].setLatLng([dData.lat, dData.lng]);
+                driverMarkersMap[waKey].setIcon(iconToUse);
+            }
+        });
+    }
+
+    function renderPassengerLocalMarkers() {
         const passengerGps = JSON.parse(localStorage.getItem('iqbike_passenger_gps'));
         if (passengerGps && map) {
             if (!passengerLiveMarker) {
@@ -2771,7 +2786,6 @@
         const dropoffInput = document.getElementById('dropoffLocation');
 
         if (!order) {
-            updatePassengerStatusBoxFromCloud(isDriverOnline);
             btnSend.innerHTML = `<i class="fa-brands fa-whatsapp"></i> Kirim Pesan Orderan ke Driver`;
             btnSend.disabled = false;
             btnSend.classList.remove('btn-disabled');
