@@ -1320,7 +1320,6 @@
             return;
         }
 
-        // Ambil titik referensi dari tujuan terakhir yang tersimpan di order
         const currentLastDropoffCoords = L.latLng(activeOrder.dropoffLat, activeOrder.dropoffLng);
         const addDistMeters = map.distance(currentLastDropoffCoords, newLatLng);
 
@@ -1351,7 +1350,6 @@
             activeOrder.routeChanges = [];
         }
         
-        // Catat titik perubahan rute ke dalam array (mendukung multi-kali ganti titik)
         activeOrder.routeChanges.push({
             from: activeOrder.dropoff,
             to: pendingNewDropoffName,
@@ -1407,7 +1405,6 @@
         }
     }
 
-    // FUNGSI DETAIL RINCIAN MULTI-TITIK SINGGAH DAN ONGKOS AWAL
     function openDriverChangeDetails() {
         const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
         const container = document.getElementById('driverChangeDetailContent');
@@ -2020,8 +2017,8 @@
             pickupLat: pickupCoords.lat, pickupLng: pickupCoords.lng,
             dropoffLat: dropoffCoords.lat, dropoffLng: dropoffCoords.lng,
             fare: computedTotalFare,
-            initialFare: computedTotalFare, // Simpan ongkos awal secara independen
-            initialDropoff: dropoff,        // Simpan tujuan awal pesanan
+            initialFare: computedTotalFare, 
+            initialDropoff: dropoff,        
             status: 'WAITING',
             note: note,
             routeChanges: [],
@@ -2243,12 +2240,16 @@
                 statusBadge = `<span style="background:#e3f2fd; color:#1565c0; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">AKTIF / PROSES</span>`;
             }
 
+            let initialFare = item.initialFare !== undefined ? item.initialFare : item.fare;
+            let initialDropoff = item.initialDropoff || item.dropoff;
+
             let changesHtml = '';
             if (item.routeChanges && item.routeChanges.length > 0) {
-                changesHtml = `<div style="margin-top:2px; font-size:10px; color:#0288d1; background:#f0f8ff; padding:4px; border-radius:4px;">
-                    <strong>Catatan Perubahan Rute:</strong>`;
+                changesHtml = `<div style="margin-top:4px; font-size:11px; color:#0288d1; background:#f0f8ff; padding:6px; border-radius:4px;">
+                    <strong>Rincian Perubahan Rute:</strong>
+                    <div>• Tujuan Awal: ${initialDropoff} (Rp ${initialFare.toLocaleString('id-ID')})</div>`;
                 item.routeChanges.forEach((ch, idx) => {
-                    changesHtml += `<div>${idx+1}. Ubah ke: ${ch.to} (+Rp ${ch.extraFare.toLocaleString('id-ID')})</div>`;
+                    changesHtml += `<div>• Perubahan ke-${idx+1} ke: ${ch.to} (+Rp ${ch.extraFare.toLocaleString('id-ID')})</div>`;
                 });
                 changesHtml += `</div>`;
             }
@@ -2284,10 +2285,10 @@
                     <span><i class="fa-solid fa-route"></i> Perjalanan ${item.time} (${item.passengerName})</span>
                     ${statusBadge}
                 </div>
-                <div style="color:#666; font-size:11px; margin-top:2px;">
+                <div style="color:#666; font-size:11px; margin-top:4px;">
                     <div><strong>Jemput:</strong> ${item.pickup}</div>
                     <div><strong>Tujuan Akhir:</strong> ${item.dropoff}</div>
-                    <div><strong>Total Ongkos:</strong> Rp ${item.fare.toLocaleString('id-ID')}</div>
+                    <div style="color:#27ae60; font-weight:bold; margin-top:2px;">Total Keseluruhan Ongkos: Rp ${item.fare.toLocaleString('id-ID')}</div>
                 </div>
                 ${changesHtml}
                 ${actionButtonsHTML}
@@ -2325,9 +2326,13 @@
             
             const routeChangesInfoEl = document.getElementById('recRouteChangesInfo');
             if (order.routeChanges && order.routeChanges.length > 0) {
-                let changesText = "<strong>Catatan Perubahan Rute:</strong><br>";
+                let initialFare = order.initialFare !== undefined ? order.initialFare : (order.fare - order.routeChanges.reduce((acc, cur) => acc + cur.extraFare, 0));
+                let initialDropoff = order.initialDropoff || order.routeChanges[0].from;
+
+                let changesText = `<strong>Rincian Perjalanan & Perubahan Rute:</strong><br>`;
+                changesText += `• Tujuan Awal: ${initialDropoff} (Rp ${initialFare.toLocaleString('id-ID')})<br>`;
                 order.routeChanges.forEach((ch, idx) => {
-                    changesText += `${idx+1}. Ke: ${ch.to} (+Rp ${ch.extraFare.toLocaleString('id-ID')})<br>`;
+                    changesText += `• Perubahan ke-${idx+1} ke: ${ch.to} (+Rp ${ch.extraFare.toLocaleString('id-ID')})<br>`;
                 });
                 routeChangesInfoEl.innerHTML = changesText;
                 routeChangesInfoEl.style.display = 'block';
@@ -2458,24 +2463,32 @@
                         </div>
                     `;
                 } else {
+                    let initialFare = item.initialFare !== undefined ? item.initialFare : item.fare;
+                    let initialDropoff = item.initialDropoff || item.dropoff;
+
                     let changesText = '';
                     if (item.routeChanges && item.routeChanges.length > 0) {
-                        changesText = `<div style="font-size:10px; color:#0288d1; margin-top:2px;"><strong>Catatan Perubahan:</strong> `;
+                        changesText = `<div style="font-size:11px; color:#0288d1; margin-top:4px; background:#f0f8ff; padding:6px; border-radius:4px;">
+                            <strong>Rincian Perubahan Titik:</strong>
+                            <div>• Tujuan Awal: ${initialDropoff} (Rp ${initialFare.toLocaleString('id-ID')})</div>`;
                         item.routeChanges.forEach((ch, idx) => {
-                            changesText += `(${idx+1}) Ke: ${ch.to} (+Rp ${ch.extraFare.toLocaleString('id-ID')}) `;
+                            changesText += `<div>• Perubahan ke-${idx+1} ke: ${ch.to} (+Rp ${ch.extraFare.toLocaleString('id-ID')})</div>`;
                         });
                         changesText += `</div>`;
+                    } else {
+                        changesText = `<div style="font-size:11px; color:#555; margin-top:2px;">Ongkos Awal & Final: Rp ${item.fare.toLocaleString('id-ID')} (Tanpa Perubahan Titik)</div>`;
                     }
+
                     card.innerHTML = `
-                        <div style="display:flex; justify-content:space-between; font-weight:bold;">
+                        <div style="display:flex; justify-content:space-between; font-weight:bold; align-items:center;">
                             <span><i class="fa-solid fa-user"></i> ${item.passengerName} (${item.time})</span>
-                            <span style="color:#27ae60;">+Rp ${item.fare.toLocaleString('id-ID')}</span>
+                            <span style="color:#27ae60; font-size:13px;">Rp ${item.fare.toLocaleString('id-ID')}</span>
                         </div>
-                        <div style="color:#666; font-size:11px;">
+                        <div style="color:#666; font-size:11px; margin-top:4px;">
                             <div><strong>Jemput:</strong> ${item.pickup}</div>
                             <div><strong>Tujuan Akhir:</strong> ${item.dropoff}</div>
-                            ${changesText}
                         </div>
+                        ${changesText}
                     `;
                 }
                 modalContainer.appendChild(card);
