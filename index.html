@@ -352,6 +352,12 @@
             background: #fff;
         }
 
+        .form-input:disabled {
+            background-color: #eaedef;
+            color: #555;
+            cursor: not-allowed;
+        }
+
         .search-results {
             position: absolute;
             top: 100%;
@@ -680,6 +686,10 @@
             backdrop-filter: blur(4px);
         }
 
+        .mini-gps-badge.offline {
+            color: #eb5757 !important;
+        }
+
         .driver-control-bar {
             background: #1e1e1e;
             padding: 8px 12px;
@@ -1006,8 +1016,8 @@
                 <!-- Peta disisipkan via JS -->
             </div>
 
-            <div class="mini-gps-badge">
-                <i class="fa-solid fa-signal"></i> GPS DRIVER ONLINE
+            <div id="miniGpsBadge" class="mini-gps-badge">
+                <i class="fa-solid fa-signal"></i> <span id="gpsBadgeText">GPS DRIVER ONLINE</span>
             </div>
 
             <div id="floatingRadarPanel" class="floating-radar-overlay" style="display:none;">
@@ -1046,7 +1056,6 @@
 
 <script>
     // --- KONFIGURASI FIREBASE CLOUD ---
-    // Ganti dengan konfigurasi project Firebase Anda sendiri
     const firebaseConfig = {
         apiKey: "YOUR_API_KEY",
         authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -1056,14 +1065,13 @@
         appId: "YOUR_APP_ID"
     };
 
-    // Inisialisasi Firebase
     if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
     }
     const db = firebase.firestore();
 
     const ADMIN_MASTER_KEY = "9922";
-    const DRIVER_ID = "driver_utama"; // ID unik driver tunggal di cloud
+    const DRIVER_ID = "driver_utama";
 
     function getStoredPin() {
         return localStorage.getItem('iqbike_driver_pin') || "8899";
@@ -1098,9 +1106,10 @@
         iconSize: [26, 26], iconAnchor: [13, 26], className: 'custom-pin'
     });
 
+    // Ikon Bendera Tanpa Background Putih Bulat
     const finishFlagIcon = L.divIcon({
-        html: '<i class="fa-solid fa-flag-checkered" style="font-size:22px; color:#111; background:#fff; padding:2px; border-radius:50%; border:1px solid #111; box-shadow:0 2px 4px rgba(0,0,0,0.3);"></i>',
-        iconSize: [24, 24], iconAnchor: [12, 12], className: 'custom-flag'
+        html: '<i class="fa-solid fa-flag-checkered" style="font-size:24px; color:#111; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4));"></i>',
+        iconSize: [24, 24], iconAnchor: [12, 12], className: 'custom-flag-nobg'
     });
 
     const driverMotorIcon = L.divIcon({
@@ -1459,6 +1468,20 @@
         syncDriverToCloud();
     }
 
+    function updateDriverBadgeUI(online) {
+        const badge = document.getElementById('miniGpsBadge');
+        const text = document.getElementById('gpsBadgeText');
+        if (!badge || !text) return;
+
+        if (online) {
+            badge.classList.remove('offline');
+            text.innerText = "GPS DRIVER ONLINE";
+        } else {
+            badge.classList.add('offline');
+            text.innerText = "GPS DRIVER OFFLINE";
+        }
+    }
+
     function saveDriverWaNumber() {
         const waVal = document.getElementById('driverWaInput').value.trim();
         if (waVal) {
@@ -1533,7 +1556,6 @@
     }
 
     function listenCloudData() {
-        // Pantau Pergerakan & Status Driver (Persistent Icon)
         db.collection("iqbike_system").doc(DRIVER_ID).onSnapshot((doc) => {
             if (doc.exists) {
                 const data = doc.data();
@@ -1544,11 +1566,11 @@
                     
                     renderAllRealtimeMarkers();
                     updatePassengerStatusBoxFromCloud(isDriverOnline);
+                    updateDriverBadgeUI(isDriverOnline);
                 }
             }
         });
 
-        // Pantau Orderan Realtime
         db.collection("iqbike_system").doc("active_order").onSnapshot((doc) => {
             if (doc.exists) {
                 const cloudOrder = doc.data();
@@ -2086,6 +2108,7 @@
 
     function closeReceiptModal() {
         document.getElementById('receiptModal').style.display = 'none';
+        updatePassengerAppUI();
     }
 
     function openExpenseModal() {
@@ -2241,6 +2264,10 @@
         const btnCancel = document.getElementById('btnCancelOrder');
         const btnJemput = document.getElementById('btnModeJemput');
         const pickupInput = document.getElementById('pickupLocation');
+        const nameInput = document.getElementById('passengerName');
+        const phoneInput = document.getElementById('passengerPhone');
+        const noteInput = document.getElementById('passengerNote');
+        const dropoffInput = document.getElementById('dropoffLocation');
 
         if (!order) {
             updatePassengerStatusBoxFromCloud(isDriverOnline);
@@ -2251,31 +2278,38 @@
 
             btnJemput.disabled = false;
             pickupInput.disabled = false;
+            nameInput.disabled = false;
+            phoneInput.disabled = false;
+            noteInput.disabled = false;
+            dropoffInput.disabled = false;
             return;
         }
 
-        document.getElementById('passengerName').value = order.passengerName || '';
-        document.getElementById('passengerPhone').value = order.passengerPhone || '';
-        document.getElementById('passengerNote').value = order.note !== '-' ? order.note : '';
-        document.getElementById('pickupLocation').value = order.pickup || '';
-        document.getElementById('dropoffLocation').value = order.dropoff || '';
+        nameInput.value = order.passengerName || '';
+        phoneInput.value = order.passengerPhone || '';
+        noteInput.value = order.note !== '-' ? order.note : '';
+        pickupInput.value = order.pickup || '';
+        dropoffInput.value = order.dropoff || '';
 
-        if (order.status === 'WAITING') {
-            btnCancel.style.display = 'flex';
-        } else {
-            btnCancel.style.display = 'none';
-        }
-
+        // Lock form inputs when order is confirmed by driver
         if (order.status !== 'WAITING') {
-            btnJemput.disabled = true;
+            nameInput.disabled = true;
+            phoneInput.disabled = true;
+            noteInput.disabled = true;
             pickupInput.disabled = true;
-            
+            btnJemput.disabled = true;
+
+            btnCancel.style.display = 'none';
             btnSend.innerHTML = `<i class="fa-brands fa-whatsapp"></i> Chat WhatsApp ke Driver`;
             btnSend.style.backgroundColor = 'var(--whatsapp-green)';
         } else {
-            btnJemput.disabled = false;
+            nameInput.disabled = false;
+            phoneInput.disabled = false;
+            noteInput.disabled = false;
             pickupInput.disabled = false;
-            
+            btnJemput.disabled = false;
+
+            btnCancel.style.display = 'flex';
             btnSend.innerHTML = `<i class="fa-brands fa-whatsapp"></i> Kirim Pesan Orderan ke Driver`;
         }
 
