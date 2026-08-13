@@ -774,7 +774,7 @@
         </div>
     </div>
 
-    <!-- MODAL KHUSUS PENUMPANG SAAT UBAH TUJUAN -->
+    <!-- HANYA MUNCUL DI SISI PENUMPANG -->
     <div id="confirmDestinationChangeModal" class="modal-overlay" style="display: none;">
         <div class="login-card" style="background:#fff; color:#222; text-align:left;">
             <div style="text-align:center; border-bottom:1px solid #eee; padding-bottom:10px;">
@@ -797,13 +797,13 @@
         </div>
     </div>
 
-    <!-- MODAL KHUSUS DRIVER KETIKA PENUMPANG SETUJU UBAH TUJUAN -->
+    <!-- HANYA MUNCUL DI SISI DRIVER KETIKA PENUMPANG MENYETUJUI PERUBAHAN TUJUAN -->
     <div id="driverRouteUpdateModal" class="modal-overlay" style="display: none;">
         <div class="login-card" style="background:#fff; color:#222; text-align:left;">
             <div style="text-align:center; border-bottom:1px solid #eee; padding-bottom:10px;">
                 <i class="fa-solid fa-map-location-dot" style="font-size:36px; color:#4285f4;"></i>
                 <h3 style="margin-top:6px;">Pemberitahuan Rute Berubah</h3>
-                <p style="font-size:11px; color:#777;">Penumpang telah mengubah titik tujuan perjalanan</p>
+                <p style="font-size:11px; color:#777;">Penumpang telah menyetujui perubahan titik tujuan</p>
             </div>
             
             <div style="font-size:12px; display:flex; flex-direction:column; gap:6px; background:#f9f9f9; padding:10px; border-radius:8px;">
@@ -1111,7 +1111,7 @@
     let pendingNewDropoffCoords = null;
     let pendingNewDropoffName = "";
     let pendingCalculatedNewFare = 0;
-    let lastHandledRouteVersion = 0; // Pelacak update rute untuk driver
+    let lastHandledRouteVersion = 0;
 
     const savedLastPos = JSON.parse(localStorage.getItem('iqbike_last_known_pos'));
     let userCurrentLat = savedLastPos ? savedLastPos.lat : -7.02443;
@@ -1283,6 +1283,9 @@
     }
 
     function handleDestinationChangeAttempt(newLatLng, newPlaceName) {
+        // HANYA EKSEKUSI JIKA YANG MENGUBAH ADALAH PENUMPANG
+        if (userRole !== 'penumpang') return;
+
         const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
 
         if (!activeOrder) {
@@ -1302,15 +1305,12 @@
         pendingNewDropoffCoords = newLatLng;
         pendingNewDropoffName = newPlaceName;
 
-        // Tampilkan modal konfirmasi khusus di SISI PENUMPANG SAJA
-        if (userRole === 'penumpang') {
-            document.getElementById('modalOldDest').innerText = activeOrder.dropoff;
-            document.getElementById('modalNewDest').innerText = newPlaceName;
-            document.getElementById('modalAddKm').innerText = `+${(addDistMeters/1000).toFixed(1)} km (Rute Singgah Tambahan)`;
-            document.getElementById('modalNewFare').innerText = `Rp ${pendingCalculatedNewFare.toLocaleString('id-ID')}`;
+        document.getElementById('modalOldDest').innerText = activeOrder.dropoff;
+        document.getElementById('modalNewDest').innerText = newPlaceName;
+        document.getElementById('modalAddKm').innerText = `+${(addDistMeters/1000).toFixed(1)} km (Rute Singgah Tambahan)`;
+        document.getElementById('modalNewFare').innerText = `Rp ${pendingCalculatedNewFare.toLocaleString('id-ID')}`;
 
-            document.getElementById('confirmDestinationChangeModal').style.display = 'flex';
-        }
+        document.getElementById('confirmDestinationChangeModal').style.display = 'flex';
     }
 
     function applyDestinationChange() {
@@ -1324,7 +1324,7 @@
         activeOrder.dropoffLat = pendingNewDropoffCoords.lat;
         activeOrder.dropoffLng = pendingNewDropoffCoords.lng;
         activeOrder.fare = pendingCalculatedNewFare;
-        activeOrder.routeVersion = (activeOrder.routeVersion || 0) + 1; // Tambah versi rute untuk memicu alert driver
+        activeOrder.routeVersion = (activeOrder.routeVersion || 0) + 1; // Memicu update ke Driver
 
         localStorage.setItem('iqbike_active_order', JSON.stringify(activeOrder));
         computedTotalFare = pendingCalculatedNewFare;
@@ -1654,7 +1654,7 @@
                     localStorage.setItem('iqbike_active_order', JSON.stringify(cloudOrder));
                     triggerVibration([200, 100, 200]);
                 } else if (cloudOrder.routeVersion && cloudOrder.routeVersion > lastHandledRouteVersion) {
-                    // Jika rute diperbarui oleh penumpang, tampilkan modal khusus untuk Driver
+                    // MUNCULKAN NOTIFIKASI KHUSUS DI SISI DRIVER KETIKA PENUMPANG MENYETUJUI PERUBAHAN RUTE
                     if (userRole === 'driver') {
                         lastHandledRouteVersion = cloudOrder.routeVersion;
                         document.getElementById('driverModalNewDest').innerText = cloudOrder.dropoff;
