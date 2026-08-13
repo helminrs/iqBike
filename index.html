@@ -1248,8 +1248,8 @@
     let computedTotalFare = 0;
     let searchDebounce = null;
     
-    // Perbaikan Default: Langsung di-set true agar otomatis online sejak awal aplikasi dimuat
-    let isDriverOnline = localStorage.getItem('iqbike_driver_online_status') !== 'false';
+    // Status online & offline state
+    let isDriverOnline = true; 
     let currentDriverWa = "6285934602965";
 
     // --- MANAJEMEN SOUND & VIBRATION PROFESIONAL ---
@@ -1432,9 +1432,6 @@
 
         startLiveGpsTracking();
         listenCloudData();
-        
-        // Paksa sinkronisasi status online ke cloud saat pertama kali peta dimuat
-        syncDriverToCloud();
     }
 
     function mountMapToContainer(containerId) {
@@ -1798,16 +1795,6 @@
             mountMapToContainer('driverMapContainer');
             loadDriverWaNumber();
             
-            const btn = document.getElementById('btnToggleDriverStatus');
-            if (isDriverOnline) {
-                btn.className = "btn-toggle-online online";
-                btn.innerText = "Online";
-            } else {
-                btn.className = "btn-toggle-online offline";
-                btn.innerText = "Offline";
-            }
-            updateDriverBadgeUI(isDriverOnline);
-
             updateDriverAppUI();
             renderFinanceAndHistory();
 
@@ -1826,24 +1813,27 @@
 
     function toggleDriverOnlineStatus() {
         isDriverOnline = !isDriverOnline;
-        localStorage.setItem('iqbike_driver_online_status', isDriverOnline);
-        const btn = document.getElementById('btnToggleDriverStatus');
-        if (isDriverOnline) {
-            btn.className = "btn-toggle-online online";
-            btn.innerText = "Online";
-        } else {
-            btn.className = "btn-toggle-online offline";
-            btn.innerText = "Offline";
-        }
-        updateDriverBadgeUI(isDriverOnline);
+        syncDriverToCloud();
+        
         playNotificationSound();
         triggerCustomVibration('onlineOffline');
-        syncDriverToCloud();
     }
 
     function updateDriverBadgeUI(online) {
         const badge = document.getElementById('miniGpsBadge');
         const text = document.getElementById('gpsBadgeText');
+        const btn = document.getElementById('btnToggleDriverStatus');
+        
+        if (btn) {
+            if (online) {
+                btn.className = "btn-toggle-online online";
+                btn.innerText = "Online";
+            } else {
+                btn.className = "btn-toggle-online offline";
+                btn.innerText = "Offline";
+            }
+        }
+
         if (!badge || !text) return;
 
         if (online) {
@@ -1907,6 +1897,7 @@
 
     function syncDriverToCloud() {
         const driverGps = { lat: userCurrentLat, lng: userCurrentLng };
+        // Kirim status dan posisi GPS ke cloud secara bersamaan
         db.collection("iqbike_system").doc(DRIVER_ID).set({
             lat: driverGps.lat,
             lng: driverGps.lng,
@@ -1936,14 +1927,19 @@
     }
 
     function listenCloudData() {
+        // Listener real-time untuk status online dan posisi GPS driver
         db.collection("iqbike_system").doc(DRIVER_ID).onSnapshot((doc) => {
             if (doc.exists) {
                 const data = doc.data();
+                if (data.isOnline !== undefined) {
+                    isDriverOnline = data.isOnline;
+                }
+                updateDriverBadgeUI(isDriverOnline);
+
                 if (data.lat && data.lng) {
                     localStorage.setItem('iqbike_driver_gps', JSON.stringify({ lat: data.lat, lng: data.lng }));
                     
                     if (userRole === 'penumpang') {
-                        isDriverOnline = data.isOnline !== undefined ? data.isOnline : true;
                         updatePassengerStatusBoxFromCloud(isDriverOnline);
                     }
                     if (data.wa) currentDriverWa = data.wa;
@@ -2014,6 +2010,7 @@
     function renderAllRealtimeMarkers() {
         const driverGps = JSON.parse(localStorage.getItem('iqbike_driver_gps'));
         if (driverGps && map) {
+            // Ikon motor otomatis hijau jika isDriverOnline = true, atau abu-abu (offline) secara real-time di semua device
             const activeIcon = isDriverOnline ? driverMotorIcon : driverOfflineIcon;
             if (!driverLiveMarker) {
                 driverLiveMarker = L.marker([driverGps.lat, driverGps.lng], {icon: activeIcon, zIndexOffset: 1000}).addTo(map);
