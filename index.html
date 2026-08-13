@@ -847,7 +847,7 @@
                 <h3 style="font-size:15px; font-weight:bold;"><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Perjalanan</h3>
                 <button onclick="closePassengerHistoryModal()" style="background:none; border:none; font-size:18px; color:#666; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <p style="font-size:11px; color:#666;">Gunakan fitur Tukar Rute PP atau Ulangi Pesanan untuk mempercepat pengisian alamat.</p>
+            <p style="font-size:11px; color:#666;">Semua pesanan selesai, diubah tujuannya, atau dibatalkan tercatat rapi di sini.</p>
             
             <div id="passengerHistoryContainer" style="display:flex; flex-direction:column; gap:8px; max-height:50vh; overflow-y:auto;">
                 <p style="font-size: 11px; color: #a0a0a0; text-align:center;">Belum ada riwayat pesanan.</p>
@@ -1322,13 +1322,18 @@
         activeOrder.dropoffLat = pendingNewDropoffCoords.lat;
         activeOrder.dropoffLng = pendingNewDropoffCoords.lng;
         activeOrder.fare = pendingCalculatedNewFare;
-        
-        // GUNAKAN UNIK TANDA PERUBAHAN WAKTU AGAR DRIVER PASTI MENANGKAPNYA
         activeOrder.routeVersion = Date.now(); 
         activeOrder.triggerPopupForDriver = true; 
 
         localStorage.setItem('iqbike_active_order', JSON.stringify(activeOrder));
         computedTotalFare = pendingCalculatedNewFare;
+
+        // SIMPAN PERUBAHAN KE RIWAYAT PENUMPANG AGAR TERCATAT RAPI
+        let passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
+        if (passHistory.length > 0) {
+            passHistory[0] = { ...activeOrder }; // Update riwayat order aktif teratas
+            localStorage.setItem('iqbike_passenger_history', JSON.stringify(passHistory));
+        }
 
         document.getElementById('fareText').innerText = `Rp ${computedTotalFare.toLocaleString('id-ID')}`;
         document.getElementById('confirmDestinationChangeModal').style.display = 'none';
@@ -1338,6 +1343,7 @@
         renderFixedMarkers();
         updatePassengerAppUI();
         updateDriverAppUI();
+        renderPassengerHistory();
         alert("Titik Tujuan & Ongkos Tambahan Berhasil Diperbarui!");
     }
 
@@ -1354,7 +1360,6 @@
     function closeDriverRouteUpdateModal() {
         document.getElementById('driverRouteUpdateModal').style.display = 'none';
         
-        // Hapus flag trigger agar modal tidak muncul berulang kali setelah ditutup
         let activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
         if (activeOrder && activeOrder.triggerPopupForDriver) {
             activeOrder.triggerPopupForDriver = false;
@@ -1666,7 +1671,7 @@
                     localStorage.setItem('iqbike_active_order', JSON.stringify(cloudOrder));
                 }
 
-                // JIKA DI SISI DRIVER DAN ADA FLAG TRIGGER PERUBAHAN RUTE DARI PENUMPANG, MUNCULKAN MODAL
+                // PEMICU MODAL DRIVER DENGAN PENGECEKAN TRIGGER FLAG LANGSUNG
                 if (userRole === 'driver' && cloudOrder.triggerPopupForDriver) {
                     document.getElementById('driverModalNewDest').innerText = cloudOrder.dropoff;
                     document.getElementById('driverModalNewFare').innerText = `Rp ${cloudOrder.fare.toLocaleString('id-ID')}`;
@@ -1931,6 +1936,7 @@
         orderChannel.postMessage({ type: 'NEW_ORDER' });
         triggerVibration([200, 100, 200]);
 
+        // SIMPAN PESANAN BARU KE RIWAYAT PENUMPANG AGAR TERCATAT RAPI
         let passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
         passHistory.unshift(newOrder);
         localStorage.setItem('iqbike_passenger_history', JSON.stringify(passHistory));
@@ -1968,6 +1974,7 @@
         }
 
         if (confirm("Apakah Anda yakin ingin membatalkan pesanan? Driver harus diberitahu via WhatsApp.")) {
+            // CATAT PEMBATALAN KE RIWAYAT KEUANGAN DRIVER
             let history = JSON.parse(localStorage.getItem('iqbike_history') || '[]');
             const cancelLog = {
                 id: Date.now(),
@@ -1979,6 +1986,13 @@
             };
             history.unshift(cancelLog);
             localStorage.setItem('iqbike_history', JSON.stringify(history));
+
+            // CATAT JUGA STATUS BATAL KE RIWAYAT PENUMPANG AGAR TERSIMPAN RAPI
+            let passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
+            if (passHistory.length > 0) {
+                passHistory[0].status = 'CANCELLED';
+                localStorage.setItem('iqbike_passenger_history', JSON.stringify(passHistory));
+            }
 
             const waText = `⚠️ *INFO PEMBATALAN ORDER*\n\n` +
                            `Mohon maaf Driver, pesanan atas nama *${order.passengerName}* (${order.passengerPhone}) telah dibatalkan oleh penumpang.\n\n` +
@@ -1993,6 +2007,7 @@
             updatePassengerAppUI();
             updateDriverAppUI();
             renderFinanceAndHistory();
+            renderPassengerHistory();
             
             window.location.href = waUrl;
         }
@@ -2015,6 +2030,12 @@
             history.unshift(cancelLog);
             localStorage.setItem('iqbike_history', JSON.stringify(history));
 
+            let passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
+            if (passHistory.length > 0) {
+                passHistory[0].status = 'CANCELLED_BY_DRIVER';
+                localStorage.setItem('iqbike_passenger_history', JSON.stringify(passHistory));
+            }
+
             const waText = `⚠️ *INFO PEMBATALAN OLEH DRIVER*\n\n` +
                            `Driver membatalkan pesanan atas nama *${order.passengerName}* karena kendala di lokasi/nomor WhatsApp tidak aktif/diblokir.\n\n` +
                            `📍 *Titik Jemput:* ${order.pickup}`;
@@ -2027,6 +2048,7 @@
             updateDriverAppUI();
             updatePassengerAppUI();
             renderFinanceAndHistory();
+            renderPassengerHistory();
 
             alert("Pesanan dibatalkan oleh driver. Anda siap menerima orderan baru.");
             window.location.href = waUrl;
@@ -2115,11 +2137,26 @@
             const card = document.createElement('div');
             card.className = 'history-card';
             
+            let statusBadge = '';
+            if (item.status === 'CANCELLED' || item.status === 'CANCELLED_BY_DRIVER') {
+                statusBadge = `<span style="background:#fce8e6; color:#eb5757; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">DIBATALKAN</span>`;
+            } else if (item.status === 'FINISHED') {
+                statusBadge = `<span style="background:#eef7e8; color:#2e7d32; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">SELESAI</span>`;
+            } else {
+                statusBadge = `<span style="background:#e3f2fd; color:#1565c0; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">AKTIF / PROSES</span>`;
+            }
+
             let actionButtonsHTML = '';
-            if (activeOrder) {
+            if (activeOrder && activeOrder.id === item.id) {
                 actionButtonsHTML = `
                     <div style="background:#fff3e0; color:#e65100; font-size:10px; font-weight:bold; padding:6px; border-radius:6px; text-align:center; margin-top:4px;">
-                        🔒 Tombol dikunci (Ada pesanan aktif)
+                        📌 Sedang Berlangsung / Aktif
+                    </div>
+                `;
+            } else if (activeOrder) {
+                actionButtonsHTML = `
+                    <div style="background:#fff3e0; color:#e65100; font-size:10px; font-weight:bold; padding:6px; border-radius:6px; text-align:center; margin-top:4px;">
+                        🔒 Tombol dikunci (Ada pesanan aktif lain)
                     </div>
                 `;
             } else {
@@ -2136,13 +2173,14 @@
             }
 
             card.innerHTML = `
-                <div style="display:flex; justify-content:space-between; font-weight:bold;">
+                <div style="display:flex; justify-content:space-between; font-weight:bold; align-items:center;">
                     <span><i class="fa-solid fa-route"></i> Perjalanan ${item.time} (${item.passengerName})</span>
-                    <span style="color:#27ae60;">Rp ${item.fare.toLocaleString('id-ID')}</span>
+                    ${statusBadge}
                 </div>
                 <div style="color:#666; font-size:11px; margin-top:2px;">
                     <div><strong>Jemput:</strong> ${item.pickup}</div>
-                    <div><strong>Tujuan:</strong> ${item.dropoff}</div>
+                    <div><strong>Tujuan Akhir:</strong> ${item.dropoff}</div>
+                    <div><strong>Ongkos:</strong> Rp ${item.fare.toLocaleString('id-ID')}</div>
                 </div>
                 ${actionButtonsHTML}
             `;
@@ -2184,6 +2222,13 @@
             history.unshift(order);
             localStorage.setItem('iqbike_history', JSON.stringify(history));
 
+            // PERBARUI STATUS SELESAI PADA RIWAYAT PENUMPANG
+            let passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
+            if (passHistory.length > 0) {
+                passHistory[0].status = 'FINISHED';
+                localStorage.setItem('iqbike_passenger_history', JSON.stringify(passHistory));
+            }
+
             localStorage.removeItem('iqbike_active_order');
             removeOrderFromCloud();
             
@@ -2203,6 +2248,7 @@
         updateDriverAppUI();
         updatePassengerAppUI();
         renderFinanceAndHistory();
+        renderPassengerHistory();
     }
 
     function closeReceiptModal() {
@@ -2294,7 +2340,7 @@
                         </div>
                         <div style="color:#666; font-size:11px;">
                             <div><strong>Jemput:</strong> ${item.pickup}</div>
-                            <div><strong>Tujuan:</strong> ${item.dropoff}</div>
+                            <div><strong>Tujuan Akhir:</strong> ${item.dropoff}</div>
                         </div>
                     `;
                 }
@@ -2515,7 +2561,16 @@
         setTimeout(() => { if (map) map.invalidateSize(); }, 200);
     }
 
-    orderChannel.onmessage = function() {
+    orderChannel.onmessage = function(event) {
+        if (event.data && event.data.type === 'ORDER_UPDATED') {
+            const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
+            if (userRole === 'driver' && order && order.triggerPopupForDriver) {
+                document.getElementById('driverModalNewDest').innerText = order.dropoff;
+                document.getElementById('driverModalNewFare').innerText = `Rp ${order.fare.toLocaleString('id-ID')}`;
+                document.getElementById('driverRouteUpdateModal').style.display = 'flex';
+                triggerVibration([300, 150, 300]);
+            }
+        }
         calculateFare();
         updatePassengerAppUI();
         updateDriverAppUI();
