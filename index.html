@@ -14,6 +14,9 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
+    <!-- PENGATURAN NOTIFIKASI DI LUAR HTML -->
+    <script src="config.js"></script>
+
     <style>
         :root {
             --bg-dark: #121212;
@@ -830,7 +833,7 @@
         </div>
     </div>
 
-    <!-- MODAL SUB-DETAIL LENGKAP: Menampilkan Ongkos Awal & Rincian Multi-Titik Singgah -->
+    <!-- MODAL SUB-DETAIL LENGKAP -->
     <div id="driverChangeDetailInfoModal" class="modal-overlay" style="display: none;">
         <div class="login-card" style="background:#fff; color:#222; text-align:left; position:relative;">
             <button onclick="closeDriverChangeDetails()" style="position:absolute; top:12px; right:12px; background:none; border:none; font-size:18px; color:#666; cursor:pointer; font-weight:bold;">
@@ -840,7 +843,7 @@
                 <h3 style="font-size:14px; font-weight:bold; color:var(--accent-blue);"><i class="fa-solid fa-route"></i> Rincian Ongkos & Multititik Perubahan</h3>
             </div>
             <div id="driverChangeDetailContent" style="font-size:12px; display:flex; flex-direction:column; gap:6px; max-height:45vh; overflow-y:auto; background:#f9f9f9; padding:8px; border-radius:6px;">
-                <!-- Diisi via JS secara rinci -->
+                <!-- Diisi via JS -->
             </div>
             <button onclick="closeDriverChangeDetails()" style="padding:9px; border:none; background:#333; color:white; border-radius:6px; font-weight:bold; font-size:12px; cursor:pointer;">Kembali</button>
         </div>
@@ -892,9 +895,7 @@
                 <button onclick="closeHistoryDetailsModal()" style="background:none; border:none; font-size:18px; color:#666; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
-            <div id="historyDetailsListContainer" style="display:flex; flex-direction:column; gap:8px;">
-                <!-- Isi rincian riwayat -->
-            </div>
+            <div id="historyDetailsListContainer" style="display:flex; flex-direction:column; gap:8px;"></div>
 
             <div id="expenseActionContainer" style="display:none;">
                 <button class="expense-btn" onclick="openExpenseModalFromDetail()">
@@ -978,9 +979,7 @@
                 </div>
             </div>
 
-            <div id="passengerMapWrapper" class="map-wrapper">
-                <!-- Peta disisipkan via JS -->
-            </div>
+            <div id="passengerMapWrapper" class="map-wrapper"></div>
 
             <div class="form-group">
                 <label class="form-label">Lokasi Penjemputan <span style="color:red">*</span></label>
@@ -1062,9 +1061,7 @@
                 </div>
             </div>
 
-            <div id="driverMapContainer" class="map-wrapper-full">
-                <!-- Peta disisipkan via JS -->
-            </div>
+            <div id="driverMapContainer" class="map-wrapper-full"></div>
 
             <div id="miniGpsBadge" class="mini-gps-badge">
                 <i class="fa-solid fa-signal"></i> <span id="gpsBadgeText">GPS DRIVER ONLINE</span>
@@ -1079,10 +1076,7 @@
                         AKTIF
                     </span>
                 </div>
-
-                <div id="orderListContainer" style="display: flex; flex-direction: column; gap: 8px;">
-                    <!-- Card Orderan Aktif -->
-                </div>
+                <div id="orderListContainer" style="display: flex; flex-direction: column; gap: 8px;"></div>
             </div>
         </div>
     </main>
@@ -1177,10 +1171,6 @@
         html: '<i class="fa-solid fa-circle" style="font-size:14px; color:#0288d1; background:#ffffff; padding:3px; border-radius:50%; border:2px solid #0288d1; box-shadow:0 2px 6px rgba(0,0,0,0.4);"></i>',
         iconSize: [20, 20], iconAnchor: [10, 10], className: 'passenger-blue-icon'
     });
-
-    function triggerVibration(pattern) {
-        if ("vibrate" in navigator) navigator.vibrate(pattern);
-    }
 
     function formatWaNumber(phone) {
         if (!phone) return "";
@@ -1608,7 +1598,8 @@
                 document.getElementById('driverModalAddFare').innerText = lastChange ? `+Rp ${lastChange.extraFare.toLocaleString('id-ID')}` : `Ada Penambahan Rute`;
                 document.getElementById('driverModalNewFare').innerText = `Rp ${activeOrder.fare.toLocaleString('id-ID')}`;
                 document.getElementById('driverRouteUpdateModal').style.display = 'flex';
-                triggerVibration([300, 150, 300]);
+                playNotificationSound();
+                triggerCustomVibration('routeConfirmed');
             }
         }
     }
@@ -1625,6 +1616,8 @@
             btn.innerText = "Offline";
         }
         updateDriverBadgeUI(isDriverOnline);
+        playNotificationSound();
+        triggerCustomVibration('onlineOffline');
         syncDriverToCloud();
     }
 
@@ -1758,7 +1751,8 @@
                 
                 if (!localOrder || localOrder.id !== cloudOrder.id) {
                     localStorage.setItem('iqbike_active_order', JSON.stringify(cloudOrder));
-                    triggerVibration([200, 100, 200]);
+                    playNotificationSound();
+                    triggerCustomVibration('radarOrder');
                 } else {
                     localStorage.setItem('iqbike_active_order', JSON.stringify(cloudOrder));
                 }
@@ -1769,7 +1763,8 @@
                     document.getElementById('driverModalAddFare').innerText = lastChange ? `+Rp ${lastChange.extraFare.toLocaleString('id-ID')}` : `Ada Penambahan Rute`;
                     document.getElementById('driverModalNewFare').innerText = `Rp ${cloudOrder.fare.toLocaleString('id-ID')}`;
                     document.getElementById('driverRouteUpdateModal').style.display = 'flex';
-                    triggerVibration([300, 150, 300]);
+                    playNotificationSound();
+                    triggerCustomVibration('routeConfirmed');
                 }
             } else {
                 const localOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
@@ -2031,7 +2026,8 @@
         localStorage.setItem('iqbike_active_order', JSON.stringify(newOrder));
         syncOrderToCloud(newOrder);
         orderChannel.postMessage({ type: 'NEW_ORDER' });
-        triggerVibration([200, 100, 200]);
+        playNotificationSound();
+        triggerCustomVibration('radarOrder');
 
         let passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
         passHistory.unshift(newOrder);
@@ -2373,7 +2369,8 @@
         }
 
         orderChannel.postMessage({ type: 'STATUS_CHANGE' });
-        triggerVibration([500]);
+        playNotificationSound();
+        triggerCustomVibration('routeConfirmed');
 
         updateDriverAppUI();
         updatePassengerAppUI();
@@ -2717,7 +2714,8 @@
                 document.getElementById('driverModalAddFare').innerText = lastChange ? `+Rp ${lastChange.extraFare.toLocaleString('id-ID')}` : `Ada Penambahan Rute`;
                 document.getElementById('driverModalNewFare').innerText = `Rp ${order.fare.toLocaleString('id-ID')}`;
                 document.getElementById('driverRouteUpdateModal').style.display = 'flex';
-                triggerVibration([300, 150, 300]);
+                playNotificationSound();
+                triggerCustomVibration('routeConfirmed');
             }
         }
         calculateFare();
