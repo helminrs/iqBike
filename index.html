@@ -774,7 +774,7 @@
         </div>
     </div>
 
-    <!-- MODAL KHUSUS PENUMPANG (Konfirmasi Ubah Tujuan & Setuju) -->
+    <!-- MODAL PENUMPANG -->
     <div id="confirmDestinationChangeModal" class="modal-overlay" style="display: none;">
         <div class="login-card" style="background:#fff; color:#222; text-align:left;">
             <div style="text-align:center; border-bottom:1px solid #eee; padding-bottom:10px;">
@@ -797,7 +797,7 @@
         </div>
     </div>
 
-    <!-- MODAL KHUSUS DRIVER (Judul: Perubahan Terkonfirmasi & Tombol Navigasi Google Maps) -->
+    <!-- MODAL DRIVER (Judul: Perubahan Terkonfirmasi & Tombol Navigasi Google Maps) -->
     <div id="driverRouteUpdateModal" class="modal-overlay" style="display: none;">
         <div class="login-card" style="background:#fff; color:#222; text-align:left;">
             <div style="text-align:center; border-bottom:1px solid #eee; padding-bottom:10px;">
@@ -1323,7 +1323,7 @@
         activeOrder.dropoffLat = pendingNewDropoffCoords.lat;
         activeOrder.dropoffLng = pendingNewDropoffCoords.lng;
         activeOrder.fare = pendingCalculatedNewFare;
-        activeOrder.routeVersion = (activeOrder.routeVersion || 0) + 1; // Memicu update ke Driver
+        activeOrder.routeVersion = Date.now(); // DIJAMIN SELALU BARU AGAR DRIVER SELALU MENERIMA NOTIFIKASI
 
         localStorage.setItem('iqbike_active_order', JSON.stringify(activeOrder));
         computedTotalFare = pendingCalculatedNewFare;
@@ -1653,7 +1653,7 @@
                     localStorage.setItem('iqbike_active_order', JSON.stringify(cloudOrder));
                     triggerVibration([200, 100, 200]);
                 } else if (cloudOrder.routeVersion && cloudOrder.routeVersion > lastHandledRouteVersion) {
-                    // KETIKA PENUMPANG SETUJU, MUNCULKAN MODAL PEMBERITAHUAN DI DRIVER DENGAN JUDUL "Perubahan Terkonfirmasi" & TOMBOL GOOGLE MAPS TUJUAN BARU
+                    // MUNCULKAN MODAL DRIVER DENGAN JUDUL "Perubahan Terkonfirmasi" & TOMBOL GOOGLE MAPS
                     if (userRole === 'driver') {
                         lastHandledRouteVersion = cloudOrder.routeVersion;
                         document.getElementById('driverModalNewDest').innerText = cloudOrder.dropoff;
@@ -1910,7 +1910,7 @@
             dropoffLat: dropoffCoords.lat, dropoffLng: dropoffCoords.lng,
             fare: computedTotalFare, status: 'WAITING',
             note: note,
-            routeVersion: 1,
+            routeVersion: Date.now(),
             timestamp: Date.now(),
             time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
         };
