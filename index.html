@@ -83,6 +83,7 @@
             display: flex;
             flex-direction: column;
             gap: 16px;
+            position: relative;
         }
 
         .role-btn {
@@ -797,10 +798,15 @@
         </div>
     </div>
 
-    <!-- MODAL DRIVER (Judul: Perubahan Terkonfirmasi & Tombol Navigasi Google Maps) -->
+    <!-- MODAL DRIVER (Dilengkapi tombol X di sudut kanan atas) -->
     <div id="driverRouteUpdateModal" class="modal-overlay" style="display: none;">
-        <div class="login-card" style="background:#fff; color:#222; text-align:left;">
-            <div style="text-align:center; border-bottom:1px solid #eee; padding-bottom:10px;">
+        <div class="login-card" style="background:#fff; color:#222; text-align:left; position:relative;">
+            <!-- Tombol X Silang di Pojok Kanan Atas -->
+            <button onclick="closeDriverRouteUpdateModal()" style="position:absolute; top:12px; right:12px; background:none; border:none; font-size:18px; color:#666; cursor:pointer; font-weight:bold;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div style="text-align:center; border-bottom:1px solid #eee; padding-bottom:10px; padding-right:16px;">
                 <i class="fa-solid fa-circle-check" style="font-size:36px; color:#27ae60;"></i>
                 <h3 style="margin-top:6px;">Perubahan Terkonfirmasi</h3>
                 <p style="font-size:11px; color:#777;">Penumpang telah menyetujui perubahan rute tujuan</p>
@@ -1328,10 +1334,9 @@
         localStorage.setItem('iqbike_active_order', JSON.stringify(activeOrder));
         computedTotalFare = pendingCalculatedNewFare;
 
-        // SIMPAN PERUBAHAN KE RIWAYAT PENUMPANG AGAR TERCATAT RAPI
         let passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
         if (passHistory.length > 0) {
-            passHistory[0] = { ...activeOrder }; // Update riwayat order aktif teratas
+            passHistory[0] = { ...activeOrder }; 
             localStorage.setItem('iqbike_passenger_history', JSON.stringify(passHistory));
         }
 
@@ -1518,6 +1523,15 @@
 
             updateDriverAppUI();
             renderFinanceAndHistory();
+
+            // CEK APAKAH ADA FLAG TRIGGER PENDING DI LOCALSTORAGE SAAT DRIVER LOGIN
+            const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
+            if (activeOrder && activeOrder.triggerPopupForDriver) {
+                document.getElementById('driverModalNewDest').innerText = activeOrder.dropoff;
+                document.getElementById('driverModalNewFare').innerText = `Rp ${activeOrder.fare.toLocaleString('id-ID')}`;
+                document.getElementById('driverRouteUpdateModal').style.display = 'flex';
+                triggerVibration([300, 150, 300]);
+            }
         }
     }
 
@@ -1671,7 +1685,7 @@
                     localStorage.setItem('iqbike_active_order', JSON.stringify(cloudOrder));
                 }
 
-                // PEMICU MODAL DRIVER DENGAN PENGECEKAN TRIGGER FLAG LANGSUNG
+                // PEMICU MODAL DRIVER DENGAN PENGECEKAN FLAG YANG KUAT
                 if (userRole === 'driver' && cloudOrder.triggerPopupForDriver) {
                     document.getElementById('driverModalNewDest').innerText = cloudOrder.dropoff;
                     document.getElementById('driverModalNewFare').innerText = `Rp ${cloudOrder.fare.toLocaleString('id-ID')}`;
@@ -1936,7 +1950,6 @@
         orderChannel.postMessage({ type: 'NEW_ORDER' });
         triggerVibration([200, 100, 200]);
 
-        // SIMPAN PESANAN BARU KE RIWAYAT PENUMPANG AGAR TERCATAT RAPI
         let passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
         passHistory.unshift(newOrder);
         localStorage.setItem('iqbike_passenger_history', JSON.stringify(passHistory));
@@ -1974,7 +1987,6 @@
         }
 
         if (confirm("Apakah Anda yakin ingin membatalkan pesanan? Driver harus diberitahu via WhatsApp.")) {
-            // CATAT PEMBATALAN KE RIWAYAT KEUANGAN DRIVER
             let history = JSON.parse(localStorage.getItem('iqbike_history') || '[]');
             const cancelLog = {
                 id: Date.now(),
@@ -1987,7 +1999,6 @@
             history.unshift(cancelLog);
             localStorage.setItem('iqbike_history', JSON.stringify(history));
 
-            // CATAT JUGA STATUS BATAL KE RIWAYAT PENUMPANG AGAR TERSIMPAN RAPI
             let passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
             if (passHistory.length > 0) {
                 passHistory[0].status = 'CANCELLED';
@@ -2222,7 +2233,6 @@
             history.unshift(order);
             localStorage.setItem('iqbike_history', JSON.stringify(history));
 
-            // PERBARUI STATUS SELESAI PADA RIWAYAT PENUMPANG
             let passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
             if (passHistory.length > 0) {
                 passHistory[0].status = 'FINISHED';
