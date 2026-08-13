@@ -800,7 +800,7 @@
         </div>
     </div>
 
-    <!-- MODAL DRIVER: Tombol bawah diganti menjadi Detail Perubahan Rute -->
+    <!-- MODAL DRIVER -->
     <div id="driverRouteUpdateModal" class="modal-overlay" style="display: none;">
         <div class="login-card" style="background:#fff; color:#222; text-align:left; position:relative;">
             <button onclick="closeDriverRouteUpdateModal()" style="position:absolute; top:12px; right:12px; background:none; border:none; font-size:18px; color:#666; cursor:pointer; font-weight:bold;">
@@ -830,19 +830,19 @@
         </div>
     </div>
 
-    <!-- MODAL SUB-DETAIL PERUBAHAN RUTE UNTUK DRIVER -->
+    <!-- MODAL SUB-DETAIL LENGKAP: Menampilkan Ongkos Awal & Rincian Multi-Titik Singgah -->
     <div id="driverChangeDetailInfoModal" class="modal-overlay" style="display: none;">
         <div class="login-card" style="background:#fff; color:#222; text-align:left; position:relative;">
             <button onclick="closeDriverChangeDetails()" style="position:absolute; top:12px; right:12px; background:none; border:none; font-size:18px; color:#666; cursor:pointer; font-weight:bold;">
                 <i class="fa-solid fa-xmark"></i>
             </button>
             <div style="border-bottom:1px solid #eee; padding-bottom:8px; padding-right:16px;">
-                <h3 style="font-size:14px; font-weight:bold; color:var(--accent-blue);"><i class="fa-solid fa-route"></i> Rincian Titik & Singgah Perubahan</h3>
+                <h3 style="font-size:14px; font-weight:bold; color:var(--accent-blue);"><i class="fa-solid fa-route"></i> Rincian Ongkos & Multititik Perubahan</h3>
             </div>
-            <div id="driverChangeDetailContent" style="font-size:12px; display:flex; flex-direction:column; gap:6px; max-height:40vh; overflow-y:auto; background:#f9f9f9; padding:8px; border-radius:6px;">
-                <!-- Diisi via JS -->
+            <div id="driverChangeDetailContent" style="font-size:12px; display:flex; flex-direction:column; gap:6px; max-height:45vh; overflow-y:auto; background:#f9f9f9; padding:8px; border-radius:6px;">
+                <!-- Diisi via JS secara rinci -->
             </div>
-            <button onclick="closeDriverChangeDetails()" style="padding:8px; border:none; background:#333; color:white; border-radius:6px; font-weight:bold; font-size:11px; cursor:pointer;">Kembali</button>
+            <button onclick="closeDriverChangeDetails()" style="padding:9px; border:none; background:#333; color:white; border-radius:6px; font-weight:bold; font-size:12px; cursor:pointer;">Kembali</button>
         </div>
     </div>
 
@@ -1320,8 +1320,9 @@
             return;
         }
 
-        const oldDropoffCoords = L.latLng(activeOrder.dropoffLat, activeOrder.dropoffLng);
-        const addDistMeters = map.distance(oldDropoffCoords, newLatLng);
+        // Ambil titik referensi dari tujuan terakhir yang tersimpan di order
+        const currentLastDropoffCoords = L.latLng(activeOrder.dropoffLat, activeOrder.dropoffLng);
+        const addDistMeters = map.distance(currentLastDropoffCoords, newLatLng);
 
         if (addDistMeters < 50) return;
 
@@ -1349,6 +1350,8 @@
         if (!activeOrder.routeChanges) {
             activeOrder.routeChanges = [];
         }
+        
+        // Catat titik perubahan rute ke dalam array (mendukung multi-kali ganti titik)
         activeOrder.routeChanges.push({
             from: activeOrder.dropoff,
             to: pendingNewDropoffName,
@@ -1404,21 +1407,43 @@
         }
     }
 
+    // FUNGSI DETAIL RINCIAN MULTI-TITIK SINGGAH DAN ONGKOS AWAL
     function openDriverChangeDetails() {
         const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
         const container = document.getElementById('driverChangeDetailContent');
         if (!order) return;
 
-        let html = `<div><strong>Titik Jemput:</strong> ${order.pickup}</div>`;
-        html += `<div><strong>Tujuan Awal:</strong> ${order.routeChanges && order.routeChanges.length > 0 ? order.routeChanges[0].from : order.dropoff}</div>`;
-        
+        let initialFare = order.initialFare !== undefined ? order.initialFare : (order.fare - (order.routeChanges ? order.routeChanges.reduce((acc, cur) => acc + cur.extraFare, 0) : 0));
+        let initialDropoff = order.initialDropoff || (order.routeChanges && order.routeChanges.length > 0 ? order.routeChanges[0].from : order.dropoff);
+
+        let html = `
+            <div style="background:#fff; padding:6px 8px; border-radius:6px; border:1px solid #e0e0e0;">
+                <div><strong>Titik Jemput:</strong> ${order.pickup}</div>
+                <div style="margin-top:4px;"><strong>Tujuan Pesanan Awal:</strong> ${initialDropoff}</div>
+                <div style="color:#27ae60; font-weight:bold; margin-top:2px;">Ongkos Awal: Rp ${initialFare.toLocaleString('id-ID')}</div>
+            </div>
+        `;
+
         if (order.routeChanges && order.routeChanges.length > 0) {
-            html += `<hr style="border:0; border-top:1px solid #ddd; margin:4px 0;"><strong>Riwayat Singgah Perubahan:</strong>`;
+            html += `<div style="margin-top:4px; font-weight:bold; color:var(--accent-blue);">Riwayat Perubahan / Singgah Tujuan (${order.routeChanges.length}x):</div>`;
             order.routeChanges.forEach((ch, idx) => {
-                html += `<div>${idx+1}. Ke: <em>${ch.to}</em> <span style="color:var(--accent-red); font-weight:bold;">(+Rp ${ch.extraFare.toLocaleString('id-ID')})</span></div>`;
+                html += `
+                    <div style="background:#fff; padding:6px 8px; border-radius:6px; border:1px solid #e0e0e0; margin-top:4px;">
+                        <div><strong>Perubahan ke-${idx+1}:</strong></div>
+                        <div style="font-size:11px; color:#555;">Dari: ${ch.from}</div>
+                        <div style="font-size:11px; color:#111;">Ke Tujuan Baru: <em>${ch.to}</em></div>
+                        <div style="color:var(--accent-red); font-weight:bold; margin-top:2px;">+ Tambahan Ongkos: Rp ${ch.extraFare.toLocaleString('id-ID')}</div>
+                    </div>
+                `;
             });
         }
-        html += `<hr style="border:0; border-top:1px solid #ddd; margin:4px 0;"><div style="color:var(--primary-green-hover); font-weight:bold;">Total Ongkos Akhir: Rp ${order.fare.toLocaleString('id-ID')}</div>`;
+
+        html += `
+            <div style="background:#eef7e8; padding:8px; border-radius:6px; border:1px solid #c8e6b8; margin-top:6px; display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-weight:bold; color:#2e7d32;">Total Keseluruhan Ongkos Akhir:</span>
+                <span style="font-weight:800; color:#2e7d32; font-size:14px;">Rp ${order.fare.toLocaleString('id-ID')}</span>
+            </div>
+        `;
 
         container.innerHTML = html;
         document.getElementById('driverChangeDetailInfoModal').style.display = 'flex';
@@ -1994,7 +2019,10 @@
             pickup, dropoff,
             pickupLat: pickupCoords.lat, pickupLng: pickupCoords.lng,
             dropoffLat: dropoffCoords.lat, dropoffLng: dropoffCoords.lng,
-            fare: computedTotalFare, status: 'WAITING',
+            fare: computedTotalFare,
+            initialFare: computedTotalFare, // Simpan ongkos awal secara independen
+            initialDropoff: dropoff,        // Simpan tujuan awal pesanan
+            status: 'WAITING',
             note: note,
             routeChanges: [],
             routeVersion: Date.now(),
