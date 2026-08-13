@@ -1111,7 +1111,6 @@
     let pendingNewDropoffCoords = null;
     let pendingNewDropoffName = "";
     let pendingCalculatedNewFare = 0;
-    let lastHandledRouteVersion = 0;
 
     const savedLastPos = JSON.parse(localStorage.getItem('iqbike_last_known_pos'));
     let userCurrentLat = savedLastPos ? savedLastPos.lat : -7.02443;
@@ -1323,7 +1322,10 @@
         activeOrder.dropoffLat = pendingNewDropoffCoords.lat;
         activeOrder.dropoffLng = pendingNewDropoffCoords.lng;
         activeOrder.fare = pendingCalculatedNewFare;
-        activeOrder.routeVersion = Date.now(); // DIJAMIN SELALU BARU AGAR DRIVER SELALU MENERIMA NOTIFIKASI
+        
+        // GUNAKAN UNIK TANDA PERUBAHAN WAKTU AGAR DRIVER PASTI MENANGKAPNYA
+        activeOrder.routeVersion = Date.now(); 
+        activeOrder.triggerPopupForDriver = true; 
 
         localStorage.setItem('iqbike_active_order', JSON.stringify(activeOrder));
         computedTotalFare = pendingCalculatedNewFare;
@@ -1351,6 +1353,14 @@
 
     function closeDriverRouteUpdateModal() {
         document.getElementById('driverRouteUpdateModal').style.display = 'none';
+        
+        // Hapus flag trigger agar modal tidak muncul berulang kali setelah ditutup
+        let activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
+        if (activeOrder && activeOrder.triggerPopupForDriver) {
+            activeOrder.triggerPopupForDriver = false;
+            localStorage.setItem('iqbike_active_order', JSON.stringify(activeOrder));
+            syncOrderToCloud(activeOrder);
+        }
     }
 
     function openGoogleMapsFromDriverModal() {
@@ -1652,16 +1662,16 @@
                 if (!localOrder || localOrder.id !== cloudOrder.id) {
                     localStorage.setItem('iqbike_active_order', JSON.stringify(cloudOrder));
                     triggerVibration([200, 100, 200]);
-                } else if (cloudOrder.routeVersion && cloudOrder.routeVersion > lastHandledRouteVersion) {
-                    // MUNCULKAN MODAL DRIVER DENGAN JUDUL "Perubahan Terkonfirmasi" & TOMBOL GOOGLE MAPS
-                    if (userRole === 'driver') {
-                        lastHandledRouteVersion = cloudOrder.routeVersion;
-                        document.getElementById('driverModalNewDest').innerText = cloudOrder.dropoff;
-                        document.getElementById('driverModalNewFare').innerText = `Rp ${cloudOrder.fare.toLocaleString('id-ID')}`;
-                        document.getElementById('driverRouteUpdateModal').style.display = 'flex';
-                        triggerVibration([300, 150, 300]);
-                    }
+                } else {
                     localStorage.setItem('iqbike_active_order', JSON.stringify(cloudOrder));
+                }
+
+                // JIKA DI SISI DRIVER DAN ADA FLAG TRIGGER PERUBAHAN RUTE DARI PENUMPANG, MUNCULKAN MODAL
+                if (userRole === 'driver' && cloudOrder.triggerPopupForDriver) {
+                    document.getElementById('driverModalNewDest').innerText = cloudOrder.dropoff;
+                    document.getElementById('driverModalNewFare').innerText = `Rp ${cloudOrder.fare.toLocaleString('id-ID')}`;
+                    document.getElementById('driverRouteUpdateModal').style.display = 'flex';
+                    triggerVibration([300, 150, 300]);
                 }
             } else {
                 const localOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
@@ -1911,6 +1921,7 @@
             fare: computedTotalFare, status: 'WAITING',
             note: note,
             routeVersion: Date.now(),
+            triggerPopupForDriver: false,
             timestamp: Date.now(),
             time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
         };
