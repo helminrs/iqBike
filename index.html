@@ -1206,7 +1206,6 @@
 
 <script>
     // --- KONFIGURASI FIREBASE CLOUD ---
-    // Ganti konfigurasi di bawah dengan API Key Firebase Anda yang aktif
     const firebaseConfig = {
         apiKey: "YOUR_API_KEY",
         authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -1249,6 +1248,7 @@
     let computedTotalFare = 0;
     let searchDebounce = null;
     
+    // Perbaikan Default: Langsung di-set true agar otomatis online sejak awal aplikasi dimuat
     let isDriverOnline = localStorage.getItem('iqbike_driver_online_status') !== 'false';
     let currentDriverWa = "6285934602965";
 
@@ -1431,7 +1431,10 @@
         });
 
         startLiveGpsTracking();
-        listenCloudData(); // Menyalakan pendengar realtime Firestore
+        listenCloudData();
+        
+        // Paksa sinkronisasi status online ke cloud saat pertama kali peta dimuat
+        syncDriverToCloud();
     }
 
     function mountMapToContainer(containerId) {
@@ -1932,9 +1935,7 @@
         db.collection("iqbike_system").doc("active_order").delete().catch(err => console.log("Delete order error:", err));
     }
 
-    // --- REALTIME LISTENER CLOUD (BAGIAN UTAMA AGAR DEVICE LAIN LANGSUNG TERSINKRON TANPA REFRESH) ---
     function listenCloudData() {
-        // Mendengarkan perubahan data GPS & Status Driver secara Realtime
         db.collection("iqbike_system").doc(DRIVER_ID).onSnapshot((doc) => {
             if (doc.exists) {
                 const data = doc.data();
@@ -1952,7 +1953,6 @@
             }
         });
 
-        // Mendengarkan perubahan data GPS Penumpang secara Realtime
         db.collection("iqbike_system").doc("passenger_gps").onSnapshot((doc) => {
             if (doc.exists) {
                 const data = doc.data();
@@ -1963,13 +1963,11 @@
             }
         });
 
-        // Mendengarkan Orderan Masuk / Perubahan Status Pesanan secara Realtime (Antar Device)
         db.collection("iqbike_system").doc("active_order").onSnapshot((doc) => {
             if (doc.exists) {
                 const cloudOrder = doc.data();
                 const localOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
                 
-                // Jika ada order baru masuk atau perubahan status di device lain
                 if (!localOrder || localOrder.id !== cloudOrder.id || localOrder.status !== cloudOrder.status) {
                     localStorage.setItem('iqbike_active_order', JSON.stringify(cloudOrder));
                     playNotificationSound();
@@ -1988,7 +1986,6 @@
                     triggerCustomVibration('routeConfirmed');
                 }
             } else {
-                // Jika order dihapus/selesai di cloud
                 const localOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
                 if (localOrder) {
                     localStorage.removeItem('iqbike_active_order');
