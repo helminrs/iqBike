@@ -1,0 +1,2240 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>iqBike - System Hybrid inDrive Style</title>
+
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        :root {
+            --bg-dark: #121212;
+            --primary-green: #8cc63f;
+            --primary-green-hover: #7ab332;
+            --text-light: #ffffff;
+            --text-dark: #222222;
+            --bg-body: #f4f5f7;
+            --border-color: #e0e0e0;
+            --accent-red: #eb5757;
+            --accent-blue: #0288d1;
+            --accent-orange: #f2994a;
+            --whatsapp-green: #25D366;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-dark);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: #ffffff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-overlay, .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(18, 18, 18, 0.95);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            color: white;
+            text-align: center;
+        }
+
+        .login-card {
+            background: #222;
+            padding: 24px;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .role-btn {
+            padding: 14px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 800;
+            font-size: 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .role-passenger { background: var(--primary-green); color: #111; }
+        .role-driver { background: #333; color: #fff; border: 1px solid #555; }
+
+        .header {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            padding: 10px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            flex-shrink: 0;
+        }
+
+        .brand-title {
+            font-size: 18px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-header-pin {
+            background: #222;
+            color: var(--primary-green);
+            border: 1px solid #444;
+            padding: 5px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-switch-role {
+            background: #2a2a2a;
+            color: var(--primary-green);
+            border: 1px solid #444;
+            padding: 5px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .pin-mode-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 2px;
+        }
+
+        .btn-pin-mode {
+            padding: 8px;
+            border: 1px solid #81d4fa;
+            background: #f0f8ff;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            color: #0288d1;
+            transition: all 0.2s ease;
+        }
+
+        .btn-pin-mode.active-mode {
+            background: #0288d1 !important;
+            color: #ffffff !important;
+            border-color: #0288d1 !important;
+        }
+
+        .btn-pin-mode.active-mode i {
+            color: #ffffff !important;
+        }
+
+        .btn-pin-mode:disabled {
+            background: #eee !important;
+            color: #aaa !important;
+            border-color: #ccc !important;
+            cursor: not-allowed;
+        }
+
+        .map-wrapper {
+            position: relative;
+            width: 100%;
+            flex: 1;
+            min-height: 280px;
+            background-color: #e5e3df;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .map-wrapper-full {
+            flex: 1;
+            width: 100%;
+            height: 100% !important;
+            border-radius: 0 !important;
+            border: none !important;
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        .center-pin-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -100%);
+            z-index: 1000;
+            pointer-events: none;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .center-pin-label {
+            background: #000;
+            color: #fff;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 4px 10px;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            white-space: nowrap;
+            max-width: 220px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 2px;
+        }
+
+        .center-pin-icon {
+            font-size: 32px;
+            filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.4));
+        }
+
+        .btn-confirm-location {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0288d1;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+            z-index: 1001;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-my-location {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            width: 42px;
+            height: 42px;
+            background-color: #ffffff;
+            color: var(--accent-blue);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+            z-index: 1001;
+            cursor: pointer;
+            border: none;
+        }
+
+        .content-area {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            position: relative;
+            overflow-y: auto;
+        }
+
+        .passenger-view-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            padding: 10px;
+            gap: 8px;
+        }
+
+        .driver-view-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .status-box {
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .status-online { background-color: #eef7e8; color: #2e7d32; border: 1px solid #c8e6b8; }
+        .status-busy { background-color: #fbeae8; color: #eb5757; border: 1px solid #f7c6c2; }
+        .status-process { background-color: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; }
+        .status-arrived { background-color: #fff3e0; color: #e65100; border: 1px solid #ffe0b2; }
+
+        .form-row-2cols {
+            display: grid;
+            grid-template-columns: 1fr 1.3fr;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .form-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 12px;
+            outline: none;
+            background: #fff;
+        }
+
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            max-height: 180px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .search-item {
+            padding: 10px 12px;
+            font-size: 12px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+
+        .search-item:hover { background-color: #f4f5f7; }
+
+        .fare-card {
+            background: #f8f9fa;
+            border: 1px dashed var(--primary-green);
+            padding: 6px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .btn-reset {
+            width: 100%;
+            padding: 8px;
+            background-color: #ffffff;
+            color: var(--accent-red);
+            border: 1px solid var(--accent-red);
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-cancel {
+            width: 100%;
+            padding: 10px;
+            background-color: #eb5757;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 11px;
+            background-color: var(--whatsapp-green);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .btn-history-toggle {
+            width: 100%;
+            padding: 8px;
+            background-color: #f0f2f5;
+            color: #333;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .order-card-driver {
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .btn-whatsapp {
+            width: 100%;
+            padding: 10px;
+            background-color: var(--whatsapp-green);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-nav-gmaps {
+            width: 100%;
+            padding: 10px;
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .driver-step-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 13px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-accept { background-color: var(--accent-blue); }
+        .btn-arrived { background-color: var(--accent-orange); }
+        .btn-trip { background-color: var(--primary-green); color: #111; }
+        .btn-finish { background-color: #27ae60; }
+        .btn-driver-cancel { background-color: #eb5757; color: white; margin-top: 4px; }
+
+        .finance-card {
+            background: #121212;
+            color: white;
+            padding: 10px 12px;
+            border-radius: 0 0 12px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 1000;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+
+        .finance-grid-3cols {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr 1fr;
+            gap: 6px;
+            background: #1e1e1e;
+            padding: 8px;
+            border-radius: 8px;
+            text-align: center;
+            align-items: center;
+        }
+
+        .clickable-finance-box {
+            cursor: pointer;
+            padding: 6px 4px;
+            border-radius: 6px;
+            transition: background 0.2s;
+            background: #282828;
+        }
+
+        .clickable-finance-box:hover { background: #333; }
+
+        .net-income-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            border-left: 1px solid #333;
+            border-right: 1px solid #333;
+        }
+
+        .filter-select {
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid #444;
+            background: #222;
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            outline: none;
+        }
+
+        .expense-btn {
+            background: var(--accent-red);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 6px;
+        }
+
+        .history-card {
+            border: 1px solid #e0e0e0;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            background: #fafafa;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .history-action-row {
+            display: flex;
+            gap: 6px;
+            margin-top: 4px;
+        }
+
+        .btn-swap-route {
+            flex: 1;
+            background: #0288d1;
+            color: white;
+            border: none;
+            padding: 6px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .btn-repeat-order {
+            flex: 1;
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 6px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .modal-detail-card {
+            background: #fff;
+            color: #222;
+            width: 100%;
+            max-width: 420px;
+            max-height: 80vh;
+            border-radius: 16px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+        }
+
+        .floating-radar-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            border-radius: 18px 18px 0 0;
+            padding: 14px;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.25);
+            z-index: 1002;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .mini-gps-badge {
+            position: absolute;
+            bottom: 16px;
+            left: 16px;
+            background: rgba(18, 18, 18, 0.85);
+            color: #8cc63f;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            z-index: 1001;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            backdrop-filter: blur(4px);
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div id="loginOverlay" class="login-overlay" style="display: none;">
+        <i class="fa-solid fa-motorcycle" style="font-size: 48px; color: var(--primary-green); margin-bottom: 12px;"></i>
+        <h2 style="font-size: 22px; font-weight: 800;">Selamat Datang di iqBike</h2>
+        <p style="font-size: 12px; color: #aaa; margin-bottom: 20px;">Pilih jenis akun/peran Anda untuk melanjutkan</p>
+        
+        <div class="login-card">
+            <button class="role-btn role-passenger" onclick="selectUserRole('penumpang')">
+                <i class="fa-solid fa-user"></i> Masuk Sebagai PENUMPANG
+            </button>
+            <button class="role-btn role-driver" onclick="openDriverPinModal()">
+                <i class="fa-solid fa-id-card"></i> Masuk Sebagai DRIVER (Khusus Admin)
+            </button>
+        </div>
+    </div>
+
+    <div id="driverPinModal" class="modal-overlay" style="display: none;">
+        <div class="login-card" style="background:#222; color:#fff; text-align:center;">
+            <i class="fa-solid fa-lock" style="font-size:36px; color:var(--primary-green);"></i>
+            <h3 style="margin-top:6px;">Login Mode Driver</h3>
+            <p style="font-size:11px; color:#aaa;">Masukkan PIN Rahasia Anda</p>
+            
+            <div class="form-group">
+                <input type="password" id="inputDriverPin" class="form-input" placeholder="Masukkan 4 Digit PIN" maxlength="6" style="text-align:center; font-size:18px; letter-spacing:4px;">
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:8px;">
+                <button onclick="verifyDriverPin()" class="btn-submit" style="padding:10px; font-size:13px; background:var(--primary-green); color:#111;">Masuk Driver</button>
+                <button onclick="triggerResetPinWa()" style="background:none; border:none; color:var(--primary-green); font-size:11px; text-decoration:underline; cursor:pointer;">
+                    Lupa PIN? Minta Kode Verifikasi via WA Admin
+                </button>
+                <button onclick="closeDriverPinModal()" style="background:none; border:none; color:#eb5757; font-size:11px; margin-top:4px; cursor:pointer;">Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="resetPinModal" class="modal-overlay" style="display: none;">
+        <div class="login-card" style="background:#222; color:#fff; text-align:center;">
+            <i class="fa-solid fa-key" style="font-size:36px; color:var(--accent-orange);"></i>
+            <h3 style="margin-top:6px;">Reset PIN Driver</h3>
+            <p style="font-size:11px; color:#aaa;">Masukkan Kode Verifikasi dari Admin WA dan buat PIN baru</p>
+
+            <div class="form-group">
+                <label class="form-label" style="color:#ccc;">Kode Verifikasi Admin WA</label>
+                <input type="text" id="inputMasterKey" class="form-input" placeholder="Kode dari Admin" style="text-align:center;">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" style="color:#ccc;">PIN Baru (Min 4 Angka)</label>
+                <input type="password" id="inputNewPin" class="form-input" placeholder="Buat PIN Baru" style="text-align:center;">
+            </div>
+
+            <div style="display:flex; gap:8px; margin-top:8px;">
+                <button onclick="closeResetPinModal()" style="flex:1; padding:10px; border:1px solid #555; background:#333; color:white; border-radius:8px; font-size:12px; font-weight:bold;">Batal</button>
+                <button onclick="saveResetPin()" style="flex:1; padding:10px; border:none; background:var(--primary-green); color:#111; border-radius:8px; font-size:12px; font-weight:bold;">Simpan PIN</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="confirmDestinationChangeModal" class="modal-overlay" style="display: none;">
+        <div class="login-card" style="background:#fff; color:#222; text-align:left;">
+            <div style="text-align:center; border-bottom:1px solid #eee; padding-bottom:10px;">
+                <i class="fa-solid fa-route" style="font-size:36px; color:var(--accent-blue);"></i>
+                <h3 style="margin-top:6px;">Konfirmasi Ubah Tujuan</h3>
+                <p style="font-size:11px; color:#777;">Perubahan tujuan dihitung sebagai Rute Singgah Tambahan</p>
+            </div>
+            
+            <div style="font-size:12px; display:flex; flex-direction:column; gap:6px; background:#f9f9f9; padding:10px; border-radius:8px;">
+                <p><strong>Tujuan Lama:</strong> <span id="modalOldDest">-</span></p>
+                <p><strong>Tujuan Baru:</strong> <span id="modalNewDest">-</span></p>
+                <p style="color:var(--accent-blue); font-weight:bold;"><strong>Selisih Jarak Tambahan:</strong> <span id="modalAddKm">0 km</span></p>
+                <p style="color:#27ae60; font-weight:bold; font-size:14px;"><strong>Total Ongkos Baru:</strong> <span id="modalNewFare">Rp 0</span></p>
+            </div>
+
+            <div style="display:flex; gap:8px; margin-top:10px;">
+                <button onclick="cancelDestinationChange()" style="flex:1; padding:10px; border:1px solid #ccc; background:#fff; border-radius:8px; font-weight:bold; font-size:12px;">Batal</button>
+                <button onclick="applyDestinationChange()" style="flex:1; padding:10px; border:none; background:var(--accent-blue); color:white; border-radius:8px; font-weight:bold; font-size:12px;">Setuju & Ubah</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="expenseModal" class="modal-overlay" style="display: none;">
+        <div class="login-card" style="background:#fff; color:#222; text-align:left;">
+            <div style="text-align:center; border-bottom:1px solid #eee; padding-bottom:10px;">
+                <i class="fa-solid fa-wallet" style="font-size:36px; color:var(--accent-red);"></i>
+                <h3 style="margin-top:6px;">Tambah Pengeluaran Driver</h3>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Keterangan (Contoh: Bensin, Parkir)</label>
+                <input type="text" id="expenseNote" class="form-input" placeholder="Masukkan keterangan...">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Jumlah Pengeluaran (Rp)</label>
+                <input type="number" id="expenseAmount" class="form-input" placeholder="Contoh: 15000">
+            </div>
+            <div style="display:flex; gap:8px; margin-top:10px;">
+                <button onclick="closeExpenseModal()" style="flex:1; padding:10px; border:1px solid #ccc; background:#fff; border-radius:8px; font-weight:bold;">Batal</button>
+                <button onclick="saveExpense()" style="flex:1; padding:10px; border:none; background:var(--accent-red); color:white; border-radius:8px; font-weight:bold;">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="passengerHistoryModal" class="modal-overlay" style="display: none;">
+        <div class="modal-detail-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:10px;">
+                <h3 style="font-size:15px; font-weight:bold;"><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Perjalanan</h3>
+                <button onclick="closePassengerHistoryModal()" style="background:none; border:none; font-size:18px; color:#666; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p style="font-size:11px; color:#666;">Gunakan fitur Tukar Rute PP atau Ulangi Pesanan untuk mempercepat pengisian alamat.</p>
+            
+            <div id="passengerHistoryContainer" style="display:flex; flex-direction:column; gap:8px; max-height:50vh; overflow-y:auto;">
+                <p style="font-size: 11px; color: #a0a0a0; text-align:center;">Belum ada riwayat pesanan.</p>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; margin-top:8px;">
+                <button onclick="closePassengerHistoryModal()" style="padding:8px 16px; background:#333; color:white; border:none; border-radius:6px; font-size:12px; font-weight:bold;">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="historyDetailsModal" class="modal-overlay" style="display: none;">
+        <div class="modal-detail-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:10px;">
+                <h3 id="historyModalTitle" style="font-size:15px; font-weight:bold;">Rincian Transaksi</h3>
+                <button onclick="closeHistoryDetailsModal()" style="background:none; border:none; font-size:18px; color:#666; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div id="historyDetailsListContainer" style="display:flex; flex-direction:column; gap:8px;">
+                <!-- Isi rincian riwayat -->
+            </div>
+
+            <div id="expenseActionContainer" style="display:none;">
+                <button class="expense-btn" onclick="openExpenseModalFromDetail()">
+                    <i class="fa-solid fa-plus-circle"></i> + Catat Pengeluaran Baru
+                </button>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+                <button onclick="clearHistory()" style="background:none; border:none; color:red; font-size:11px; cursor:pointer;">
+                    <i class="fa-solid fa-trash"></i> Hapus Semua
+                </button>
+                <button onclick="closeHistoryDetailsModal()" style="padding:8px 16px; background:#333; color:white; border:none; border-radius:6px; font-size:12px; font-weight:bold;">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="receiptModal" class="modal-overlay" style="display: none;">
+        <div class="login-card" style="background:#fff; color:#222; text-align:left;">
+            <div style="text-align:center; border-bottom:1px solid #eee; padding-bottom:10px;">
+                <i class="fa-solid fa-circle-check" style="font-size:40px; color:#27ae60;"></i>
+                <h3 style="margin-top:8px;">Perjalanan Selesai</h3>
+                <p style="font-size:12px; color:#777;">Rincian Pendapatan Transaksi</p>
+            </div>
+            <div style="font-size:13px; display:flex; flex-direction:column; gap:8px;">
+                <p><strong>Penumpang:</strong> <span id="recName">-</span></p>
+                <p><strong>Jemput:</strong> <span id="recPickup">-</span></p>
+                <p><strong>Tujuan Akhir:</strong> <span id="recDropoff">-</span></p>
+                <div style="background:#f4f5f7; padding:10px; border-radius:8px; font-weight:bold; font-size:16px; color:#27ae60; display:flex; justify-content:space-between;">
+                    <span>Total Pendapatan:</span>
+                    <span id="recFare">Rp 0</span>
+                </div>
+            </div>
+            <button class="btn-submit" onclick="closeReceiptModal()" style="margin-top:10px; background:var(--primary-green); color:#111;">
+                <i class="fa-solid fa-check"></i> Tutup & Simpan ke Riwayat
+            </button>
+        </div>
+    </div>
+
+    <header class="header">
+        <div class="brand-title">
+            <i class="fa-solid fa-motorcycle" style="color: var(--primary-green);"></i>
+            <span>iqBike</span>
+        </div>
+        <div class="header-actions">
+            <button id="btnHeaderPin" class="btn-header-pin" onclick="changeDriverPinDirect()" style="display:none;">
+                <i class="fa-solid fa-key"></i> Ubah PIN
+            </button>
+            <button class="btn-switch-role" onclick="showLoginOverlay()">
+                <i class="fa-solid fa-right-from-bracket"></i> <span id="currentRoleText">Ganti Mode</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="content-area">
+        <div id="passengerView" class="passenger-view-container" style="display: none;">
+            <div id="driverStatusBox" class="status-box status-online">
+                <i class="fa-solid fa-circle"></i> Memeriksa Status Driver...
+            </div>
+
+            <div class="form-row-2cols">
+                <div class="form-group">
+                    <label class="form-label">Nama <span style="color:red">*</span></label>
+                    <input type="text" id="passengerName" class="form-input" placeholder="Nama Anda...">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">No WhatsApp <span style="color:red">*</span></label>
+                    <input type="tel" id="passengerPhone" class="form-input" placeholder="0812xxxx">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">PILIH & ATUR TITIK LOKASI DI PETA</label>
+                <div class="pin-mode-selector">
+                    <button id="btnModeJemput" class="btn-pin-mode" onclick="togglePinMode('jemput')">
+                        <i class="fa-solid fa-location-dot" style="color:#eb5757;"></i> Set JEMPUT
+                    </button>
+                    <button id="btnModeTujuan" class="btn-pin-mode" onclick="togglePinMode('tujuan')">
+                        <i class="fa-solid fa-flag-checkered" style="color:#111;"></i> Set TUJUAN
+                    </button>
+                </div>
+            </div>
+
+            <div id="passengerMapWrapper" class="map-wrapper">
+                <!-- Peta disisipkan via JS -->
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Lokasi Penjemputan <span style="color:red">*</span></label>
+                <input type="text" id="pickupLocation" class="form-input" placeholder="Pilih lokasi jemput..." oninput="handleSearchOrPaste('jemput')">
+                <div id="pickupSearchResults" class="search-results"></div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Lokasi Tujuan <span style="color:red">*</span></label>
+                <input type="text" id="dropoffLocation" class="form-input" placeholder="Pilih lokasi tujuan..." oninput="handleSearchOrPaste('tujuan')">
+                <div id="dropoffSearchResults" class="search-results"></div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Catatan Untuk Driver (Opsional)</label>
+                <input type="text" id="passengerNote" class="form-input" placeholder="Contoh: Pakai helm bawa sendiri">
+            </div>
+
+            <div class="fare-card">
+                Estimasi Total Ongkos: <span id="fareText" style="color: var(--primary-green-hover); font-size: 13px;">Rp 0</span>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:5px; flex-shrink:0;">
+                <button id="btnSendOrder" class="btn-submit" type="button" onclick="handleMainActionButton()">
+                    <i class="fa-brands fa-whatsapp"></i> Kirim Pesan Orderan ke Driver
+                </button>
+                
+                <button id="btnCancelOrder" class="btn-cancel" type="button" onclick="cancelActiveOrder()" style="display:none;">
+                    <i class="fa-solid fa-xmark"></i> Batalkan Pesanan Aktif
+                </button>
+
+                <button type="button" class="btn-reset" onclick="resetAddressAndFare()">
+                    <i class="fa-solid fa-rotate-left"></i> Batal Ubah / Reset Rute
+                </button>
+
+                <button type="button" class="btn-history-toggle" onclick="openPassengerHistoryModal()">
+                    <i class="fa-solid fa-clock-rotate-left"></i> Lihat Riwayat Perjalanan & Tukar Rute PP
+                </button>
+            </div>
+        </div>
+
+        <div id="driverView" class="driver-view-container" style="display: none;">
+            <div class="finance-card">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:11px; font-weight:bold; color:#aaa;"><i class="fa-solid fa-wallet"></i> RINGKASAN KEUANGAN</span>
+                    <select id="timeFilter" class="filter-select" onchange="renderFinanceAndHistory()">
+                        <option value="today">Hari Ini</option>
+                        <option value="week">Minggu Ini</option>
+                        <option value="7days">7 Hari Terakhir</option>
+                        <option value="30days">30 Hari Terakhir</option>
+                        <option value="all" selected>Semua (Sejak Install)</option>
+                    </select>
+                </div>
+
+                <div class="finance-grid-3cols">
+                    <div class="clickable-finance-box" onclick="openHistoryDetailsModal('INCOME')">
+                        <div style="color:#aaa; font-size:10px;">Hasil Narik (+) <i class="fa-solid fa-chevron-right" style="font-size:8px;"></i></div>
+                        <div style="font-weight:bold; color:#27ae60; font-size:12px;" id="grossIncomeText">Rp 0</div>
+                    </div>
+
+                    <div class="net-income-box">
+                        <div style="color:#aaa; font-size:9px; font-weight:bold;">KEUNTUNGAN BERSIH</div>
+                        <div style="font-size: 15px; font-weight: 800; color: var(--primary-green);" id="netIncomeText">Rp 0</div>
+                    </div>
+
+                    <div class="clickable-finance-box" onclick="openHistoryDetailsModal('EXPENSE')">
+                        <div style="color:#aaa; font-size:10px;">Pengeluaran (-) <i class="fa-solid fa-chevron-right" style="font-size:8px;"></i></div>
+                        <div style="font-weight:bold; color:#eb5757; font-size:12px;" id="totalExpenseText">Rp 0</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="driverMapContainer" class="map-wrapper-full">
+                <!-- Peta disisipkan via JS -->
+            </div>
+
+            <div class="mini-gps-badge">
+                <i class="fa-solid fa-signal"></i> GPS DRIVER ONLINE
+            </div>
+
+            <div id="floatingRadarPanel" class="floating-radar-overlay" style="display:none;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-weight: 800; font-size: 13px; color:#222;">
+                        <i class="fa-solid fa-circle-dot" style="color:red;"></i> Orderan Masuk Realtime
+                    </span>
+                    <span style="background:#8cc63f; color:#111; padding:2px 6px; border-radius:10px; font-size:10px; font-weight:bold;">
+                        AKTIF
+                    </span>
+                </div>
+
+                <div id="orderListContainer" style="display: flex; flex-direction: column; gap: 8px;">
+                    <!-- Card Orderan Aktif -->
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div id="masterMapElement" style="display:none; width:100%; height:100%;">
+    <div id="map" style="width:100%; height:100%;"></div>
+    <button id="btnConfirmLocation" class="btn-confirm-location" onclick="confirmLocationSelection()">
+        <i class="fa-solid fa-check-circle"></i> OK / SIMPAN TITIK
+    </button>
+    <div id="centerPinContainer" class="center-pin-container">
+        <div id="centerPinLabel" class="center-pin-label">Geser peta...</div>
+        <div id="centerPinIcon" class="center-pin-icon">
+            <i class="fa-solid fa-location-dot" style="color:#eb5757;"></i>
+        </div>
+    </div>
+    <button id="btnMyLocation" class="btn-my-location" onclick="centerToMyLocation()">
+        <i class="fa-solid fa-crosshairs fa-lg"></i>
+    </button>
+</div>
+
+<script>
+    const DRIVER_WA_PHONE = "6285934602965";
+    const ADMIN_MASTER_KEY = "9922";
+
+    function getStoredPin() {
+        return localStorage.getItem('iqbike_driver_pin') || "8899";
+    }
+
+    let map;
+    let currentPinMode = null;
+    let pickupCoords = null, dropoffCoords = null;
+    let pickupMarker = null, dropoffMarker = null;
+    let driverLiveMarker = null, passengerLiveMarker = null;
+    let reverseGeocodeTimeout = null;
+
+    let pendingNewDropoffCoords = null;
+    let pendingNewDropoffName = "";
+    let pendingCalculatedNewFare = 0;
+
+    const savedLastPos = JSON.parse(localStorage.getItem('iqbike_last_known_pos'));
+    let userCurrentLat = savedLastPos ? savedLastPos.lat : -7.02443;
+    let userCurrentLng = savedLastPos ? savedLastPos.lng : 107.58556;
+    
+    let isInitialMapCenterDone = false;
+    let userRole = null; 
+    let computedTotalFare = 0;
+    let searchDebounce = null;
+
+    const orderChannel = new BroadcastChannel('iqbike_system');
+
+    const redPinIcon = L.divIcon({
+        html: '<i class="fa-solid fa-location-dot" style="font-size:26px; color:#eb5757; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4));"></i>',
+        iconSize: [26, 26], iconAnchor: [13, 26], className: 'custom-pin'
+    });
+
+    const finishFlagIcon = L.divIcon({
+        html: '<i class="fa-solid fa-flag-checkered" style="font-size:22px; color:#111; background:#fff; padding:2px; border-radius:50%; border:1px solid #111; box-shadow:0 2px 4px rgba(0,0,0,0.3);"></i>',
+        iconSize: [24, 24], iconAnchor: [12, 12], className: 'custom-flag'
+    });
+
+    const driverMotorIcon = L.divIcon({
+        html: '<i class="fa-solid fa-motorcycle" style="font-size:12px; color:#fff; background:#27ae60; padding:5px; border-radius:50%; border:2px solid #ffffff; box-shadow:0 2px 6px rgba(0,0,0,0.4);"></i>',
+        iconSize: [24, 24], iconAnchor: [12, 12], className: 'driver-motor-icon'
+    });
+
+    const passengerBlueDotIcon = L.divIcon({
+        html: '<i class="fa-solid fa-circle" style="font-size:14px; color:#0288d1; background:#ffffff; padding:3px; border-radius:50%; border:2px solid #0288d1; box-shadow:0 2px 6px rgba(0,0,0,0.4);"></i>',
+        iconSize: [20, 20], iconAnchor: [10, 10], className: 'passenger-blue-icon'
+    });
+
+    function triggerVibration(pattern) {
+        if ("vibrate" in navigator) navigator.vibrate(pattern);
+    }
+
+    function formatWaNumber(phone) {
+        if (!phone) return "";
+        let cleaned = phone.replace(/\D/g, ''); 
+        if (cleaned.startsWith('08')) {
+            cleaned = '62' + cleaned.substring(1);
+        } else if (cleaned.startsWith('8')) {
+            cleaned = '62' + cleaned;
+        }
+        return cleaned;
+    }
+
+    function initMap() {
+        const masterEl = document.getElementById('masterMapElement');
+        masterEl.style.display = 'block';
+        
+        map = L.map('map', { zoomControl: false }).setView([userCurrentLat, userCurrentLng], 16);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+        map.on('movestart', () => {
+            if (currentPinMode) {
+                document.getElementById('centerPinLabel').innerText = "Menggeser lokasi...";
+            }
+        });
+
+        map.on('moveend', () => {
+            const center = map.getCenter();
+            const btn = document.getElementById('btnMyLocation');
+            const dist = map.distance(center, L.latLng(userCurrentLat, userCurrentLng));
+
+            if (dist > 50) {
+                btn.style.color = 'var(--accent-red)';
+            } else {
+                btn.style.color = 'var(--accent-blue)';
+            }
+
+            if (currentPinMode) {
+                handleMapCenterChange(center);
+            }
+        });
+
+        startLiveGpsTracking();
+    }
+
+    function mountMapToContainer(containerId) {
+        const masterEl = document.getElementById('masterMapElement');
+        const targetContainer = document.getElementById(containerId);
+        if (targetContainer && masterEl) {
+            targetContainer.appendChild(masterEl);
+            setTimeout(() => { map.invalidateSize(); }, 200);
+        }
+    }
+
+    function togglePinMode(mode) {
+        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
+
+        if (mode === 'jemput' && activeOrder && activeOrder.status !== 'WAITING') {
+            alert("🔒 Lokasi Penjemputan telah TERKUNCI karena Driver sudah mengonfirmasi pesanan!");
+            return;
+        }
+
+        if (currentPinMode === mode) {
+            confirmLocationSelection();
+            return;
+        }
+
+        currentPinMode = mode;
+        const btnJemput = document.getElementById('btnModeJemput');
+        const btnTujuan = document.getElementById('btnModeTujuan');
+        const pinIcon = document.getElementById('centerPinIcon');
+        const centerPinContainer = document.getElementById('centerPinContainer');
+        const btnConfirm = document.getElementById('btnConfirmLocation');
+
+        centerPinContainer.style.display = 'flex';
+        btnConfirm.style.display = 'flex';
+
+        if (mode === 'jemput') {
+            btnJemput.className = 'btn-pin-mode active-mode';
+            btnTujuan.className = 'btn-pin-mode';
+            pinIcon.innerHTML = '<i class="fa-solid fa-location-dot" style="color:#eb5757;"></i>';
+            if (pickupCoords) map.panTo(pickupCoords);
+        } else {
+            btnJemput.className = 'btn-pin-mode';
+            btnTujuan.className = 'btn-pin-mode active-mode';
+            pinIcon.innerHTML = '<i class="fa-solid fa-flag-checkered" style="color:#111;"></i>';
+            if (dropoffCoords) map.panTo(dropoffCoords);
+        }
+
+        handleMapCenterChange(map.getCenter());
+    }
+
+    function confirmLocationSelection() {
+        currentPinMode = null;
+        document.getElementById('btnModeJemput').className = 'btn-pin-mode';
+        document.getElementById('btnModeTujuan').className = 'btn-pin-mode';
+        document.getElementById('centerPinContainer').style.display = 'none';
+        document.getElementById('btnConfirmLocation').style.display = 'none';
+        renderFixedMarkers();
+    }
+
+    function handleMapCenterChange(centerLatLng) {
+        clearTimeout(reverseGeocodeTimeout);
+        document.getElementById('centerPinLabel').innerText = "Mencari alamat...";
+
+        reverseGeocodeTimeout = setTimeout(() => {
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${centerLatLng.lat}&lon=${centerLatLng.lng}`)
+                .then(res => res.json())
+                .then(data => {
+                    const placeName = (data && data.display_name) ? data.display_name.split(',').slice(0, 3).join(',') : "Lokasi Terpilih";
+                    
+                    document.getElementById('centerPinLabel').innerText = placeName.split(',')[0];
+
+                    if (currentPinMode === 'jemput') {
+                        pickupCoords = centerLatLng;
+                        document.getElementById('pickupLocation').value = placeName;
+                        calculateFare();
+                    } else if (currentPinMode === 'tujuan') {
+                        handleDestinationChangeAttempt(centerLatLng, placeName);
+                    }
+                    renderFixedMarkers();
+                }).catch(() => {
+                    document.getElementById('centerPinLabel').innerText = "Titik Koordinat";
+                });
+        }, 300);
+    }
+
+    function handleDestinationChangeAttempt(newLatLng, newPlaceName) {
+        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
+
+        if (!activeOrder) {
+            dropoffCoords = newLatLng;
+            document.getElementById('dropoffLocation').value = newPlaceName;
+            calculateFare();
+            return;
+        }
+
+        const oldDropoffCoords = L.latLng(activeOrder.dropoffLat, activeOrder.dropoffLng);
+        const addDistMeters = map.distance(oldDropoffCoords, newLatLng);
+
+        if (addDistMeters < 50) return;
+
+        const extraFare = computeDistanceFare(addDistMeters);
+        pendingCalculatedNewFare = activeOrder.fare + extraFare;
+        pendingNewDropoffCoords = newLatLng;
+        pendingNewDropoffName = newPlaceName;
+
+        document.getElementById('modalOldDest').innerText = activeOrder.dropoff;
+        document.getElementById('modalNewDest').innerText = newPlaceName;
+        document.getElementById('modalAddKm').innerText = `+${(addDistMeters/1000).toFixed(1)} km (Rute Singgah Tambahan)`;
+        document.getElementById('modalNewFare').innerText = `Rp ${pendingCalculatedNewFare.toLocaleString('id-ID')}`;
+
+        document.getElementById('confirmDestinationChangeModal').style.display = 'flex';
+    }
+
+    function applyDestinationChange() {
+        let activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
+        if (!activeOrder) return;
+
+        dropoffCoords = pendingNewDropoffCoords;
+        document.getElementById('dropoffLocation').value = pendingNewDropoffName;
+
+        activeOrder.dropoff = pendingNewDropoffName;
+        activeOrder.dropoffLat = pendingNewDropoffCoords.lat;
+        activeOrder.dropoffLng = pendingNewDropoffCoords.lng;
+        activeOrder.fare = pendingCalculatedNewFare;
+
+        localStorage.setItem('iqbike_active_order', JSON.stringify(activeOrder));
+        computedTotalFare = pendingCalculatedNewFare;
+
+        document.getElementById('fareText').innerText = `Rp ${computedTotalFare.toLocaleString('id-ID')}`;
+        document.getElementById('confirmDestinationChangeModal').style.display = 'none';
+
+        orderChannel.postMessage({ type: 'ORDER_UPDATED' });
+        renderFixedMarkers();
+        updatePassengerAppUI();
+        updateDriverAppUI();
+        alert("Titik Tujuan & Ongkos Tambahan Berhasil Diperbarui!");
+    }
+
+    function cancelDestinationChange() {
+        document.getElementById('confirmDestinationChangeModal').style.display = 'none';
+        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
+        if (activeOrder) {
+            dropoffCoords = L.latLng(activeOrder.dropoffLat, activeOrder.dropoffLng);
+            document.getElementById('dropoffLocation').value = activeOrder.dropoff;
+            renderFixedMarkers();
+        }
+    }
+
+    function renderFixedMarkers() {
+        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
+
+        if (!activeOrder && !currentPinMode && !pickupCoords && !dropoffCoords) {
+            if (pickupMarker) { map.removeLayer(pickupMarker); pickupMarker = null; }
+            if (dropoffMarker) { map.removeLayer(dropoffMarker); dropoffMarker = null; }
+            return;
+        }
+
+        if (pickupCoords) {
+            if (!pickupMarker) {
+                pickupMarker = L.marker(pickupCoords, {icon: redPinIcon}).addTo(map);
+            } else {
+                pickupMarker.setLatLng(pickupCoords);
+            }
+        }
+
+        if (dropoffCoords) {
+            if (!dropoffMarker) {
+                dropoffMarker = L.marker(dropoffCoords, {icon: finishFlagIcon}).addTo(map);
+            } else {
+                dropoffMarker.setLatLng(dropoffCoords);
+            }
+        }
+    }
+
+    function showLoginOverlay() {
+        document.getElementById('loginOverlay').style.display = 'flex';
+    }
+
+    function openDriverPinModal() {
+        document.getElementById('inputDriverPin').value = '';
+        document.getElementById('driverPinModal').style.display = 'flex';
+    }
+
+    function closeDriverPinModal() {
+        document.getElementById('driverPinModal').style.display = 'none';
+        document.getElementById('inputDriverPin').value = '';
+    }
+
+    function verifyDriverPin() {
+        const inputPin = document.getElementById('inputDriverPin').value.trim();
+        const currentPin = getStoredPin();
+
+        if (inputPin === currentPin) {
+            closeDriverPinModal();
+            selectUserRole('driver');
+        } else {
+            alert("PIN Salah! Masukkan PIN yang benar atau minta reset PIN via WA Admin.");
+        }
+    }
+
+    function triggerResetPinWa() {
+        const message = "Halo Admin iqBike, saya Lupa PIN Driver. Mohon berikan Kode Verifikasi Master untuk reset PIN.";
+        const waUrl = `whatsapp://send?phone=${DRIVER_WA_PHONE}&text=${encodeURIComponent(message)}`;
+
+        closeDriverPinModal();
+        document.getElementById('inputMasterKey').value = '';
+        document.getElementById('inputNewPin').value = '';
+        document.getElementById('resetPinModal').style.display = 'flex';
+        
+        window.location.href = waUrl;
+    }
+
+    function closeResetPinModal() {
+        document.getElementById('resetPinModal').style.display = 'none';
+        document.getElementById('inputMasterKey').value = '';
+        document.getElementById('inputNewPin').value = '';
+    }
+
+    function saveResetPin() {
+        const masterKeyInput = document.getElementById('inputMasterKey').value.trim();
+        const newPinInput = document.getElementById('inputNewPin').value.trim();
+
+        if (masterKeyInput !== ADMIN_MASTER_KEY) {
+            alert("Kode Verifikasi Admin WA Salah!");
+            return;
+        }
+
+        if (!newPinInput || newPinInput.length < 4) {
+            alert("PIN Baru minimal 4 angka!");
+            return;
+        }
+
+        localStorage.setItem('iqbike_driver_pin', newPinInput);
+        alert("PIN Berhasil diperbarui! Silakan login dengan PIN Baru.");
+        closeResetPinModal();
+        openDriverPinModal();
+    }
+
+    function changeDriverPinDirect() {
+        const currentPin = getStoredPin();
+        const oldPinInput = prompt("Masukkan PIN Lama Anda saat ini:");
+        
+        if (oldPinInput === currentPin) {
+            const newPin = prompt("Masukkan PIN Baru Anda (4 Digit Angka):");
+            if (newPin && newPin.trim().length >= 4) {
+                localStorage.setItem('iqbike_driver_pin', newPin.trim());
+                alert("PIN Berhasil Diubah!");
+            } else {
+                alert("PIN baru harus minimal 4 digit angka.");
+            }
+        } else {
+            alert("PIN Lama Salah!");
+        }
+    }
+
+    function selectUserRole(role) {
+        userRole = role;
+        localStorage.setItem('iqbike_saved_role', role);
+
+        document.getElementById('loginOverlay').style.display = 'none';
+        document.getElementById('currentRoleText').innerText = (role === 'penumpang') ? 'Mode: Penumpang' : 'Mode: Driver';
+
+        if (role === 'penumpang') {
+            document.getElementById('passengerView').style.display = 'flex';
+            document.getElementById('driverView').style.display = 'none';
+            document.getElementById('btnHeaderPin').style.display = 'none';
+            mountMapToContainer('passengerMapWrapper');
+            updatePassengerAppUI();
+            renderPassengerHistory();
+        } else {
+            document.getElementById('passengerView').style.display = 'none';
+            document.getElementById('driverView').style.display = 'flex';
+            document.getElementById('btnHeaderPin').style.display = 'inline-block';
+            document.getElementById('centerPinContainer').style.display = 'none';
+            document.getElementById('btnConfirmLocation').style.display = 'none';
+            mountMapToContainer('driverMapContainer');
+            updateDriverAppUI();
+            renderFinanceAndHistory();
+        }
+    }
+
+    function startLiveGpsTracking() {
+        if (navigator.geolocation) {
+            navigator.geolocation.watchPosition((pos) => {
+                const currentPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                userCurrentLat = currentPos.lat;
+                userCurrentLng = currentPos.lng;
+
+                localStorage.setItem('iqbike_last_known_pos', JSON.stringify(currentPos));
+
+                if (userRole === 'driver' && map) {
+                    map.setView([userCurrentLat, userCurrentLng], 16);
+                } else if (!isInitialMapCenterDone && userRole === 'penumpang') {
+                    map.setView([userCurrentLat, userCurrentLng], 16);
+                    document.getElementById('btnMyLocation').style.color = 'var(--accent-blue)';
+                    isInitialMapCenterDone = true;
+                }
+
+                if (userRole === 'penumpang') {
+                    localStorage.setItem('iqbike_passenger_gps', JSON.stringify(currentPos));
+                } else if (userRole === 'driver') {
+                    localStorage.setItem('iqbike_driver_gps', JSON.stringify(currentPos));
+                }
+
+                renderAllRealtimeMarkers();
+                orderChannel.postMessage({ type: 'GPS_UPDATE' });
+            }, null, { enableHighAccuracy: true });
+        }
+    }
+
+    function renderAllRealtimeMarkers() {
+        const driverGps = JSON.parse(localStorage.getItem('iqbike_driver_gps'));
+        if (driverGps) {
+            if (!driverLiveMarker) {
+                driverLiveMarker = L.marker([driverGps.lat, driverGps.lng], {icon: driverMotorIcon, zIndexOffset: 1000}).addTo(map);
+            } else {
+                driverLiveMarker.setLatLng([driverGps.lat, driverGps.lng]);
+            }
+        }
+
+        const passengerGps = JSON.parse(localStorage.getItem('iqbike_passenger_gps'));
+        if (passengerGps) {
+            if (!passengerLiveMarker) {
+                passengerLiveMarker = L.marker([passengerGps.lat, passengerGps.lng], {icon: passengerBlueDotIcon, zIndexOffset: 900}).addTo(map);
+            } else {
+                passengerLiveMarker.setLatLng([passengerGps.lat, passengerGps.lng]);
+            }
+        }
+    }
+
+    function centerToMyLocation() {
+        const currentLatLng = L.latLng(userCurrentLat, userCurrentLng);
+        map.setView(currentLatLng, 16);
+        document.getElementById('btnMyLocation').style.color = 'var(--accent-blue)';
+
+        if (currentPinMode) {
+            handleMapCenterChange(currentLatLng);
+        }
+    }
+
+    function handleSearchOrPaste(type) {
+        const inputId = (type === 'jemput') ? 'pickupLocation' : 'dropoffLocation';
+        const resultsId = (type === 'jemput') ? 'pickupSearchResults' : 'dropoffSearchResults';
+        const query = document.getElementById(inputId).value.trim();
+        const container = document.getElementById(resultsId);
+
+        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
+        if (type === 'jemput' && activeOrder && activeOrder.status !== 'WAITING') {
+            alert("🔒 Titik penjemputan sudah TERKUNCI!");
+            return;
+        }
+
+        if (!query) {
+            container.style.display = 'none';
+            if (type === 'jemput') {
+                pickupCoords = null;
+                if (pickupMarker) { map.removeLayer(pickupMarker); pickupMarker = null; }
+            }
+            if (type === 'tujuan') {
+                dropoffCoords = null;
+                if (dropoffMarker) { map.removeLayer(dropoffMarker); dropoffMarker = null; }
+            }
+            calculateFare();
+            return;
+        }
+
+        const coordRegex = /([-+]?\d{1,2}\.\d+)\s*,\s*([-+]?\d{1,3}\.\d+)/;
+        let match = query.match(coordRegex);
+
+        if (match) {
+            const lat = parseFloat(match[1]);
+            const lng = parseFloat(match[2]);
+            if (lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+                const newLatLng = L.latLng(lat, lng);
+                if (type === 'jemput') {
+                    pickupCoords = newLatLng;
+                    calculateFare();
+                } else {
+                    handleDestinationChangeAttempt(newLatLng, query);
+                }
+                map.panTo(newLatLng);
+                container.style.display = 'none';
+                renderFixedMarkers();
+                return;
+            }
+        }
+
+        if (query.length >= 3 && !query.startsWith('http')) {
+            clearTimeout(searchDebounce);
+            searchDebounce = setTimeout(() => {
+                fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=id&limit=5`)
+                    .then(res => res.json())
+                    .then(data => {
+                        container.innerHTML = '';
+                        if (data && data.length > 0) {
+                            data.forEach(item => {
+                                const div = document.createElement('div');
+                                div.className = 'search-item';
+                                div.innerText = item.display_name;
+                                div.onclick = function() {
+                                    const shortName = item.display_name.split(',').slice(0, 3).join(',');
+                                    const selectedLatLng = L.latLng(parseFloat(item.lat), parseFloat(item.lon));
+                                    
+                                    if (type === 'jemput') {
+                                        document.getElementById('pickupLocation').value = shortName;
+                                        pickupCoords = selectedLatLng;
+                                        calculateFare();
+                                    } else {
+                                        handleDestinationChangeAttempt(selectedLatLng, shortName);
+                                    }
+
+                                    map.panTo(selectedLatLng);
+                                    container.style.display = 'none';
+                                    renderFixedMarkers();
+                                };
+                                container.appendChild(div);
+                            });
+                            container.style.display = 'block';
+                        } else {
+                            container.style.display = 'none';
+                        }
+                    }).catch(() => { container.style.display = 'none'; });
+            }, 400);
+        } else {
+            container.style.display = 'none';
+        }
+    }
+
+    function computeDistanceFare(distanceInMeters) {
+        if (distanceInMeters <= 3600) return 9000;
+        const extraMeters = distanceInMeters - 3600;
+        let fare = 9000;
+        const fullKm = Math.floor(extraMeters / 1000);
+        fare += fullKm * 2500;
+        const remainderMeters = Math.round(extraMeters % 1000);
+        if (remainderMeters >= 1 && remainderMeters <= 199) fare += 500;
+        else if (remainderMeters >= 200 && remainderMeters <= 399) fare += 1000;
+        else if (remainderMeters >= 400 && remainderMeters <= 599) fare += 1500;
+        else if (remainderMeters >= 600 && remainderMeters <= 799) fare += 2000;
+        else if (remainderMeters >= 800) fare += 2500;
+        return fare;
+    }
+
+    function calculateFare() {
+        if (!pickupCoords || !dropoffCoords) {
+            computedTotalFare = 0;
+            document.getElementById('fareText').innerText = "Rp 0";
+            return;
+        }
+
+        const distMeters = map.distance(pickupCoords, dropoffCoords);
+        computedTotalFare = computeDistanceFare(distMeters);
+        document.getElementById('fareText').innerText = `Rp ${computedTotalFare.toLocaleString('id-ID')} (${(distMeters/1000).toFixed(1)} km)`;
+    }
+
+    function resetAddressAndFare() {
+        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
+        if (activeOrder && activeOrder.status !== 'WAITING') {
+            alert("🔒 Tidak dapat reset rute saat perjalanan sedang berlangsung!");
+            return;
+        }
+
+        document.getElementById('pickupLocation').value = '';
+        document.getElementById('dropoffLocation').value = '';
+        pickupCoords = null; dropoffCoords = null;
+        if (pickupMarker) { map.removeLayer(pickupMarker); pickupMarker = null; }
+        if (dropoffMarker) { map.removeLayer(dropoffMarker); dropoffMarker = null; }
+        confirmLocationSelection();
+        calculateFare();
+    }
+
+    function handleMainActionButton() {
+        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
+
+        if (activeOrder && activeOrder.status !== 'WAITING') {
+            openDriverWaFromPassenger(activeOrder.passengerName, activeOrder.passengerPhone);
+            return;
+        }
+
+        sendOrder();
+    }
+
+    function openDriverWaFromPassenger(name, phone) {
+        const driverGps = JSON.parse(localStorage.getItem('iqbike_driver_gps')) || { lat: userCurrentLat, lng: userCurrentLng };
+        const driverLocationUrl = `https://maps.google.com/?q=${driverGps.lat},${driverGps.lng}`;
+
+        const text = `Halo Driver, saya ${name} (${phone}). Mengonfirmasi terkait jemputan saya.`;
+        const waUrl = `whatsapp://send?phone=${DRIVER_WA_PHONE}&text=${encodeURIComponent(text)}`;
+        window.location.href = waUrl;
+    }
+
+    function sendOrder() {
+        const rawPhone = document.getElementById('passengerPhone').value.trim();
+        const name = document.getElementById('passengerName').value.trim();
+        const pickup = document.getElementById('pickupLocation').value.trim();
+        const dropoff = document.getElementById('dropoffLocation').value.trim();
+        const note = document.getElementById('passengerNote').value.trim() || "-";
+
+        if (!pickup || !pickupCoords) {
+            alert("⚠️ LOKASI JEMPUT KOSONG!\n\nHarap klik tombol 'Set JEMPUT' untuk menentukan titik jemput.");
+            return;
+        }
+
+        if (!dropoff || !dropoffCoords) {
+            alert("⚠️ LOKASI TUJUAN KOSONG!\n\nHarap klik tombol 'Set TUJUAN' untuk menentukan titik tujuan.");
+            return;
+        }
+
+        if (!name) {
+            alert("Harap masukkan Nama Anda!");
+            return;
+        }
+
+        if (!rawPhone || rawPhone.length < 9) {
+            alert("Harap masukkan Nomor WhatsApp Anda yang valid!");
+            return;
+        }
+
+        const formattedPhone = formatWaNumber(rawPhone);
+
+        const newOrder = {
+            id: Date.now(), 
+            passengerName: name, 
+            passengerPhone: formattedPhone,
+            pickup, dropoff,
+            pickupLat: pickupCoords.lat, pickupLng: pickupCoords.lng,
+            dropoffLat: dropoffCoords.lat, dropoffLng: dropoffCoords.lng,
+            fare: computedTotalFare, status: 'WAITING',
+            note: note,
+            timestamp: Date.now(),
+            time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+        };
+
+        localStorage.setItem('iqbike_active_order', JSON.stringify(newOrder));
+        orderChannel.postMessage({ type: 'NEW_ORDER' });
+        triggerVibration([200, 100, 200]);
+
+        let passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
+        passHistory.unshift(newOrder);
+        localStorage.setItem('iqbike_passenger_history', JSON.stringify(passHistory));
+
+        const pickupLocationUrl = `https://maps.google.com/?q=${pickupCoords.lat},${pickupCoords.lng}`;
+
+        const waText = `Halo Driver iqBike, saya mau order ojek online:\n\n` +
+                       `👤 *Nama:* ${name}\n` +
+                       `📱 *WA Penumpang:* ${formattedPhone}\n` +
+                       `📍 *Jemput:* ${pickup}\n` +
+                       `🗺️ *Link Titik Jemput:* ${pickupLocationUrl}\n` +
+                       `🏁 *Tujuan:* ${dropoff}\n` +
+                       `⏱️ *Dijemput:* Secepatnya / Instan\n` +
+                       `💰 *Estimasi Ongkos:* Rp ${computedTotalFare.toLocaleString('id-ID')}\n` +
+                       `📝 *Catatan:* ${note}\n\n` +
+                       `Mohon konfirmasinya ya, terima kasih!`;
+
+        const directWaUrl = `whatsapp://send?phone=${DRIVER_WA_PHONE}&text=${encodeURIComponent(waText)}`;
+
+        updatePassengerAppUI();
+        updateDriverAppUI();
+        renderPassengerHistory();
+
+        alert("Membuka WhatsApp ke Driver. Silakan kirim pesan tersebut untuk memverifikasi orderan.");
+        window.location.href = directWaUrl;
+    }
+
+    function cancelActiveOrder() {
+        const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
+        if (!order) return;
+
+        if (order.status !== 'WAITING') {
+            alert("⚠️ Pembatalan ditolak. Driver sudah memproses pesanan. Silakan hubungi driver via WhatsApp.");
+            return;
+        }
+
+        if (confirm("Apakah Anda yakin ingin membatalkan pesanan? Driver harus diberitahu via WhatsApp.")) {
+            let history = JSON.parse(localStorage.getItem('iqbike_history') || '[]');
+            const cancelLog = {
+                id: Date.now(),
+                type: 'EXPENSE',
+                note: `PESANAN DIBATALKAN OLEH PENUMPANG: ${order.passengerName} (${order.passengerPhone}) - Jemput: ${order.pickup.split(',')[0]}`,
+                amount: 0,
+                timestamp: Date.now(),
+                time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+            };
+            history.unshift(cancelLog);
+            localStorage.setItem('iqbike_history', JSON.stringify(history));
+
+            const waText = `⚠️ *INFO PEMBATALAN ORDER*\n\n` +
+                           `Mohon maaf Driver, pesanan atas nama *${order.passengerName}* (${order.passengerPhone}) telah dibatalkan oleh penumpang.\n\n` +
+                           `📍 *Titik Jemput:* ${order.pickup}`;
+            const waUrl = `whatsapp://send?phone=${DRIVER_WA_PHONE}&text=${encodeURIComponent(waText)}`;
+            
+            localStorage.removeItem('iqbike_active_order');
+            orderChannel.postMessage({ type: 'STATUS_CHANGE' });
+            
+            resetAddressAndFare();
+            updatePassengerAppUI();
+            updateDriverAppUI();
+            renderFinanceAndHistory();
+            
+            window.location.href = waUrl;
+        }
+    }
+
+    function driverCancelActiveOrder() {
+        const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
+        if (!order) return;
+
+        if (confirm("Batalkan pesanan ini karena penumpang iseng / tidak bisa dihubungi?")) {
+            let history = JSON.parse(localStorage.getItem('iqbike_history') || '[]');
+            const cancelLog = {
+                id: Date.now(),
+                type: 'EXPENSE',
+                note: `CANCEL OLEH DRIVER (ISENG/BLOKIR): ${order.passengerName} (${order.passengerPhone})`,
+                amount: 0,
+                timestamp: Date.now(),
+                time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+            };
+            history.unshift(cancelLog);
+            localStorage.setItem('iqbike_history', JSON.stringify(history));
+
+            const waText = `⚠️ *INFO PEMBATALAN OLEH DRIVER*\n\n` +
+                           `Driver membatalkan pesanan atas nama *${order.passengerName}* karena kendala di lokasi/nomor WhatsApp tidak aktif/diblokir.\n\n` +
+                           `📍 *Titik Jemput:* ${order.pickup}`;
+            const waUrl = `whatsapp://send?phone=${order.passengerPhone}&text=${encodeURIComponent(waText)}`;
+
+            localStorage.removeItem('iqbike_active_order');
+            orderChannel.postMessage({ type: 'STATUS_CHANGE' });
+
+            updateDriverAppUI();
+            updatePassengerAppUI();
+            renderFinanceAndHistory();
+
+            alert("Pesanan dibatalkan oleh driver. Anda siap menerima orderan baru.");
+            window.location.href = waUrl;
+        }
+    }
+
+    function openPassengerHistoryModal() {
+        document.getElementById('passengerHistoryModal').style.display = 'flex';
+        renderPassengerHistory();
+    }
+
+    function closePassengerHistoryModal() {
+        document.getElementById('passengerHistoryModal').style.display = 'none';
+    }
+
+    function swapRouteFromHistory(itemIndex) {
+        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
+        if (activeOrder) {
+            alert("⚠️ Tidak dapat mengubah rute saat ada pesanan yang sedang aktif!");
+            return;
+        }
+
+        const passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
+        const item = passHistory[itemIndex];
+
+        if (!item) return;
+
+        document.getElementById('pickupLocation').value = item.dropoff;
+        document.getElementById('dropoffLocation').value = item.pickup;
+
+        document.getElementById('passengerName').value = item.passengerName || '';
+        document.getElementById('passengerPhone').value = item.passengerPhone || '';
+        document.getElementById('passengerNote').value = (item.note && item.note !== '-') ? item.note : '';
+
+        pickupCoords = L.latLng(item.dropoffLat, item.dropoffLng);
+        dropoffCoords = L.latLng(item.pickupLat, item.pickupLng);
+
+        closePassengerHistoryModal();
+        renderFixedMarkers();
+        calculateFare();
+        map.fitBounds(L.latLngBounds(pickupCoords, dropoffCoords), {padding: [40, 40]});
+        alert("Rute PP berhasil dimuat! Nama, No WA, dan Pin Peta otomatis terisi.");
+    }
+
+    function repeatOrderFromHistory(itemIndex) {
+        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
+        if (activeOrder) {
+            alert("⚠️ Tidak dapat mengulang pesanan saat ada pesanan yang sedang aktif!");
+            return;
+        }
+
+        const passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
+        const item = passHistory[itemIndex];
+
+        if (!item) return;
+
+        document.getElementById('pickupLocation').value = item.pickup;
+        document.getElementById('dropoffLocation').value = item.dropoff;
+
+        document.getElementById('passengerName').value = item.passengerName || '';
+        document.getElementById('passengerPhone').value = item.passengerPhone || '';
+        document.getElementById('passengerNote').value = (item.note && item.note !== '-') ? item.note : '';
+
+        pickupCoords = L.latLng(item.pickupLat, item.pickupLng);
+        dropoffCoords = L.latLng(item.dropoffLat, item.dropoffLng);
+
+        closePassengerHistoryModal();
+        renderFixedMarkers();
+        calculateFare();
+        map.fitBounds(L.latLngBounds(pickupCoords, dropoffCoords), {padding: [40, 40]});
+        alert("Pesanan berhasil diulang! Titik jemput, tujuan, dan data pemesan sudah siap digunakan.");
+    }
+
+    function renderPassengerHistory() {
+        const container = document.getElementById('passengerHistoryContainer');
+        const passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
+        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
+
+        if (passHistory.length === 0) {
+            container.innerHTML = '<p style="font-size: 11px; color: #a0a0a0; text-align:center;">Belum ada riwayat pesanan.</p>';
+            return;
+        }
+
+        container.innerHTML = '';
+        passHistory.forEach((item, index) => {
+            const card = document.createElement('div');
+            card.className = 'history-card';
+            
+            let actionButtonsHTML = '';
+            if (activeOrder) {
+                actionButtonsHTML = `
+                    <div style="background:#fff3e0; color:#e65100; font-size:10px; font-weight:bold; padding:6px; border-radius:6px; text-align:center; margin-top:4px;">
+                        🔒 Tombol dikunci (Ada pesanan aktif)
+                    </div>
+                `;
+            } else {
+                actionButtonsHTML = `
+                    <div class="history-action-row">
+                        <button class="btn-swap-route" onclick="swapRouteFromHistory(${index})">
+                            <i class="fa-solid fa-arrows-rotate"></i> Tukar Rute PP
+                        </button>
+                        <button class="btn-repeat-order" onclick="repeatOrderFromHistory(${index})">
+                            <i class="fa-solid fa-rotate-right"></i> Ulangi Pesanan
+                        </button>
+                    </div>
+                `;
+            }
+
+            card.innerHTML = `
+                <div style="display:flex; justify-content:space-between; font-weight:bold;">
+                    <span><i class="fa-solid fa-route"></i> Perjalanan ${item.time} (${item.passengerName})</span>
+                    <span style="color:#27ae60;">Rp ${item.fare.toLocaleString('id-ID')}</span>
+                </div>
+                <div style="color:#666; font-size:11px; margin-top:2px;">
+                    <div><strong>Jemput:</strong> ${item.pickup}</div>
+                    <div><strong>Tujuan:</strong> ${item.dropoff}</div>
+                </div>
+                ${actionButtonsHTML}
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function openPassengerWa(phone, name) {
+        if (!phone) {
+            alert("Nomor WhatsApp penumpang tidak ditemukan!");
+            return;
+        }
+
+        const driverGps = JSON.parse(localStorage.getItem('iqbike_driver_gps')) || { lat: userCurrentLat, lng: userCurrentLng };
+        const driverLocationUrl = `https://maps.google.com/?q=${driverGps.lat},${driverGps.lng}`;
+
+        const text = `Halo Kak ${name}, saya Driver iqBike yang akan menjemput Anda.\n\n` +
+                     `📍 *Lokasi Terkini Driver:* ${driverLocationUrl}\n\n` +
+                     `Saya sedang menuju ke titik penjemputan. Mohon ditunggu ya Kak, terima kasih!`;
+
+        const waUrl = `whatsapp://send?phone=${phone}&text=${encodeURIComponent(text)}`;
+        window.location.href = waUrl;
+    }
+
+    function setOrderStatus(newStatus) {
+        let order = JSON.parse(localStorage.getItem('iqbike_active_order'));
+        if (!order) return;
+
+        if (newStatus === 'FINISHED') {
+            document.getElementById('recName').innerText = order.passengerName;
+            document.getElementById('recPickup').innerText = order.pickup;
+            document.getElementById('recDropoff').innerText = order.dropoff;
+            document.getElementById('recFare').innerText = `Rp ${order.fare.toLocaleString('id-ID')}`;
+            document.getElementById('receiptModal').style.display = 'flex';
+
+            let history = JSON.parse(localStorage.getItem('iqbike_history') || '[]');
+            order.type = 'INCOME';
+            order.timestamp = Date.now();
+            history.unshift(order);
+            localStorage.setItem('iqbike_history', JSON.stringify(history));
+
+            localStorage.removeItem('iqbike_active_order');
+            
+            pickupCoords = null;
+            dropoffCoords = null;
+            if (pickupMarker) { map.removeLayer(pickupMarker); pickupMarker = null; }
+            if (dropoffMarker) { map.removeLayer(dropoffMarker); dropoffMarker = null; }
+        } else {
+            order.status = newStatus;
+            localStorage.setItem('iqbike_active_order', JSON.stringify(order));
+        }
+
+        orderChannel.postMessage({ type: 'STATUS_CHANGE' });
+        triggerVibration([500]);
+
+        updateDriverAppUI();
+        updatePassengerAppUI();
+        renderFinanceAndHistory();
+    }
+
+    function closeReceiptModal() {
+        document.getElementById('receiptModal').style.display = 'none';
+    }
+
+    function openExpenseModal() {
+        document.getElementById('expenseModal').style.display = 'flex';
+    }
+
+    function openExpenseModalFromDetail() {
+        closeHistoryDetailsModal();
+        openExpenseModal();
+    }
+
+    function closeExpenseModal() {
+        document.getElementById('expenseModal').style.display = 'none';
+    }
+
+    function saveExpense() {
+        const note = document.getElementById('expenseNote').value;
+        const amount = parseFloat(document.getElementById('expenseAmount').value);
+
+        if (!note || !amount || amount <= 0) {
+            alert("Harap isi keterangan dan jumlah pengeluaran dengan benar!");
+            return;
+        }
+
+        const expenseItem = {
+            id: Date.now(),
+            type: 'EXPENSE',
+            note: note,
+            amount: amount,
+            timestamp: Date.now(),
+            time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+        };
+
+        let history = JSON.parse(localStorage.getItem('iqbike_history') || '[]');
+        history.unshift(expenseItem);
+        localStorage.setItem('iqbike_history', JSON.stringify(history));
+
+        document.getElementById('expenseNote').value = '';
+        document.getElementById('expenseAmount').value = '';
+        closeExpenseModal();
+        renderFinanceAndHistory();
+        alert("Pengeluaran berhasil dicatat!");
+    }
+
+    function openHistoryDetailsModal(filterType) {
+        const history = JSON.parse(localStorage.getItem('iqbike_history') || '[]');
+        const modalContainer = document.getElementById('historyDetailsListContainer');
+        const modalTitle = document.getElementById('historyModalTitle');
+        const expenseActionBtn = document.getElementById('expenseActionContainer');
+
+        modalTitle.innerText = (filterType === 'INCOME') ? "Rincian Hasil Narik (+)" : "Rincian Pengeluaran (-)";
+        modalContainer.innerHTML = '';
+
+        if (filterType === 'EXPENSE') {
+            expenseActionBtn.style.display = 'block';
+        } else {
+            expenseActionBtn.style.display = 'none';
+        }
+
+        const filteredList = history.filter(item => {
+            if (filterType === 'INCOME') return item.type !== 'EXPENSE';
+            return item.type === 'EXPENSE';
+        });
+
+        if (filteredList.length === 0) {
+            modalContainer.innerHTML = '<p style="font-size:12px; color:#888; text-align:center; padding:16px;">Belum ada riwayat tercatat.</p>';
+        } else {
+            filteredList.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'history-card';
+
+                if (item.type === 'EXPENSE') {
+                    card.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; font-weight:bold;">
+                            <span style="color:#eb5757;"><i class="fa-solid fa-triangle-exclamation"></i> ${item.note} (${item.time})</span>
+                            <span style="color:#eb5757;">-Rp ${item.amount.toLocaleString('id-ID')}</span>
+                        </div>
+                    `;
+                } else {
+                    card.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; font-weight:bold;">
+                            <span><i class="fa-solid fa-user"></i> ${item.passengerName} (${item.time})</span>
+                            <span style="color:#27ae60;">+Rp ${item.fare.toLocaleString('id-ID')}</span>
+                        </div>
+                        <div style="color:#666; font-size:11px;">
+                            <div><strong>Jemput:</strong> ${item.pickup}</div>
+                            <div><strong>Tujuan:</strong> ${item.dropoff}</div>
+                        </div>
+                    `;
+                }
+                modalContainer.appendChild(card);
+            });
+        }
+
+        document.getElementById('historyDetailsModal').style.display = 'flex';
+    }
+
+    function closeHistoryDetailsModal() {
+        document.getElementById('historyDetailsModal').style.display = 'none';
+    }
+
+    function renderFinanceAndHistory() {
+        const filter = document.getElementById('timeFilter').value;
+        const history = JSON.parse(localStorage.getItem('iqbike_history') || '[]');
+
+        const now = Date.now();
+        const startOfToday = new Date().setHours(0,0,0,0);
+        const startOfWeek = new Date().setDate(new Date().getDate() - new Date().getDay());
+
+        let grossIncome = 0;
+        let totalExpense = 0;
+
+        const filteredList = history.filter(item => {
+            const itemTime = item.timestamp || 0;
+            if (filter === 'today') return itemTime >= startOfToday;
+            if (filter === 'week') return itemTime >= startOfWeek;
+            if (filter === '7days') return itemTime >= (now - (7 * 86400000));
+            if (filter === '30days') return itemTime >= (now - (30 * 86400000));
+            return true;
+        });
+
+        filteredList.forEach(item => {
+            if (item.type === 'EXPENSE') {
+                totalExpense += item.amount;
+            } else {
+                grossIncome += item.fare;
+            }
+        });
+
+        const netIncome = grossIncome - totalExpense;
+        document.getElementById('grossIncomeText').innerText = `Rp ${grossIncome.toLocaleString('id-ID')}`;
+        document.getElementById('totalExpenseText').innerText = `Rp ${totalExpense.toLocaleString('id-ID')}`;
+        document.getElementById('netIncomeText').innerText = `Rp ${netIncome.toLocaleString('id-ID')}`;
+    }
+
+    function clearHistory() {
+        if (confirm("Hapus semua riwayat transaksi & pengeluaran?")) {
+            localStorage.removeItem('iqbike_history');
+            closeHistoryDetailsModal();
+            renderFinanceAndHistory();
+        }
+    }
+
+    function openGoogleMapsNav(targetLat, targetLng) {
+        const gmapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${targetLat},${targetLng}&travelmode=bicycling`;
+        window.open(gmapsUrl, '_blank');
+    }
+
+    function updatePassengerAppUI() {
+        const statusBox = document.getElementById('driverStatusBox');
+        const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
+        const btnSend = document.getElementById('btnSendOrder');
+        const btnCancel = document.getElementById('btnCancelOrder');
+        const btnJemput = document.getElementById('btnModeJemput');
+        const pickupInput = document.getElementById('pickupLocation');
+
+        if (!order) {
+            statusBox.className = "status-box status-online";
+            statusBox.innerHTML = `<i class="fa-solid fa-circle"></i> Driver Online & Siap Menerima Order`;
+            btnSend.innerHTML = `<i class="fa-brands fa-whatsapp"></i> Kirim Pesan Orderan ke Driver`;
+            btnSend.disabled = false;
+            btnSend.classList.remove('btn-disabled');
+            btnCancel.style.display = 'none';
+
+            btnJemput.disabled = false;
+            pickupInput.disabled = false;
+            return;
+        }
+
+        document.getElementById('passengerName').value = order.passengerName || '';
+        document.getElementById('passengerPhone').value = order.passengerPhone || '';
+        document.getElementById('passengerNote').value = order.note !== '-' ? order.note : '';
+        document.getElementById('pickupLocation').value = order.pickup || '';
+        document.getElementById('dropoffLocation').value = order.dropoff || '';
+
+        if (order.status === 'WAITING') {
+            btnCancel.style.display = 'flex';
+        } else {
+            btnCancel.style.display = 'none';
+        }
+
+        if (order.status !== 'WAITING') {
+            btnJemput.disabled = true;
+            pickupInput.disabled = true;
+            
+            btnSend.innerHTML = `<i class="fa-brands fa-whatsapp"></i> Chat WhatsApp ke Driver`;
+            btnSend.style.backgroundColor = 'var(--whatsapp-green)';
+        } else {
+            btnJemput.disabled = false;
+            pickupInput.disabled = false;
+            
+            btnSend.innerHTML = `<i class="fa-brands fa-whatsapp"></i> Kirim Pesan Orderan ke Driver`;
+        }
+
+        if (order.status === 'WAITING') {
+            statusBox.className = "status-box status-process";
+            statusBox.innerHTML = `<i class="fa-solid fa-clock"></i> Menunggu Konfirmasi Driver via WA...`;
+        } else if (order.status === 'HEADING_PICKUP') {
+            statusBox.className = "status-box status-process";
+            statusBox.innerHTML = `<i class="fa-solid fa-motorcycle"></i> Driver Sedang Menuju Lokasi Jemput! (Jemput Terkunci)`;
+        } else if (order.status === 'ARRIVED') {
+            statusBox.className = "status-box status-arrived";
+            statusBox.innerHTML = `<i class="fa-solid fa-location-dot"></i> Driver Telah Tiba di Titik Jemput!`;
+        } else if (order.status === 'ON_TRIP') {
+            statusBox.className = "status-box status-busy";
+            statusBox.innerHTML = `<i class="fa-solid fa-ban"></i> Perjalanan Sedang Berlangsung...`;
+        }
+
+        computedTotalFare = order.fare;
+        document.getElementById('fareText').innerText = `Rp ${order.fare.toLocaleString('id-ID')}`;
+        pickupCoords = L.latLng(order.pickupLat, order.pickupLng);
+        dropoffCoords = L.latLng(order.dropoffLat, order.dropoffLng);
+        renderFixedMarkers();
+    }
+
+    function updateDriverAppUI() {
+        const container = document.getElementById('orderListContainer');
+        const floatingPanel = document.getElementById('floatingRadarPanel');
+        const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
+
+        if (!order) {
+            floatingPanel.style.display = 'none';
+            container.innerHTML = '';
+            setTimeout(() => { if (map) map.invalidateSize(); }, 200);
+            return;
+        }
+
+        floatingPanel.style.display = 'flex';
+
+        let actionBtnHTML = '';
+        let navBtnHTML = '';
+        let driverCancelBtnHTML = '';
+
+        let waBtnHTML = `
+            <button class="btn-whatsapp" onclick="openPassengerWa('${order.passengerPhone}', '${order.passengerName}')">
+                <i class="fa-brands fa-whatsapp"></i> Hubungi Penumpang via WA (${order.passengerPhone})
+            </button>
+        `;
+
+        if (order.status === 'WAITING') {
+            actionBtnHTML = `
+                <button class="driver-step-btn btn-accept" onclick="setOrderStatus('HEADING_PICKUP')">
+                    <i class="fa-solid fa-route"></i> Terima Order & OTW Jemput
+                </button>`;
+        } else if (order.status === 'HEADING_PICKUP') {
+            navBtnHTML = `
+                <button class="btn-nav-gmaps" onclick="openGoogleMapsNav(${order.pickupLat}, ${order.pickupLng})">
+                    <i class="fa-solid fa-location-arrow"></i> Navigasi Buka Google Maps (Rute Jemput)
+                </button>`;
+            actionBtnHTML = `
+                <button class="driver-step-btn btn-arrived" onclick="setOrderStatus('ARRIVED')">
+                    <i class="fa-solid fa-location-dot"></i> Saya Sudah Tiba di Titik Jemput
+                </button>`;
+            driverCancelBtnHTML = `
+                <button class="driver-step-btn btn-driver-cancel" onclick="driverCancelActiveOrder()">
+                    <i class="fa-solid fa-xmark"></i> Batalkan Pesanan (Penumpang Iseng / Blokir WA)
+                </button>`;
+        } else if (order.status === 'ARRIVED') {
+            actionBtnHTML = `
+                <button class="driver-step-btn btn-trip" onclick="setOrderStatus('ON_TRIP')">
+                    <i class="fa-solid fa-motorcycle"></i> Mulai Perjalanan (Berangkat)
+                </button>`;
+            driverCancelBtnHTML = `
+                <button class="driver-step-btn btn-driver-cancel" onclick="driverCancelActiveOrder()">
+                    <i class="fa-solid fa-xmark"></i> Batalkan Pesanan (Penumpang Iseng / Blokir WA)
+                </button>`;
+        } else if (order.status === 'ON_TRIP') {
+            navBtnHTML = `
+                <button class="driver-step-btn btn-nav-gmaps" onclick="openGoogleMapsNav(${order.dropoffLat}, ${order.dropoffLng})">
+                    <i class="fa-solid fa-location-arrow"></i> Navigasi Buka Google Maps (Rute Tujuan)
+                </button>`;
+            actionBtnHTML = `
+                <button class="driver-step-btn btn-finish" onclick="setOrderStatus('FINISHED')">
+                    <i class="fa-solid fa-circle-check"></i> Selesaikan Perjalanan
+                </button>`;
+        }
+
+        container.innerHTML = `
+            <div class="order-card-driver">
+                <div style="display:flex; justify-content:space-between; font-weight:700;">
+                    <span><i class="fa-solid fa-user"></i> ${order.passengerName}</span>
+                    <span style="color: var(--primary-green-hover); font-size:16px;">Rp ${order.fare.toLocaleString('id-ID')}</span>
+                </div>
+                <div style="font-size:12px; background:#f9f9f9; padding:8px; border-radius:6px; display:flex; flex-direction:column; gap:4px;">
+                    <p><strong style="color:#eb5757;"><i class="fa-solid fa-location-dot"></i> Jemput (Kunci):</strong> ${order.pickup}</p>
+                    <p><strong style="color:#111;"><i class="fa-solid fa-flag-checkered"></i> Tujuan:</strong> ${order.dropoff}</p>
+                    <p><strong>Catatan:</strong> ${order.note || '-'}</p>
+                </div>
+                ${waBtnHTML}
+                ${navBtnHTML}
+                ${actionBtnHTML}
+                ${driverCancelBtnHTML}
+            </div>
+        `;
+
+        setTimeout(() => { if (map) map.invalidateSize(); }, 200);
+    }
+
+    orderChannel.onmessage = function() {
+        calculateFare();
+        updatePassengerAppUI();
+        updateDriverAppUI();
+        renderFinanceAndHistory();
+        renderPassengerHistory();
+        renderAllRealtimeMarkers();
+    };
+
+    window.onload = function() {
+        initMap();
+        
+        const savedRole = localStorage.getItem('iqbike_saved_role');
+        if (savedRole === 'penumpang' || savedRole === 'driver') {
+            selectUserRole(savedRole);
+        } else {
+            showLoginOverlay();
+        }
+    };
+</script>
+
+</body>
+</html>
