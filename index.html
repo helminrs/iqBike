@@ -774,6 +774,7 @@
         </div>
     </div>
 
+    <!-- MODAL KHUSUS PENUMPANG SAAT UBAH TUJUAN -->
     <div id="confirmDestinationChangeModal" class="modal-overlay" style="display: none;">
         <div class="login-card" style="background:#fff; color:#222; text-align:left;">
             <div style="text-align:center; border-bottom:1px solid #eee; padding-bottom:10px;">
@@ -792,6 +793,29 @@
             <div style="display:flex; gap:8px; margin-top:10px;">
                 <button onclick="cancelDestinationChange()" style="flex:1; padding:10px; border:1px solid #ccc; background:#fff; border-radius:8px; font-weight:bold; font-size:12px;">Batal</button>
                 <button onclick="applyDestinationChange()" style="flex:1; padding:10px; border:none; background:var(--accent-blue); color:white; border-radius:8px; font-weight:bold; font-size:12px;">Setuju & Ubah</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL KHUSUS DRIVER KETIKA PENUMPANG SETUJU UBAH TUJUAN -->
+    <div id="driverRouteUpdateModal" class="modal-overlay" style="display: none;">
+        <div class="login-card" style="background:#fff; color:#222; text-align:left;">
+            <div style="text-align:center; border-bottom:1px solid #eee; padding-bottom:10px;">
+                <i class="fa-solid fa-map-location-dot" style="font-size:36px; color:#4285f4;"></i>
+                <h3 style="margin-top:6px;">Pemberitahuan Rute Berubah</h3>
+                <p style="font-size:11px; color:#777;">Penumpang telah mengubah titik tujuan perjalanan</p>
+            </div>
+            
+            <div style="font-size:12px; display:flex; flex-direction:column; gap:6px; background:#f9f9f9; padding:10px; border-radius:8px;">
+                <p><strong>Tujuan Baru:</strong> <span id="driverModalNewDest">-</span></p>
+                <p style="color:#27ae60; font-weight:bold;"><strong>Total Ongkos Baru:</strong> <span id="driverModalNewFare">Rp 0</span></p>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
+                <button onclick="openGoogleMapsFromDriverModal()" class="btn-nav-gmaps" style="padding:12px; font-size:13px;">
+                    <i class="fa-solid fa-location-arrow"></i> Buka Google Maps ke Tujuan Baru
+                </button>
+                <button onclick="closeDriverRouteUpdateModal()" style="padding:8px; border:none; background:#333; color:white; border-radius:8px; font-weight:bold; font-size:12px;">Tutup</button>
             </div>
         </div>
     </div>
@@ -1087,6 +1111,7 @@
     let pendingNewDropoffCoords = null;
     let pendingNewDropoffName = "";
     let pendingCalculatedNewFare = 0;
+    let lastHandledRouteVersion = 0; // Pelacak update rute untuk driver
 
     const savedLastPos = JSON.parse(localStorage.getItem('iqbike_last_known_pos'));
     let userCurrentLat = savedLastPos ? savedLastPos.lat : -7.02443;
@@ -1097,7 +1122,6 @@
     let computedTotalFare = 0;
     let searchDebounce = null;
     
-    // Muat status online dari localStorage agar tidak tereset saat refresh
     let isDriverOnline = localStorage.getItem('iqbike_driver_online_status') !== 'false';
     let currentDriverWa = "6285934602965";
 
@@ -1278,12 +1302,15 @@
         pendingNewDropoffCoords = newLatLng;
         pendingNewDropoffName = newPlaceName;
 
-        document.getElementById('modalOldDest').innerText = activeOrder.dropoff;
-        document.getElementById('modalNewDest').innerText = newPlaceName;
-        document.getElementById('modalAddKm').innerText = `+${(addDistMeters/1000).toFixed(1)} km (Rute Singgah Tambahan)`;
-        document.getElementById('modalNewFare').innerText = `Rp ${pendingCalculatedNewFare.toLocaleString('id-ID')}`;
+        // Tampilkan modal konfirmasi khusus di SISI PENUMPANG SAJA
+        if (userRole === 'penumpang') {
+            document.getElementById('modalOldDest').innerText = activeOrder.dropoff;
+            document.getElementById('modalNewDest').innerText = newPlaceName;
+            document.getElementById('modalAddKm').innerText = `+${(addDistMeters/1000).toFixed(1)} km (Rute Singgah Tambahan)`;
+            document.getElementById('modalNewFare').innerText = `Rp ${pendingCalculatedNewFare.toLocaleString('id-ID')}`;
 
-        document.getElementById('confirmDestinationChangeModal').style.display = 'flex';
+            document.getElementById('confirmDestinationChangeModal').style.display = 'flex';
+        }
     }
 
     function applyDestinationChange() {
@@ -1297,6 +1324,7 @@
         activeOrder.dropoffLat = pendingNewDropoffCoords.lat;
         activeOrder.dropoffLng = pendingNewDropoffCoords.lng;
         activeOrder.fare = pendingCalculatedNewFare;
+        activeOrder.routeVersion = (activeOrder.routeVersion || 0) + 1; // Tambah versi rute untuk memicu alert driver
 
         localStorage.setItem('iqbike_active_order', JSON.stringify(activeOrder));
         computedTotalFare = pendingCalculatedNewFare;
@@ -1320,6 +1348,18 @@
             document.getElementById('dropoffLocation').value = activeOrder.dropoff;
             renderFixedMarkers();
         }
+    }
+
+    function closeDriverRouteUpdateModal() {
+        document.getElementById('driverRouteUpdateModal').style.display = 'none';
+    }
+
+    function openGoogleMapsFromDriverModal() {
+        const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
+        if (order) {
+            openGoogleMapsNav(order.dropoffLat, order.dropoffLng);
+        }
+        closeDriverRouteUpdateModal();
     }
 
     function renderFixedMarkers() {
@@ -1452,7 +1492,6 @@
             mountMapToContainer('driverMapContainer');
             loadDriverWaNumber();
             
-            // Atur tampilan tombol UI status online/offline driver sesuai status tersimpan
             const btn = document.getElementById('btnToggleDriverStatus');
             if (isDriverOnline) {
                 btn.className = "btn-toggle-online online";
@@ -1548,7 +1587,6 @@
         }
     }
 
-    // --- INTEGRASI FIREBASE CLOUD SYNC ---
     function syncDriverToCloud() {
         const driverGps = { lat: userCurrentLat, lng: userCurrentLng };
         db.collection("iqbike_system").doc(DRIVER_ID).set({
@@ -1580,14 +1618,12 @@
     }
 
     function listenCloudData() {
-        // Pantau Pergerakan & Status Driver
         db.collection("iqbike_system").doc(DRIVER_ID).onSnapshot((doc) => {
             if (doc.exists) {
                 const data = doc.data();
                 if (data.lat && data.lng) {
                     localStorage.setItem('iqbike_driver_gps', JSON.stringify({ lat: data.lat, lng: data.lng }));
                     
-                    // Jangan timpa status online lokal secara paksa jika sedang offline, kecuali data cloud memperbarui
                     if (userRole === 'penumpang') {
                         isDriverOnline = data.isOnline !== undefined ? data.isOnline : true;
                         updatePassengerStatusBoxFromCloud(isDriverOnline);
@@ -1599,7 +1635,6 @@
             }
         });
 
-        // Pantau GPS Penumpang agar terlihat di device driver
         db.collection("iqbike_system").doc("passenger_gps").onSnapshot((doc) => {
             if (doc.exists) {
                 const data = doc.data();
@@ -1610,17 +1645,26 @@
             }
         });
 
-        // Pantau Orderan Realtime (Aman dari refresh mendadak)
         db.collection("iqbike_system").doc("active_order").onSnapshot((doc) => {
             if (doc.exists) {
                 const cloudOrder = doc.data();
                 const localOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
+                
                 if (!localOrder || localOrder.id !== cloudOrder.id) {
                     localStorage.setItem('iqbike_active_order', JSON.stringify(cloudOrder));
                     triggerVibration([200, 100, 200]);
+                } else if (cloudOrder.routeVersion && cloudOrder.routeVersion > lastHandledRouteVersion) {
+                    // Jika rute diperbarui oleh penumpang, tampilkan modal khusus untuk Driver
+                    if (userRole === 'driver') {
+                        lastHandledRouteVersion = cloudOrder.routeVersion;
+                        document.getElementById('driverModalNewDest').innerText = cloudOrder.dropoff;
+                        document.getElementById('driverModalNewFare').innerText = `Rp ${cloudOrder.fare.toLocaleString('id-ID')}`;
+                        document.getElementById('driverRouteUpdateModal').style.display = 'flex';
+                        triggerVibration([300, 150, 300]);
+                    }
+                    localStorage.setItem('iqbike_active_order', JSON.stringify(cloudOrder));
                 }
             } else {
-                // Hanya hapus jika order benar-benar selesai/batal, jangan hapus saat awal load jika data lokal ada
                 const localOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
                 if (localOrder && localOrder.status === 'FINISHED') {
                     localStorage.removeItem('iqbike_active_order');
@@ -1867,6 +1911,7 @@
             dropoffLat: dropoffCoords.lat, dropoffLng: dropoffCoords.lng,
             fare: computedTotalFare, status: 'WAITING',
             note: note,
+            routeVersion: 1,
             timestamp: Date.now(),
             time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
         };
@@ -2335,7 +2380,6 @@
         pickupInput.value = order.pickup || '';
         dropoffInput.value = order.dropoff || '';
 
-        // Lock form inputs when order is confirmed by driver
         if (order.status !== 'WAITING') {
             nameInput.disabled = true;
             phoneInput.disabled = true;
