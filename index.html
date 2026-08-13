@@ -1853,7 +1853,6 @@
         if (waVal) {
             const newWa = formatWaNumber(waVal);
             if (newWa !== currentDriverWa) {
-                // Hapus data lama dari cloud jika nomor WA berubah
                 db.collection("iqbike_drivers").doc(currentDriverWa).delete().catch(() => {});
                 currentDriverWa = newWa;
             }
@@ -1895,7 +1894,7 @@
                     syncPassengerGpsToCloud(currentPos);
                 } else if (userRole === 'driver') {
                     localStorage.setItem('iqbike_driver_gps', JSON.stringify(currentPos));
-                    syncDriverToCloud();
+                    syncDriverToCloud(); // Mengirim status isDriverOnline yang stabil dari memori lokal
                 }
 
                 renderPassengerLocalMarkers();
@@ -1903,7 +1902,6 @@
         }
     }
 
-    // Menggunakan koleksi Multi-Driver berdasarkan Nomor WhatsApp unik sebagai ID Dokumen
     function syncDriverToCloud() {
         if (userRole !== 'driver') return;
         const driverGps = { lat: userCurrentLat, lng: userCurrentLng };
@@ -1911,7 +1909,7 @@
             wa: currentDriverWa,
             lat: driverGps.lat,
             lng: driverGps.lng,
-            isOnline: isDriverOnline,
+            isOnline: isDriverOnline, // Status stabil langsung dibaca dari variabel state mandiri
             lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true }).catch(err => console.log("Sync driver error:", err));
     }
@@ -1936,7 +1934,6 @@
     }
 
     function listenCloudData() {
-        // Mendengarkan SEMUA driver dalam koleksi multi-driver secara real-time
         db.collection("iqbike_drivers").onSnapshot((snapshot) => {
             let anyDriverOnline = false;
             let activeDriversList = {};
@@ -1951,9 +1948,11 @@
                 }
             });
 
+            // Perbarui tampilan peta & status untuk Passenger maupun Driver secara serentak
+            renderAllMultiDriversOnMap(activeDriversList);
+
             if (userRole === 'penumpang') {
                 updatePassengerStatusBoxGlobal(anyDriverOnline);
-                renderAllMultiDriversOnMap(activeDriversList);
             }
         });
 
@@ -2018,7 +2017,15 @@
     function renderAllMultiDriversOnMap(driversObj) {
         if (!map) return;
 
-        // Render atau perbarui posisi seluruh driver yang terdaftar di database
+        // Validasi dan hapus marker yang mungkin sudah tidak ada dalam snapshot database
+        Object.keys(driverMarkersMap).forEach(existingWa => {
+            if (!driversObj[existingWa]) {
+                map.removeLayer(driverMarkersMap[existingWa]);
+                delete driverMarkersMap[existingWa];
+            }
+        });
+
+        // Render atau perbarui ikon marker driver secara presisi (Hijau jika online, Abu-abu jika offline)
         Object.keys(driversObj).forEach(waKey => {
             const dData = driversObj[waKey];
             if (!dData.lat || !dData.lng) return;
