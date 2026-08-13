@@ -911,7 +911,7 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">No WhatsApp <span style="color:red">*</span></label>
-                    <input type="tel" id="passengerPhone" class="form-input" placeholder="0812xxxx">
+                    <input type="tel" id="passengerPhone" class="form-input" placeholder="6281234xxxx">
                 </div>
             </div>
 
@@ -975,7 +975,7 @@
             <!-- Tombol Offline/Online & Input WhatsApp Driver -->
             <div class="driver-control-bar">
                 <div style="display:flex; align-items:center; gap:6px; flex:1; max-width:220px;">
-                    <input type="tel" id="driverWaInput" class="form-input" placeholder="No WA Driver" style="font-size:11px; padding:4px;" onchange="saveDriverWaNumber()">
+                    <input type="tel" id="driverWaInput" class="form-input" placeholder="628xxxxxxxxxx" style="font-size:11px; padding:4px;" onchange="saveDriverWaNumber()">
                 </div>
                 <div>
                     <button id="btnToggleDriverStatus" class="btn-toggle-online online" onclick="toggleDriverOnlineStatus()">Online</button>
@@ -1096,7 +1096,9 @@
     let userRole = null; 
     let computedTotalFare = 0;
     let searchDebounce = null;
-    let isDriverOnline = true;
+    
+    // Muat status online dari localStorage agar tidak tereset saat refresh
+    let isDriverOnline = localStorage.getItem('iqbike_driver_online_status') !== 'false';
     let currentDriverWa = "6285934602965";
 
     const orderChannel = new BroadcastChannel('iqbike_system');
@@ -1106,7 +1108,6 @@
         iconSize: [26, 26], iconAnchor: [13, 26], className: 'custom-pin'
     });
 
-    // Ikon Bendera Tanpa Background Putih Bulat
     const finishFlagIcon = L.divIcon({
         html: '<i class="fa-solid fa-flag-checkered" style="font-size:24px; color:#111; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4));"></i>',
         iconSize: [24, 24], iconAnchor: [12, 12], className: 'custom-flag-nobg'
@@ -1450,6 +1451,18 @@
             document.getElementById('btnConfirmLocation').style.display = 'none';
             mountMapToContainer('driverMapContainer');
             loadDriverWaNumber();
+            
+            // Atur tampilan tombol UI status online/offline driver sesuai status tersimpan
+            const btn = document.getElementById('btnToggleDriverStatus');
+            if (isDriverOnline) {
+                btn.className = "btn-toggle-online online";
+                btn.innerText = "Online";
+            } else {
+                btn.className = "btn-toggle-online offline";
+                btn.innerText = "Offline";
+            }
+            updateDriverBadgeUI(isDriverOnline);
+
             updateDriverAppUI();
             renderFinanceAndHistory();
         }
@@ -1457,6 +1470,7 @@
 
     function toggleDriverOnlineStatus() {
         isDriverOnline = !isDriverOnline;
+        localStorage.setItem('iqbike_driver_online_status', isDriverOnline);
         const btn = document.getElementById('btnToggleDriverStatus');
         if (isDriverOnline) {
             btn.className = "btn-toggle-online online";
@@ -1465,6 +1479,7 @@
             btn.className = "btn-toggle-online offline";
             btn.innerText = "Offline";
         }
+        updateDriverBadgeUI(isDriverOnline);
         syncDriverToCloud();
     }
 
@@ -1521,6 +1536,7 @@
 
                 if (userRole === 'penumpang') {
                     localStorage.setItem('iqbike_passenger_gps', JSON.stringify(currentPos));
+                    syncPassengerGpsToCloud(currentPos);
                 } else if (userRole === 'driver') {
                     localStorage.setItem('iqbike_driver_gps', JSON.stringify(currentPos));
                     syncDriverToCloud();
@@ -1544,6 +1560,14 @@
         }, { merge: true }).catch(err => console.log("Sync driver error:", err));
     }
 
+    function syncPassengerGpsToCloud(pos) {
+        db.collection("iqbike_system").doc("passenger_gps").set({
+            lat: pos.lat,
+            lng: pos.lng,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true }).catch(err => console.log("Sync passenger gps error:", err));
+    }
+
     function syncOrderToCloud(orderData) {
         db.collection("iqbike_system").doc("active_order").set({
             ...orderData,
@@ -1556,21 +1580,37 @@
     }
 
     function listenCloudData() {
+        // Pantau Pergerakan & Status Driver
         db.collection("iqbike_system").doc(DRIVER_ID).onSnapshot((doc) => {
             if (doc.exists) {
                 const data = doc.data();
                 if (data.lat && data.lng) {
                     localStorage.setItem('iqbike_driver_gps', JSON.stringify({ lat: data.lat, lng: data.lng }));
-                    isDriverOnline = data.isOnline !== undefined ? data.isOnline : true;
+                    
+                    // Jangan timpa status online lokal secara paksa jika sedang offline, kecuali data cloud memperbarui
+                    if (userRole === 'penumpang') {
+                        isDriverOnline = data.isOnline !== undefined ? data.isOnline : true;
+                        updatePassengerStatusBoxFromCloud(isDriverOnline);
+                    }
                     if (data.wa) currentDriverWa = data.wa;
                     
                     renderAllRealtimeMarkers();
-                    updatePassengerStatusBoxFromCloud(isDriverOnline);
-                    updateDriverBadgeUI(isDriverOnline);
                 }
             }
         });
 
+        // Pantau GPS Penumpang agar terlihat di device driver
+        db.collection("iqbike_system").doc("passenger_gps").onSnapshot((doc) => {
+            if (doc.exists) {
+                const data = doc.data();
+                if (data.lat && data.lng) {
+                    localStorage.setItem('iqbike_passenger_gps', JSON.stringify({ lat: data.lat, lng: data.lng }));
+                    renderAllRealtimeMarkers();
+                }
+            }
+        });
+
+        // Pantau Orderan Realtime (Aman dari refresh mendadak)
         db.collection("iqbike_system").doc("active_order").onSnapshot((doc) => {
             if (doc.exists) {
                 const cloudOrder = doc.data();
@@ -1580,7 +1620,11 @@
                     triggerVibration([200, 100, 200]);
                 }
             } else {
-                localStorage.removeItem('iqbike_active_order');
+                // Hanya hapus jika order benar-benar selesai/batal, jangan hapus saat awal load jika data lokal ada
+                const localOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
+                if (localOrder && localOrder.status === 'FINISHED') {
+                    localStorage.removeItem('iqbike_active_order');
+                }
             }
             updatePassengerAppUI();
             updateDriverAppUI();
@@ -1615,7 +1659,7 @@
         }
 
         const passengerGps = JSON.parse(localStorage.getItem('iqbike_passenger_gps'));
-        if (passengerGps && userRole === 'driver') {
+        if (passengerGps) {
             if (!passengerLiveMarker) {
                 passengerLiveMarker = L.marker([passengerGps.lat, passengerGps.lng], {icon: passengerBlueDotIcon, zIndexOffset: 900}).addTo(map);
             } else {
