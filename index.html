@@ -321,8 +321,6 @@
         .status-online { background-color: #eef7e8; color: #2e7d32; border: 1px solid #c8e6b8; }
         .status-offline { background-color: #fce8e6; color: #c62828; border: 1px solid #f5c6cb; }
         .status-busy { background-color: #fbeae8; color: #eb5757; border: 1px solid #f7c6c2; }
-        .status-process { background-color: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; }
-        .status-arrived { background-color: #fff3e0; color: #e65100; border: 1px solid #ffe0b2; }
 
         .form-row-2cols {
             display: grid;
@@ -1799,7 +1797,7 @@
             updateDriverAppUI();
             renderFinanceAndHistory();
 
-            // Paksa langsung sinkronkan status online permanen ke cloud saat masuk mode driver atau refresh
+            // Paksa langsung sinkronkan status online persisten ke cloud saat masuk mode driver atau refresh
             syncDriverToCloud();
 
             const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
@@ -1907,8 +1905,8 @@
 
     function syncDriverToCloud() {
         const driverGps = { lat: userCurrentLat, lng: userCurrentLng };
-        // Status online persisten dibaca langsung dari state lokal/localStorage agar saat refresh tetap online
-        const onlineStatus = userRole === 'driver' ? isDriverOnline : (localStorage.getItem('iqbike_driver_online_status') !== 'false');
+        // Status online persisten dibaca langsung dari state lokal/localStorage
+        const onlineStatus = localStorage.getItem('iqbike_driver_online_status') !== 'false';
         
         db.collection("iqbike_drivers").doc(currentDriverWa).set({
             wa: currentDriverWa,
@@ -1972,7 +1970,7 @@
                 const cloudOrder = doc.data();
                 const localOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
                 
-                if (!localOrder || localOrder.id !== cloudOrder.id || localOrder.status !== cloudOrder.status) {
+                if (!localOrder || localOrder.id !== cloudOrder.id) {
                     localStorage.setItem('iqbike_active_order', JSON.stringify(cloudOrder));
                     playNotificationSound();
                     triggerCustomVibration('radarOrder');
@@ -1991,7 +1989,7 @@
                 }
             } else {
                 const localOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
-                if (localOrder) {
+                if (localOrder && localOrder.status === 'FINISHED') {
                     localStorage.removeItem('iqbike_active_order');
                 }
             }
@@ -2014,7 +2012,6 @@
                 statusBox.innerHTML = `<i class="fa-solid fa-circle"></i> Driver Sedang Offline (Posisi Real-time Tetap Terlihat)`;
             }
         } else {
-            // Jika sedang ada order aktif, status atas menyesuaikan kondisi pengerjaan
             statusBox.className = "status-box status-busy";
             statusBox.innerHTML = `<i class="fa-solid fa-motorcycle"></i> Driver Sedang Menjalankan Pesanan Aktif`;
         }
@@ -2030,31 +2027,11 @@
             }
         });
 
-        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
-
         Object.keys(driversObj).forEach(waKey => {
             const dData = driversObj[waKey];
             if (!dData.lat || !dData.lng) return;
 
-            // Aturan Ikon Hijau vs Abu-abu:
-            // Jika ada order aktif, cek apakah driver ini sedang dekat tujuan (< 500m dari dropoff) atau tidak ada order lain.
-            // Secara default, jika online, ikon selalu hijau di semua device, kecuali diatur spesifik saat order aktif.
-            let isIconGreen = dData.isOnline;
-            
-            if (activeOrder && activeOrder.status && activeOrder.status !== 'FINISHED' && activeOrder.status !== 'CANCELLED') {
-                const dropoffLatLng = L.latLng(activeOrder.dropoffLat, activeOrder.dropoffLng);
-                const driverCurrentLatLng = L.latLng(dData.lat, dData.lng);
-                const distToDropoff = map.distance(driverCurrentLatLng, dropoffLatLng);
-
-                // Jika sudah dekat tujuan (< 500 meter menjelang sampai), warnanya berubah hijau kembali agar bisa terima orderan sambung
-                if (distToDropoff <= 500) {
-                    isIconGreen = true;
-                } else {
-                    // Selama di tengah perjalanan order aktif, tampil abu-abu bagi yang tidak sedang menyimak, atau hijau untuk device terkait
-                    isIconGreen = dData.isOnline; 
-                }
-            }
-
+            const isIconGreen = dData.isOnline === true;
             const iconToUse = isIconGreen ? driverMotorIcon : driverOfflineIcon;
 
             if (!driverMarkersMap[waKey]) {
@@ -2955,7 +2932,6 @@
         if (savedRole === 'penumpang' || savedRole === 'driver') {
             selectUserRole(savedRole);
         } else {
-            // Jika baru pertama kali dibuka atau di-refresh, set default role sebagai penumpang
             selectUserRole('penumpang');
         }
     };
