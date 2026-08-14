@@ -2230,7 +2230,6 @@
                 const cloudOrder = doc.data();
                 const oldLocalOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
                 
-                // Deteksi otomatis jika status berubah menjadi FINISHED di sisi penumpang
                 if (userRole === 'penumpang' && oldLocalOrder && oldLocalOrder.status !== 'FINISHED' && cloudOrder.status === 'FINISHED') {
                     openPassengerReviewModal();
                 }
@@ -2777,7 +2776,7 @@
             btnSend.innerHTML = `<i class="fa-brands fa-whatsapp"></i> Chat Driver (${order.assignedDriverWa})`;
             btnSend.onclick = function() {
                 const shareLocUrl = `https://www.google.com/maps?q=${userCurrentLat},${userCurrentLng}`;
-                const msg = `Halo Kak *${order.passengerName}*, Driver sedang menuju lokasi penjemputan Anda.\n\n• Penjemputan: ${order.pickup}\n\n📍 *Link Share Lokasi Terkini Driver:* ${shareLocUrl}`;
+                const msg = `Halo Driver IqBike, saya mau order ojek online:\n\n👤 Nama: ${order.passengerName}\n📱 WA Penumpang: ${order.passengerPhone}\n📍 Jemput: ${order.pickup}\n🏁 Tujuan: ${order.dropoff}\n⏱️ Dijemput: Secepatnya / Instan\n💰 Estimasi Ongkos: Rp ${order.fare.toLocaleString('id-ID')}\n\n📍 Link Share Lokasi Terkini Driver: ${shareLocUrl}\n\nMohon konfirmasinya ya, terima kasih!`;
                 window.open(`https://api.whatsapp.com/send?phone=${order.assignedDriverWa}&text=${encodeURIComponent(msg)}`, '_blank');
             };
         }
@@ -2805,10 +2804,19 @@
                 actionBtnHTML = `<button class="driver-step-btn btn-accept" onclick="driverTakeOrder(${order.id})"><i class="fa-solid fa-motorcycle"></i> Ambil Orderan</button>`;
             }
         } else if (order.status === 'HEADING_PICKUP' || order.status === 'ARRIVED' || order.status === 'ON_TRIP') {
-            // Sesuai permintaan: Tombol berurutan warna seragam/sesuai alur status (Otw Jemput -> Tiba -> Antar Selesai) + tombol cancel/fiktif di bawahnya
-            let nextStatus = order.status === 'HEADING_PICKUP' ? 'ARRIVED' : (order.status === 'ARRIVED' ? 'ON_TRIP' : 'FINISHED');
-            let labelBtn = order.status === 'HEADING_PICKUP' ? 'Lanjut OTW Jemput (Buka Google Maps)' : (order.status === 'ARRIVED' ? 'Saya Sudah Tiba & Chat Penumpang (Ceklis 1)' : 'Tombol Antar Selesai');
-            let colorBtnClass = order.status === 'HEADING_PICKUP' ? 'btn-accept' : (order.status === 'ARRIVED' ? 'btn-arrived' : 'btn-finish');
+            let labelBtn = '';
+            let colorBtnClass = '';
+
+            if (order.status === 'HEADING_PICKUP') {
+                labelBtn = 'Konfirmasi OTW Jemput (Kirim WA)';
+                colorBtnClass = 'btn-accept';
+            } else if (order.status === 'ARRIVED') {
+                labelBtn = 'Saya Sudah Tiba & Buka Maps Tujuan';
+                colorBtnClass = 'btn-arrived';
+            } else if (order.status === 'ON_TRIP') {
+                labelBtn = 'Selesaikan Pesanan';
+                colorBtnClass = 'btn-finish';
+            }
 
             actionBtnHTML = `
                 <button class="driver-step-btn ${colorBtnClass}" onclick="handleDriverWorkflowStep('${order.status}', ${order.id})">
@@ -2836,23 +2844,17 @@
         const driverShareLocUrl = `https://www.google.com/maps?q=${userCurrentLat},${userCurrentLng}`;
 
         if (currentStatus === 'HEADING_PICKUP') {
-            // Mengirim direct WA informasi otw jemput dan link sharelokasi, lalu buka gmap ke titik jemput
-            const message = `Halo Kak *${order.passengerName}*, driver sedang OTW menuju lokasi penjemputan.\n• Penjemputan: ${order.pickup}\n\n📍 *Link Share Lokasi Terkini Driver:* ${driverShareLocUrl}`;
+            const message = `Halo Kak ${order.passengerName}, Driver sedang menuju lokasi penjemputan Anda.\n- Layanan: ${order.serviceType ? order.serviceType.toUpperCase() : 'OJEK'}\n- Penjemputan: ${order.pickup}\n\n📍 Link Share Lokasi Terkini Driver: ${driverShareLocUrl}`;
             window.open(`https://api.whatsapp.com/send?phone=${order.passengerPhone}&text=${encodeURIComponent(message)}`, '_blank');
             
             openGoogleMapsNav(order.pickupLat, order.pickupLng);
             setOrderStatus('ARRIVED');
         } 
         else if (currentStatus === 'ARRIVED') {
-            // Mengirim direct WA tombol biru saya sudah tiba (ceklis 1), lalu lanjut tombol oren tombol antar
-            const message = `Halo Kak *${order.passengerName}*, driver sudah tiba di titik penjemputan (cek 1).\n• Penjemputan: ${order.pickup}\n\n📍 *Link Share Lokasi Terkini Driver:* ${driverShareLocUrl}`;
-            window.open(`https://api.whatsapp.com/send?phone=${order.passengerPhone}&text=${encodeURIComponent(message)}`, '_blank');
-
             openGoogleMapsNav(order.dropoffLat, order.dropoffLng);
             setOrderStatus('ON_TRIP');
         } 
         else if (currentStatus === 'ON_TRIP') {
-            // Tombol selesai
             setOrderStatus('FINISHED');
         }
     }
