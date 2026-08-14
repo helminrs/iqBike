@@ -1808,7 +1808,7 @@
             updateDriverAppUI();
             renderFinanceAndHistory();
 
-            // Paksa langsung sinkronkan status online persisten ke cloud
+            // Paksa sinkronisasi status online persisten ke cloud
             syncDriverToCloud();
 
             const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
@@ -1862,21 +1862,29 @@
 
     function saveDriverWaNumber() {
         const waVal = document.getElementById('driverWaInput').value.trim();
-        if (!waVal) {
-            alert("Harap masukkan nomor WhatsApp driver yang valid!");
+        
+        // Validasi ketat nomor WhatsApp agar tidak asal tersimpan
+        const cleanedWa = waVal.replace(/\D/g, '');
+        if (!cleanedWa || cleanedWa.length < 9) {
+            alert("⚠️ Nomor WhatsApp tidak valid! Harap masukkan nomor WhatsApp yang benar (minimal 9 digit angka).");
             return;
         }
 
         const newWa = formatWaNumber(waVal);
+        
+        // Jika nomor WA diganti, hapus dokumen lama di Firestore agar ID tidak nyangkut/duplikat
         if (newWa !== currentDriverWa) {
-            // Hapus dokumen lama di cloud agar tidak duplikat ID
             db.collection("iqbike_drivers").doc(currentDriverWa).delete().catch(() => {});
             currentDriverWa = newWa;
         }
 
         localStorage.setItem('iqbike_driver_wa', currentDriverWa);
+        document.getElementById('driverWaInput').value = currentDriverWa;
+        
+        // Langsung push status ke cloud dengan ID baru yang valid
         syncDriverToCloud();
-        alert(`ID Nomor WhatsApp Driver (${currentDriverWa}) Berhasil Disimpan & Terkunci ke Sistem!`);
+        
+        alert(`✅ ID Nomor WhatsApp Driver (${currentDriverWa}) Berhasil Disimpan & Terkunci ke Sistem!`);
     }
 
     function loadDriverWaNumber() {
@@ -1920,6 +1928,7 @@
     }
 
     function syncDriverToCloud() {
+        if (!currentDriverWa || currentDriverWa.length < 9) return;
         const driverGps = { lat: userCurrentLat, lng: userCurrentLng };
         const onlineStatus = localStorage.getItem('iqbike_driver_online_status') !== 'false';
         
@@ -1952,7 +1961,7 @@
     }
 
     function listenCloudData() {
-        // Listener Driver: Selalu menampilkan ikon motor di peta (hijau jika online, abu-abu jika offline)
+        // Listener Driver: Mengambil semua dokumen driver, merender ikon motor (hijau jika online, abu-abu jika offline)
         db.collection("iqbike_drivers").onSnapshot((snapshot) => {
             let anyDriverOnline = false;
             let activeDriversList = {};
@@ -1981,7 +1990,7 @@
             }
         });
 
-        // Listener Active Order: Dilindungi agar tidak mereset/menghapus pesanan aktif saat refresh kilat
+        // Listener Active Order: Dilindungi agar tahan refresh dan tidak hilang saat berpindah tab
         db.collection("iqbike_system").doc("active_order").onSnapshot((doc) => {
             if (doc.exists) {
                 const cloudOrder = doc.data();
@@ -2005,7 +2014,6 @@
                     triggerCustomVibration('routeConfirmed');
                 }
             } else {
-                // Jangan hapus local order jika statusnya bukan FINISHED, agar tahan terhadap refresh
                 const localOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
                 if (localOrder && localOrder.status === 'FINISHED') {
                     localStorage.removeItem('iqbike_active_order');
@@ -2049,7 +2057,7 @@
             const dData = driversObj[waKey];
             if (!dData.lat || !dData.lng) return;
 
-            // Tentukan warna ikon: Hijau jika true (online), Abu-abu jika false (offline)
+            // Jika driver online (true) -> Hijau, jika offline (false) -> Abu-abu, dan selalu muncul di peta
             const isOnline = dData.isOnline === true;
             const iconToUse = isOnline ? driverMotorIcon : driverOfflineIcon;
 
@@ -2510,7 +2518,7 @@
             if (activeOrder && activeOrder.id === item.id) {
                 actionButtonsHTML = `
                     <div style="background:#fff3e0; color:#e65100; font-size:10px; font-weight:bold; padding:6px; border-radius:6px; text-align:center; margin-top:4px;">
-                        📌 Sedang Berlangsung / Aktif
+                        📌 Sedang Berlangsung / Aktif (Terkunci)
                     </div>
                 `;
             } else if (activeOrder) {
