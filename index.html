@@ -2500,14 +2500,25 @@
     function driverTakeOrder(orderId) {
         let order = JSON.parse(localStorage.getItem('iqbike_active_order'));
         if (!order || order.id !== orderId) return;
+
+        // ANIMASI LOADING / MENUNGGU PENUMPANG MEMILIH DRIVER PADA TOMBOL
+        const btnAction = event.currentTarget;
+        if (btnAction) {
+            btnAction.disabled = true;
+            btnAction.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menunggu penumpang memilih driver...`;
+        }
+
         if (!order.acceptedDrivers) order.acceptedDrivers = [];
         if (!order.acceptedDrivers.some(d => d.wa === currentDriverWa)) {
             order.acceptedDrivers.push({ wa: currentDriverWa, time: Date.now() });
         }
         localStorage.setItem('iqbike_active_order', JSON.stringify(order));
         syncOrderToCloud(order);
-        updateDriverAppUI();
-        alert("Anda mengajukan diri mengambil orderan!");
+        
+        setTimeout(() => {
+            updateDriverAppUI();
+            alert("Anda mengajukan diri mengambil orderan! Menunggu penumpang memilih...");
+        }, 600);
     }
 
     function setOrderStatus(newStatus) {
