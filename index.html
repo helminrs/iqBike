@@ -1339,7 +1339,6 @@
     let currentDriverWa = localStorage.getItem('iqbike_driver_wa') || "6285934602965";
     let passengerVerifiedWa = localStorage.getItem('iqbike_passenger_wa') || "";
 
-    // --- AUTO SYNC GLOBAL DRIVER SAAT REFRESH ---
     function ensureDriverCloudPresence() {
         const onlineStatus = localStorage.getItem('iqbike_driver_online_status') !== 'false';
         const driverGps = JSON.parse(localStorage.getItem('iqbike_driver_gps')) || { lat: userCurrentLat, lng: userCurrentLng };
@@ -2424,7 +2423,6 @@
         document.getElementById('driverSelectionModal').style.display = 'none';
     }
 
-    // --- FITUR BARU: RENDER & URUTKAN DRIVER BERDASARKAN JARAK TERDEKAT KE TITIK JEMPUT ---
     function renderAvailableDriversList() {
         const container = document.getElementById('availableDriversListContainer');
         const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
@@ -2455,7 +2453,6 @@
                 }
             });
 
-            // Urutkan dari jarak terdekat ke terjauh
             driversWithDistance.sort((a, b) => a.distanceMeters - b.distanceMeters);
 
             container.innerHTML = '';
@@ -3112,7 +3109,7 @@
             navBtnHTML = `
                 <button class="driver-step-btn btn-nav-gmaps" onclick="openGoogleMapsNav(${order.dropoffLat}, ${order.dropoffLng})">
                     <i class="fa-solid fa-location-arrow"></i> Navigasi Google Maps (Rute Tujuan)
-                </button>";
+                </button>`;
             actionBtnHTML = `
                 <button class="driver-step-btn btn-finish" onclick="setOrderStatus('FINISHED')">
                     <i class="fa-solid fa-circle-check"></i> Selesaikan Perjalanan
