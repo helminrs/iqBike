@@ -181,10 +181,6 @@
             border-color: #0288d1 !important;
         }
 
-        .btn-pin-mode.active-mode i {
-            color: #ffffff !important;
-        }
-
         .map-wrapper {
             position: relative;
             width: 100%;
@@ -701,6 +697,7 @@
             color: #fff;
             font-size: 12px;
             border-bottom: 1px solid #333;
+            gap: 6px;
         }
 
         .btn-toggle-online {
@@ -710,9 +707,22 @@
             font-weight: bold;
             border: none;
             cursor: pointer;
+            white-space: nowrap;
         }
         .btn-toggle-online.online { background: #27ae60; color: #fff; }
         .btn-toggle-online.offline { background: #eb5757; color: #fff; }
+
+        .btn-save-wa {
+            background: var(--primary-green);
+            color: #111;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            white-space: nowrap;
+        }
 
         .settings-section-title {
             font-size: 12px;
@@ -1127,8 +1137,9 @@
 
         <div id="driverView" class="driver-view-container" style="display: none;">
             <div class="driver-control-bar">
-                <div style="display:flex; align-items:center; gap:6px; flex:1; max-width:220px;">
-                    <input type="tel" id="driverWaInput" class="form-input" placeholder="628xxxxxxxxxx" style="font-size:11px; padding:4px;" onchange="saveDriverWaNumber()">
+                <div style="display:flex; align-items:center; gap:4px; flex:1;">
+                    <input type="tel" id="driverWaInput" class="form-input" placeholder="No WA (628...)" style="font-size:11px; padding:6px;">
+                    <button class="btn-save-wa" onclick="saveDriverWaNumber()"><i class="fa-solid fa-floppy-disk"></i> Simpan WA</button>
                 </div>
                 <div>
                     <button id="btnToggleDriverStatus" class="btn-toggle-online online" onclick="toggleDriverOnlineStatus()">Online</button>
@@ -1246,7 +1257,7 @@
     let computedTotalFare = 0;
     let searchDebounce = null;
     
-    // Status online & nomor WhatsApp persisten (default true agar langsung online permanen saat refresh)
+    // Status online & ID WhatsApp driver terkonfirmasi persisten
     let isDriverOnline = localStorage.getItem('iqbike_driver_online_status') !== 'false';
     let currentDriverWa = localStorage.getItem('iqbike_driver_wa') || "6285934602965";
 
@@ -1797,7 +1808,7 @@
             updateDriverAppUI();
             renderFinanceAndHistory();
 
-            // Paksa langsung sinkronkan status online persisten ke cloud saat masuk mode driver atau refresh
+            // Paksa langsung sinkronkan status online persisten ke cloud
             syncDriverToCloud();
 
             const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
@@ -1851,16 +1862,21 @@
 
     function saveDriverWaNumber() {
         const waVal = document.getElementById('driverWaInput').value.trim();
-        if (waVal) {
-            const newWa = formatWaNumber(waVal);
-            if (newWa !== currentDriverWa) {
-                db.collection("iqbike_drivers").doc(currentDriverWa).delete().catch(() => {});
-                currentDriverWa = newWa;
-            }
-            localStorage.setItem('iqbike_driver_wa', currentDriverWa);
-            syncDriverToCloud();
-            alert("Nomor WhatsApp Driver berhasil disimpan ke Cloud Firebase!");
+        if (!waVal) {
+            alert("Harap masukkan nomor WhatsApp driver yang valid!");
+            return;
         }
+
+        const newWa = formatWaNumber(waVal);
+        if (newWa !== currentDriverWa) {
+            // Hapus dokumen lama di cloud agar tidak duplikat ID
+            db.collection("iqbike_drivers").doc(currentDriverWa).delete().catch(() => {});
+            currentDriverWa = newWa;
+        }
+
+        localStorage.setItem('iqbike_driver_wa', currentDriverWa);
+        syncDriverToCloud();
+        alert(`ID Nomor WhatsApp Driver (${currentDriverWa}) Berhasil Disimpan & Terkunci ke Sistem!`);
     }
 
     function loadDriverWaNumber() {
@@ -1905,7 +1921,6 @@
 
     function syncDriverToCloud() {
         const driverGps = { lat: userCurrentLat, lng: userCurrentLng };
-        // Status online persisten dibaca langsung dari state lokal/localStorage
         const onlineStatus = localStorage.getItem('iqbike_driver_online_status') !== 'false';
         
         db.collection("iqbike_drivers").doc(currentDriverWa).set({
@@ -1937,6 +1952,7 @@
     }
 
     function listenCloudData() {
+        // Listener Driver: Selalu menampilkan ikon motor di peta (hijau jika online, abu-abu jika offline)
         db.collection("iqbike_drivers").onSnapshot((snapshot) => {
             let anyDriverOnline = false;
             let activeDriversList = {};
@@ -1965,6 +1981,7 @@
             }
         });
 
+        // Listener Active Order: Dilindungi agar tidak mereset/menghapus pesanan aktif saat refresh kilat
         db.collection("iqbike_system").doc("active_order").onSnapshot((doc) => {
             if (doc.exists) {
                 const cloudOrder = doc.data();
@@ -1988,6 +2005,7 @@
                     triggerCustomVibration('routeConfirmed');
                 }
             } else {
+                // Jangan hapus local order jika statusnya bukan FINISHED, agar tahan terhadap refresh
                 const localOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
                 if (localOrder && localOrder.status === 'FINISHED') {
                     localStorage.removeItem('iqbike_active_order');
@@ -2031,8 +2049,9 @@
             const dData = driversObj[waKey];
             if (!dData.lat || !dData.lng) return;
 
-            const isIconGreen = dData.isOnline === true;
-            const iconToUse = isIconGreen ? driverMotorIcon : driverOfflineIcon;
+            // Tentukan warna ikon: Hijau jika true (online), Abu-abu jika false (offline)
+            const isOnline = dData.isOnline === true;
+            const iconToUse = isOnline ? driverMotorIcon : driverOfflineIcon;
 
             if (!driverMarkersMap[waKey]) {
                 driverMarkersMap[waKey] = L.marker([dData.lat, dData.lng], {icon: iconToUse, zIndexOffset: 1000}).addTo(map);
