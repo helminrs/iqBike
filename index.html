@@ -1248,6 +1248,7 @@
     let computedTotalFare = 0;
     let searchDebounce = null;
     
+    // Status online & nomor WhatsApp persisten (default true agar langsung online permanen saat refresh)
     let isDriverOnline = localStorage.getItem('iqbike_driver_online_status') !== 'false';
     let currentDriverWa = localStorage.getItem('iqbike_driver_wa') || "6285934602965";
 
@@ -1798,7 +1799,7 @@
             updateDriverAppUI();
             renderFinanceAndHistory();
 
-            // Langsung sinkron ke cloud saat masuk mode driver agar data tidak kosong/hilang saat refresh
+            // Paksa langsung sinkronkan status online permanen ke cloud saat masuk mode driver atau refresh
             syncDriverToCloud();
 
             const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
@@ -1905,13 +1906,15 @@
     }
 
     function syncDriverToCloud() {
-        if (userRole !== 'driver') return;
         const driverGps = { lat: userCurrentLat, lng: userCurrentLng };
+        // Status online persisten dibaca langsung dari state lokal/localStorage agar saat refresh tetap online
+        const onlineStatus = userRole === 'driver' ? isDriverOnline : (localStorage.getItem('iqbike_driver_online_status') !== 'false');
+        
         db.collection("iqbike_drivers").doc(currentDriverWa).set({
             wa: currentDriverWa,
             lat: driverGps.lat,
             lng: driverGps.lng,
-            isOnline: isDriverOnline,
+            isOnline: onlineStatus,
             lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true }).catch(err => console.log("Sync driver error:", err));
     }
@@ -2001,6 +2004,7 @@
         const statusBox = document.getElementById('driverStatusBox');
         if (!statusBox) return;
         const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
+        
         if (!order) {
             if (anyOnline) {
                 statusBox.className = "status-box status-online";
@@ -2009,6 +2013,10 @@
                 statusBox.className = "status-box status-offline";
                 statusBox.innerHTML = `<i class="fa-solid fa-circle"></i> Driver Sedang Offline (Posisi Real-time Tetap Terlihat)`;
             }
+        } else {
+            // Jika sedang ada order aktif, status atas menyesuaikan kondisi pengerjaan
+            statusBox.className = "status-box status-busy";
+            statusBox.innerHTML = `<i class="fa-solid fa-motorcycle"></i> Driver Sedang Menjalankan Pesanan Aktif`;
         }
     }
 
@@ -2022,11 +2030,32 @@
             }
         });
 
+        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
+
         Object.keys(driversObj).forEach(waKey => {
             const dData = driversObj[waKey];
             if (!dData.lat || !dData.lng) return;
 
-            const iconToUse = dData.isOnline ? driverMotorIcon : driverOfflineIcon;
+            // Aturan Ikon Hijau vs Abu-abu:
+            // Jika ada order aktif, cek apakah driver ini sedang dekat tujuan (< 500m dari dropoff) atau tidak ada order lain.
+            // Secara default, jika online, ikon selalu hijau di semua device, kecuali diatur spesifik saat order aktif.
+            let isIconGreen = dData.isOnline;
+            
+            if (activeOrder && activeOrder.status && activeOrder.status !== 'FINISHED' && activeOrder.status !== 'CANCELLED') {
+                const dropoffLatLng = L.latLng(activeOrder.dropoffLat, activeOrder.dropoffLng);
+                const driverCurrentLatLng = L.latLng(dData.lat, dData.lng);
+                const distToDropoff = map.distance(driverCurrentLatLng, dropoffLatLng);
+
+                // Jika sudah dekat tujuan (< 500 meter menjelang sampai), warnanya berubah hijau kembali agar bisa terima orderan sambung
+                if (distToDropoff <= 500) {
+                    isIconGreen = true;
+                } else {
+                    // Selama di tengah perjalanan order aktif, tampil abu-abu bagi yang tidak sedang menyimak, atau hijau untuk device terkait
+                    isIconGreen = dData.isOnline; 
+                }
+            }
+
+            const iconToUse = isIconGreen ? driverMotorIcon : driverOfflineIcon;
 
             if (!driverMarkersMap[waKey]) {
                 driverMarkersMap[waKey] = L.marker([dData.lat, dData.lng], {icon: iconToUse, zIndexOffset: 1000}).addTo(map);
@@ -2926,7 +2955,8 @@
         if (savedRole === 'penumpang' || savedRole === 'driver') {
             selectUserRole(savedRole);
         } else {
-            showLoginOverlay();
+            // Jika baru pertama kali dibuka atau di-refresh, set default role sebagai penumpang
+            selectUserRole('penumpang');
         }
     };
 </script>
