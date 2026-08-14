@@ -1230,7 +1230,7 @@
     let currentPinMode = null;
     let pickupCoords = null, dropoffCoords = null;
     let pickupMarker = null, dropoffMarker = null;
-    let driverMarkersMap = {}; // Menyimpan marker multi-driver: { waNumber: L.marker }
+    let driverMarkersMap = {}; 
     let passengerLiveMarker = null;
     let reverseGeocodeTimeout = null;
 
@@ -1248,7 +1248,6 @@
     let computedTotalFare = 0;
     let searchDebounce = null;
     
-    // Status online & nomor WhatsApp unik driver saat ini
     let isDriverOnline = localStorage.getItem('iqbike_driver_online_status') !== 'false';
     let currentDriverWa = localStorage.getItem('iqbike_driver_wa') || "6285934602965";
 
@@ -1799,6 +1798,9 @@
             updateDriverAppUI();
             renderFinanceAndHistory();
 
+            // Langsung sinkron ke cloud saat masuk mode driver agar data tidak kosong/hilang saat refresh
+            syncDriverToCloud();
+
             const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
             if (activeOrder && activeOrder.triggerPopupForDriver) {
                 const lastChange = activeOrder.routeChanges && activeOrder.routeChanges.length > 0 ? activeOrder.routeChanges[activeOrder.routeChanges.length - 1] : null;
@@ -1894,7 +1896,7 @@
                     syncPassengerGpsToCloud(currentPos);
                 } else if (userRole === 'driver') {
                     localStorage.setItem('iqbike_driver_gps', JSON.stringify(currentPos));
-                    syncDriverToCloud(); // Mengirim status isDriverOnline yang stabil dari memori lokal
+                    syncDriverToCloud();
                 }
 
                 renderPassengerLocalMarkers();
@@ -1909,7 +1911,7 @@
             wa: currentDriverWa,
             lat: driverGps.lat,
             lng: driverGps.lng,
-            isOnline: isDriverOnline, // Status stabil langsung dibaca dari variabel state mandiri
+            isOnline: isDriverOnline,
             lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true }).catch(err => console.log("Sync driver error:", err));
     }
@@ -1943,17 +1945,13 @@
                 const waKey = doc.id;
                 activeDriversList[waKey] = data;
 
-                if (data.isOnline) {
+                if (data.isOnline === true) {
                     anyDriverOnline = true;
                 }
             });
 
-            // Perbarui tampilan peta & status untuk Passenger maupun Driver secara serentak
             renderAllMultiDriversOnMap(activeDriversList);
-
-            if (userRole === 'penumpang') {
-                updatePassengerStatusBoxGlobal(anyDriverOnline);
-            }
+            updatePassengerStatusBoxGlobal(anyDriverOnline);
         });
 
         db.collection("iqbike_system").doc("passenger_gps").onSnapshot((doc) => {
@@ -2017,7 +2015,6 @@
     function renderAllMultiDriversOnMap(driversObj) {
         if (!map) return;
 
-        // Validasi dan hapus marker yang mungkin sudah tidak ada dalam snapshot database
         Object.keys(driverMarkersMap).forEach(existingWa => {
             if (!driversObj[existingWa]) {
                 map.removeLayer(driverMarkersMap[existingWa]);
@@ -2025,7 +2022,6 @@
             }
         });
 
-        // Render atau perbarui ikon marker driver secara presisi (Hijau jika online, Abu-abu jika offline)
         Object.keys(driversObj).forEach(waKey => {
             const dData = driversObj[waKey];
             if (!dData.lat || !dData.lng) return;
@@ -2781,7 +2777,6 @@
     }
 
     function updatePassengerAppUI() {
-        const statusBox = document.getElementById('driverStatusBox');
         const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
         const btnSend = document.getElementById('btnSendOrder');
         const btnCancel = document.getElementById('btnCancelOrder');
@@ -2832,20 +2827,6 @@
 
             btnCancel.style.display = 'flex';
             btnSend.innerHTML = `<i class="fa-brands fa-whatsapp"></i> Kirim Pesan Orderan ke Driver`;
-        }
-
-        if (order.status === 'WAITING') {
-            statusBox.className = "status-box status-process";
-            statusBox.innerHTML = `<i class="fa-solid fa-clock"></i> Menunggu Konfirmasi Driver via WA...`;
-        } else if (order.status === 'HEADING_PICKUP') {
-            statusBox.className = "status-box status-process";
-            statusBox.innerHTML = `<i class="fa-solid fa-motorcycle"></i> Driver Sedang Menuju Lokasi Jemput! (Jemput Terkunci)`;
-        } else if (order.status === 'ARRIVED') {
-            statusBox.className = "status-box status-arrived";
-            statusBox.innerHTML = `<i class="fa-solid fa-location-dot"></i> Driver Telah Tiba di Titik Jemput!`;
-        } else if (order.status === 'ON_TRIP') {
-            statusBox.className = "status-box status-busy";
-            statusBox.innerHTML = `<i class="fa-solid fa-ban"></i> Perjalanan Sedang Berlangsung...`;
         }
 
         computedTotalFare = order.fare;
