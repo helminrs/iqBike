@@ -1961,7 +1961,6 @@
         const rating = document.getElementById('selectedRatingValue').value;
         const reviewNote = document.getElementById('passengerReviewNote').value.trim() || "-";
 
-        // Simpan ulasan ke localStorage / riwayat penumpang
         let passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
         if (passHistory.length > 0) {
             passHistory[0].rating = rating;
@@ -2164,6 +2163,7 @@
                 const currentPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
                 userCurrentLat = currentPos.lat;
                 userCurrentLng = currentPos.lng;
+                localStorage.getItem('iqbike_last_known_pos');
                 localStorage.setItem('iqbike_last_known_pos', JSON.stringify(currentPos));
 
                 if (userRole === 'driver' && map) {
@@ -2196,7 +2196,7 @@
 
     function startPeriodicDriverRefresh() {
         setInterval(() => {
-            if (userRole === 'driver' && isDriverOnline) {
+            if (userRole === 'driver') {
                 db.collection("iqbike_system").doc("active_order").get().then((doc) => {
                     if (doc.exists) {
                         const cloudOrder = doc.data();
@@ -2247,7 +2247,6 @@
         const pickupLatLng = L.latLng(order.pickupLat, order.pickupLng);
         const distanceMeters = map ? map.distance(driverLatLng, pickupLatLng) : 0;
 
-        // Radius <= 3000 meter (3 km) dari titik jemput
         if (distanceMeters <= 3000) {
             lastNotifiedOrderId = order.id;
 
@@ -2392,7 +2391,7 @@
 
     function handleMainActionButton() {
         const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
-        if (activeOrder && activeOrder.status === 'WAITING') {
+        if (activeOrder && activeOrder.status === 'WAITING' && activeOrder.deviceUuid === passengerDeviceUuid) {
             openDriverSelectionModal();
             return;
         }
@@ -2419,7 +2418,7 @@
         db.collection("iqbike_drivers").get().then((snapshot) => {
             container.innerHTML = '';
             snapshot.forEach((doc) => {
-                const dData = doc.data();
+                doc.data();
                 if (order.acceptedDrivers.some(d => d.wa === doc.id)) {
                     const card = document.createElement('div');
                     card.style.cssText = "background:#2a2a2a; padding:10px; border-radius:8px; border:1px solid #444; display:flex; flex-direction:column; gap:6px;";
@@ -2536,7 +2535,6 @@
             localStorage.removeItem('iqbike_active_order');
             removeOrderFromCloud();
 
-            // Munculkan Pop-up Selesai di Tab Penumpang (Beri Bintang & Pesan Kesan)
             setTimeout(() => {
                 if (userRole === 'penumpang') {
                     openPassengerReviewModal();
@@ -2597,7 +2595,7 @@
         document.getElementById('passengerHistoryModal').style.display = 'none';
     }
 
-    function openHistoryDetailsModal(type) {
+    function openHistoryDetailsModal() {
         document.getElementById('historyDetailsModal').style.display = 'flex';
     }
 
@@ -2616,6 +2614,7 @@
 
         updatePassengerWaInputUI();
 
+        // CEK KEPEMILIKAN PESANAN BERDASARKAN DEVICE UUID
         if (!order || order.deviceUuid !== passengerDeviceUuid) {
             btnSend.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Cari & Kirim Pesanan ke Driver`;
             btnCancel.style.display = 'none';
@@ -2623,7 +2622,10 @@
         }
 
         if (order.status === 'WAITING') {
-            btnSend.innerHTML = `Pilih Driver (${order.acceptedDrivers ? order.acceptedDrivers.length : 0})`;
+            const countAccepted = order.acceptedDrivers ? order.acceptedDrivers.length : 0;
+            btnSend.innerHTML = countAccepted > 0 
+                ? `Lihat Pilihan Driver Menerima (${countAccepted} Driver)` 
+                : `Menunggu Driver Merespons...`;
             btnCancel.style.display = 'flex';
         } else {
             btnCancel.style.display = 'none';
@@ -2636,6 +2638,7 @@
         const floatingPanel = document.getElementById('floatingRadarPanel');
         const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
 
+        // Driver online maupun offline tetap dapat melihat radar pesanan masuk (jika status WAITING) atau order aktif yang ditugaskan ke driver ini
         if (!order || (order.status !== 'WAITING' && order.assignedDriverWa !== currentDriverWa)) {
             floatingPanel.style.display = 'none';
             container.innerHTML = '';
