@@ -2018,16 +2018,14 @@
 
             ensureDriverCloudPresence();
 
-            const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order_' + passengerSessionId));
-            if (activeOrder && activeOrder.triggerPopupForDriver) {
-                const lastChange = activeOrder.routeChanges && activeOrder.routeChanges.length > 0 ? activeOrder.routeChanges[activeOrder.routeChanges.length - 1] : null;
-                document.getElementById('driverModalNewDest').innerText = activeOrder.dropoff;
-                document.getElementById('driverModalAddFare').innerText = lastChange ? `+Rp ${lastChange.extraFare.toLocaleString('id-ID')}` : `Ada Penambahan Rute`;
-                document.getElementById('driverModalNewFare').innerText = `Rp ${activeOrder.fare.toLocaleString('id-ID')}`;
-                document.getElementById('driverRouteUpdateModal').style.display = 'flex';
-                playNotificationSound();
-                triggerCustomVibration('routeConfirmed');
-            }
+            // Cek data active_order di cloud secara langsung saat masuk mode driver agar langsung tampil
+            db.collection("iqbike_system").doc("active_order").get().then((doc) => {
+                if (doc.exists) {
+                    const cloudOrder = doc.data();
+                    localStorage.setItem('iqbike_active_order_shared', JSON.stringify(cloudOrder));
+                    updateDriverAppUI();
+                }
+            }).catch(() => {});
         }
     }
 
@@ -2116,7 +2114,6 @@
     }
 
     function syncOrderToCloud(orderData) {
-        // Menggunakan dokumen tunggal "active_order" agar SEMUA driver di berbagai device bisa melihat orderan yang sama secara serentak
         db.collection("iqbike_system").doc("active_order").set({
             ...orderData,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -2156,30 +2153,22 @@
             }
         });
 
-        // Mendengarkan dokumen tunggal "active_order" secara real-time di semua device (Driver maupun Penumpang)
+        // Listener Real-time dokumen active_order untuk semua driver & penumpang
         db.collection("iqbike_system").doc("active_order").onSnapshot((doc) => {
             if (doc.exists) {
                 const cloudOrder = doc.data();
                 
-                // Pastikan penumpang hanya merespons jika orderan tersebut adalah milik session tab-nya sendiri
                 if (userRole === 'penumpang' && cloudOrder.sessionId && cloudOrder.sessionId !== passengerSessionId) {
-                    return; // Abaikan orderan dari tab penumpang lain
+                    return; 
                 }
 
                 const localKey = 'iqbike_active_order_' + passengerSessionId;
-                const localOrder = JSON.parse(localStorage.getItem(localKey));
                 
                 if (userRole === 'penumpang') {
-                    if (!localOrder || localOrder.id !== cloudOrder.id) {
-                        localStorage.setItem(localKey, JSON.stringify(cloudOrder));
-                        playNotificationSound();
-                        triggerCustomVibration('radarOrder');
-                    } else {
-                        localStorage.setItem(localKey, JSON.stringify(cloudOrder));
-                    }
+                    localStorage.setItem(localKey, JSON.stringify(cloudOrder));
                     updatePassengerAppUI();
                 } else if (userRole === 'driver') {
-                    // Di sisi driver, tampilkan orderan ke semua perangkat/tab driver secara serentak
+                    // Simpan ke local shared driver dan langsung update tampilan radar
                     localStorage.setItem('iqbike_active_order_shared', JSON.stringify(cloudOrder));
                     updateDriverAppUI();
                     
@@ -2200,7 +2189,6 @@
                     }
                 }
             } else {
-                // Jika dokumen active_order dihapus (pesanan selesai / dibatalkan)
                 if (userRole === 'penumpang') {
                     const localKey = 'iqbike_active_order_' + passengerSessionId;
                     const localOrder = JSON.parse(localStorage.getItem(localKey));
