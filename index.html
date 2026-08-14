@@ -1304,6 +1304,13 @@
 
     const ADMIN_MASTER_KEY = "9922";
 
+    // Unik Session ID per tab browser penumpang agar tidak saling "bocor" antar tab/perangkat
+    let passengerSessionId = localStorage.getItem('iqbike_passenger_session_id');
+    if (!passengerSessionId) {
+        passengerSessionId = 'pass_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now();
+        localStorage.setItem('iqbike_passenger_session_id', passengerSessionId);
+    }
+
     function getStoredPin() {
         return localStorage.getItem('iqbike_driver_pin') || "8899";
     }
@@ -1650,7 +1657,7 @@
     }
 
     function togglePinMode(mode) {
-        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
+        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order_' + passengerSessionId));
 
         if (mode === 'jemput' && activeOrder && activeOrder.status !== 'WAITING') {
             alert("🔒 Lokasi Penjemputan telah TERKUNCI karena Driver sudah mengonfirmasi pesanan!");
@@ -1725,7 +1732,7 @@
     function handleDestinationChangeAttempt(newLatLng, newPlaceName) {
         if (userRole !== 'penumpang') return;
 
-        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
+        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order_' + passengerSessionId));
 
         if (!activeOrder) {
             dropoffCoords = newLatLng;
@@ -1754,7 +1761,7 @@
     }
 
     function applyDestinationChange() {
-        let activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
+        let activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order_' + passengerSessionId));
         if (!activeOrder) return;
 
         dropoffCoords = pendingNewDropoffCoords;
@@ -1777,13 +1784,13 @@
         activeOrder.routeVersion = Date.now(); 
         activeOrder.triggerPopupForDriver = true; 
 
-        localStorage.setItem('iqbike_active_order', JSON.stringify(activeOrder));
+        localStorage.setItem('iqbike_active_order_' + passengerSessionId, JSON.stringify(activeOrder));
         computedTotalFare = pendingCalculatedNewFare;
 
-        let passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
+        let passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history_' + passengerSessionId) || '[]');
         if (passHistory.length > 0) {
             passHistory[0] = { ...activeOrder }; 
-            localStorage.setItem('iqbike_passenger_history', JSON.stringify(passHistory));
+            localStorage.setItem('iqbike_passenger_history_' + passengerSessionId, JSON.stringify(passHistory));
         }
 
         document.getElementById('fareText').innerText = `Rp ${computedTotalFare.toLocaleString('id-ID')}`;
@@ -1799,7 +1806,7 @@
 
     function cancelDestinationChange() {
         document.getElementById('confirmDestinationChangeModal').style.display = 'none';
-        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
+        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order_' + passengerSessionId));
         if (activeOrder) {
             dropoffCoords = L.latLng(activeOrder.dropoffLat, activeOrder.dropoffLng);
             document.getElementById('dropoffLocation').value = activeOrder.dropoff;
@@ -1810,16 +1817,16 @@
     function closeDriverRouteUpdateModal() {
         document.getElementById('driverRouteUpdateModal').style.display = 'none';
         
-        let activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
+        let activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order_' + passengerSessionId));
         if (activeOrder && activeOrder.triggerPopupForDriver) {
             activeOrder.triggerPopupForDriver = false;
-            localStorage.setItem('iqbike_active_order', JSON.stringify(activeOrder));
+            localStorage.setItem('iqbike_active_order_' + passengerSessionId, JSON.stringify(activeOrder));
             syncOrderToCloud(activeOrder);
         }
     }
 
     function openDriverChangeDetails() {
-        const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
+        const order = JSON.parse(localStorage.getItem('iqbike_active_order_' + passengerSessionId));
         const container = document.getElementById('driverChangeDetailContent');
         if (!order) return;
 
@@ -1864,7 +1871,7 @@
     }
 
     function openGoogleMapsFromDriverModal() {
-        const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
+        const order = JSON.parse(localStorage.getItem('iqbike_active_order_' + passengerSessionId));
         if (order) {
             openGoogleMapsNav(order.dropoffLat, order.dropoffLng);
         }
@@ -1872,7 +1879,7 @@
     }
 
     function renderFixedMarkers() {
-        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
+        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order_' + passengerSessionId));
 
         if (!activeOrder && !currentPinMode && !pickupCoords && !dropoffCoords) {
             if (pickupMarker) { map.removeLayer(pickupMarker); pickupMarker = null; }
@@ -2011,7 +2018,7 @@
 
             ensureDriverCloudPresence();
 
-            const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
+            const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order_' + passengerSessionId));
             if (activeOrder && activeOrder.triggerPopupForDriver) {
                 const lastChange = activeOrder.routeChanges && activeOrder.routeChanges.length > 0 ? activeOrder.routeChanges[activeOrder.routeChanges.length - 1] : null;
                 document.getElementById('driverModalNewDest').innerText = activeOrder.dropoff;
@@ -2101,7 +2108,7 @@
     }
 
     function syncPassengerGpsToCloud(pos) {
-        db.collection("iqbike_system").doc("passenger_gps").set({
+        db.collection("iqbike_system").doc("passenger_gps_" + passengerSessionId).set({
             lat: pos.lat,
             lng: pos.lng,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -2109,14 +2116,14 @@
     }
 
     function syncOrderToCloud(orderData) {
-        db.collection("iqbike_system").doc("active_order").set({
+        db.collection("iqbike_system").doc("active_order_" + passengerSessionId).set({
             ...orderData,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true }).catch(err => console.log("Sync order error:", err));
     }
 
     function removeOrderFromCloud() {
-        db.collection("iqbike_system").doc("active_order").delete().catch(err => console.log("Delete order error:", err));
+        db.collection("iqbike_system").doc("active_order_" + passengerSessionId).delete().catch(err => console.log("Delete order error:", err));
     }
 
     function listenCloudData() {
@@ -2138,7 +2145,7 @@
             updatePassengerStatusBoxGlobal(anyDriverOnline);
         });
 
-        db.collection("iqbike_system").doc("passenger_gps").onSnapshot((doc) => {
+        db.collection("iqbike_system").doc("passenger_gps_" + passengerSessionId).onSnapshot((doc) => {
             if (doc.exists) {
                 const data = doc.data();
                 if (data.lat && data.lng) {
@@ -2148,38 +2155,48 @@
             }
         });
 
-        db.collection("iqbike_system").doc("active_order").onSnapshot((doc) => {
+        // Driver mendengarkan SEMUA orderan aktif di sistem agar bisa menerima orderan dari tab/penumpang manapun
+        db.collection("iqbike_system").onSnapshot((snapshot) => {
+            snapshot.forEach((doc) => {
+                if (doc.id.startsWith("active_order_")) {
+                    const cloudOrder = doc.data();
+                    if (userRole === 'driver') {
+                        // Jika driver sedang melihat radar, simpan atau sinkronkan orderan aktif saat ini
+                        const currentActive = JSON.parse(localStorage.getItem('iqbike_active_order_' + cloudOrder.sessionId));
+                        if (!currentActive || currentActive.id !== cloudOrder.id) {
+                            localStorage.setItem('iqbike_active_order_' + cloudOrder.sessionId, JSON.stringify(cloudOrder));
+                            playNotificationSound();
+                            triggerCustomVibration('radarOrder');
+                        } else {
+                            localStorage.setItem('iqbike_active_order_' + cloudOrder.sessionId, JSON.stringify(cloudOrder));
+                        }
+                        updateDriverAppUI();
+                    }
+                }
+            });
+        });
+
+        // Penumpang mendengarkan perubahan pada active_order miliknya sendiri secara eksklusif
+        db.collection("iqbike_system").doc("active_order_" + passengerSessionId).onSnapshot((doc) => {
             if (doc.exists) {
                 const cloudOrder = doc.data();
-                const localOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
+                const localOrder = JSON.parse(localStorage.getItem('iqbike_active_order_' + passengerSessionId));
                 
                 if (!localOrder || localOrder.id !== cloudOrder.id) {
-                    localStorage.setItem('iqbike_active_order', JSON.stringify(cloudOrder));
+                    localStorage.setItem('iqbike_active_order_' + passengerSessionId, JSON.stringify(cloudOrder));
                     playNotificationSound();
                     triggerCustomVibration('radarOrder');
                 } else {
-                    localStorage.setItem('iqbike_active_order', JSON.stringify(cloudOrder));
-                }
-
-                if (userRole === 'driver' && cloudOrder.triggerPopupForDriver) {
-                    const lastChange = cloudOrder.routeChanges && cloudOrder.routeChanges.length > 0 ? cloudOrder.routeChanges[cloudOrder.routeChanges.length - 1] : null;
-                    document.getElementById('driverModalNewDest').innerText = cloudOrder.dropoff;
-                    document.getElementById('driverModalAddFare').innerText = lastChange ? `+Rp ${lastChange.extraFare.toLocaleString('id-ID')}` : `Ada Penambahan Rute`;
-                    document.getElementById('driverModalNewFare').innerText = `Rp ${cloudOrder.fare.toLocaleString('id-ID')}`;
-                    document.getElementById('driverRouteUpdateModal').style.display = 'flex';
-                    playNotificationSound();
-                    triggerCustomVibration('routeConfirmed');
+                    localStorage.setItem('iqbike_active_order_' + passengerSessionId, JSON.stringify(cloudOrder));
                 }
             } else {
-                const localOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
+                const localOrder = JSON.parse(localStorage.getItem('iqbike_active_order_' + passengerSessionId));
                 if (localOrder && localOrder.status === 'FINISHED') {
-                    // Munculkan popup selesai di sisi penumpang jika driver menyelesaikan
                     showPassengerReceiptPopup(localOrder);
-                    localStorage.removeItem('iqbike_active_order');
+                    localStorage.removeItem('iqbike_active_order_' + passengerSessionId);
                 }
             }
             updatePassengerAppUI();
-            updateDriverAppUI();
         });
     }
 
@@ -2213,7 +2230,7 @@
     function updatePassengerStatusBoxGlobal(anyOnline) {
         const statusBox = document.getElementById('driverStatusBox');
         if (!statusBox) return;
-        const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
+        const order = JSON.parse(localStorage.getItem('iqbike_active_order_' + passengerSessionId));
         
         if (!order) {
             if (anyOnline) {
@@ -2282,7 +2299,7 @@
         const query = document.getElementById(inputId).value.trim();
         const container = document.getElementById(resultsId);
 
-        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
+        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order_' + passengerSessionId));
         if (type === 'jemput' && activeOrder && activeOrder.status !== 'WAITING') {
             alert("🔒 Titik penjemputan sudah TERKUNCI!");
             return;
@@ -2392,7 +2409,7 @@
     }
 
     function resetAddressAndFare() {
-        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
+        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order_' + passengerSessionId));
         if (activeOrder && activeOrder.status !== 'WAITING') {
             alert("🔒 Tidak dapat reset rute saat perjalanan sedang berlangsung!");
             return;
@@ -2408,7 +2425,7 @@
     }
 
     function handleMainActionButton() {
-        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
+        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order_' + passengerSessionId));
 
         if (activeOrder && activeOrder.status !== 'WAITING') {
             const passengerGps = JSON.parse(localStorage.getItem('iqbike_passenger_gps')) || { lat: userCurrentLat, lng: userCurrentLng };
@@ -2450,7 +2467,7 @@
 
     function renderAvailableDriversList() {
         const container = document.getElementById('availableDriversListContainer');
-        const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
+        const order = JSON.parse(localStorage.getItem('iqbike_active_order_' + passengerSessionId));
 
         if (!order || !order.acceptedDrivers || order.acceptedDrivers.length === 0) {
             container.innerHTML = '<p style="font-size: 11px; color: #a0a0a0; text-align:center; padding:12px;">Belum ada driver yang mengajukan diri. Mohon tunggu sebentar...</p>';
@@ -2475,13 +2492,13 @@
     }
 
     function passengerSelectDriver(driverWa) {
-        let order = JSON.parse(localStorage.getItem('iqbike_active_order'));
+        let order = JSON.parse(localStorage.getItem('iqbike_active_order_' + passengerSessionId));
         if (!order) return;
 
         order.status = 'HEADING_PICKUP';
         order.assignedDriverWa = driverWa;
 
-        localStorage.setItem('iqbike_active_order', JSON.stringify(order));
+        localStorage.setItem('iqbike_active_order_' + passengerSessionId, JSON.stringify(order));
         syncOrderToCloud(order);
         closeDriverSelectionModal();
 
@@ -2493,7 +2510,7 @@
     function openPassengerWa(passengerPhone, passengerName, assignedDriverWa) {
         const driverGps = JSON.parse(localStorage.getItem('iqbike_driver_gps')) || { lat: userCurrentLat, lng: userCurrentLng };
         const driverSharlokUrl = `https://maps.google.com/?q=${driverGps.lat},${driverGps.lng}`;
-        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order')) || {};
+        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order_' + passengerSessionId)) || {};
 
         const text = `Halo Kak *${passengerName}*, saya Driver iqBike (*${assignedDriverWa || currentDriverWa}*) yang akan menjemput Anda.\n\n` +
                      `📍 *Lokasi Terkini Driver:*\n${driverSharlokUrl}\n\n` +
@@ -2532,6 +2549,7 @@
 
         const newOrder = {
             id: Date.now(), 
+            sessionId: passengerSessionId,
             passengerName: name, 
             passengerPhone: rawPhone,
             pickup, dropoff,
@@ -2551,14 +2569,14 @@
             time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
         };
 
-        localStorage.setItem('iqbike_active_order', JSON.stringify(newOrder));
+        localStorage.setItem('iqbike_active_order_' + passengerSessionId, JSON.stringify(newOrder));
         syncOrderToCloud(newOrder);
         playNotificationSound();
         triggerCustomVibration('radarOrder');
 
-        let passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
+        let passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history_' + passengerSessionId) || '[]');
         passHistory.unshift(newOrder);
-        localStorage.setItem('iqbike_passenger_history', JSON.stringify(passHistory));
+        localStorage.setItem('iqbike_passenger_history_' + passengerSessionId, JSON.stringify(passHistory));
 
         updatePassengerAppUI();
         updateDriverAppUI();
@@ -2568,11 +2586,11 @@
     }
 
     function cancelActiveOrder() {
-        const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
+        const order = JSON.parse(localStorage.getItem('iqbike_active_order_' + passengerSessionId));
         if (!order) return;
 
         if (confirm("Apakah Anda yakin ingin membatalkan pesanan ini?")) {
-            localStorage.removeItem('iqbike_active_order');
+            localStorage.removeItem('iqbike_active_order_' + passengerSessionId);
             removeOrderFromCloud();
             
             resetAddressAndFare();
@@ -2585,19 +2603,19 @@
         }
     }
 
-    function driverCancelActiveOrder() {
-        const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
+    function driverCancelActiveOrder(sessionId) {
+        const order = JSON.parse(localStorage.getItem('iqbike_active_order_' + sessionId));
         if (!order) return;
 
         if (confirm("Batalkan penanganan pesanan ini?")) {
             order.status = 'WAITING';
             order.assignedDriverWa = null;
             order.acceptedDrivers = (order.acceptedDrivers || []).filter(d => d.wa !== currentDriverWa);
-            localStorage.setItem('iqbike_active_order', JSON.stringify(order));
-            syncOrderToCloud(order);
+            localStorage.setItem('iqbike_active_order_' + sessionId, JSON.stringify(order));
+            
+            db.collection("iqbike_system").doc("active_order_" + sessionId).set(order, { merge: true }).catch(() => {});
 
             updateDriverAppUI();
-            updatePassengerAppUI();
             alert("Pesanan dibatalkan dari penanganan Anda.");
         }
     }
@@ -2612,13 +2630,13 @@
     }
 
     function swapRouteFromHistory(itemIndex) {
-        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
+        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order_' + passengerSessionId));
         if (activeOrder) {
             alert("⚠️ Tidak dapat mengubah rute saat ada pesanan yang sedang aktif!");
             return;
         }
 
-        const passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
+        const passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history_' + passengerSessionId) || '[]');
         const item = passHistory[itemIndex];
 
         if (!item) return;
@@ -2641,13 +2659,13 @@
     }
 
     function repeatOrderFromHistory(itemIndex) {
-        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
+        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order_' + passengerSessionId));
         if (activeOrder) {
             alert("⚠️ Tidak dapat mengulang pesanan saat ada pesanan yang sedang aktif!");
             return;
         }
 
-        const passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
+        const passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history_' + passengerSessionId) || '[]');
         const item = passHistory[itemIndex];
 
         if (!item) return;
@@ -2671,8 +2689,8 @@
 
     function renderPassengerHistory() {
         const container = document.getElementById('passengerHistoryContainer');
-        const passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
-        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
+        const passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history_' + passengerSessionId) || '[]');
+        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order_' + passengerSessionId));
 
         if (passHistory.length === 0) {
             container.innerHTML = '<p style="font-size: 11px; color: #a0a0a0; text-align:center;">Belum ada riwayat pesanan.</p>';
@@ -2750,9 +2768,9 @@
         });
     }
 
-    function driverTakeOrder(orderId) {
-        let order = JSON.parse(localStorage.getItem('iqbike_active_order'));
-        if (!order || order.id !== orderId) return;
+    function driverTakeOrder(sessionId) {
+        let order = JSON.parse(localStorage.getItem('iqbike_active_order_' + sessionId));
+        if (!order) return;
 
         if (!order.acceptedDrivers) {
             order.acceptedDrivers = [];
@@ -2762,21 +2780,34 @@
             order.acceptedDrivers.push({ wa: currentDriverWa, time: Date.now() });
         }
 
-        localStorage.setItem('iqbike_active_order', JSON.stringify(order));
-        syncOrderToCloud(order);
+        localStorage.setItem('iqbike_active_order_' + sessionId, JSON.stringify(order));
+        db.collection("iqbike_system").doc("active_order_" + sessionId).set(order, { merge: true }).catch(() => {});
 
         playNotificationSound();
         triggerCustomVibration('routeConfirmed');
 
         updateDriverAppUI();
-        updatePassengerAppUI();
-
         alert("✅ Anda telah mengajukan diri mengambil orderan ini! Menunggu konfirmasi pemilihan oleh Penumpang.");
     }
 
     function setOrderStatus(newStatus) {
-        let order = JSON.parse(localStorage.getItem('iqbike_active_order'));
+        let order = JSON.parse(localStorage.getItem('iqbike_active_order_' + passengerSessionId));
+        if (!order) {
+            // Jika driver mengklik dari radar daftar orderan multi-session
+            const allKeys = Object.keys(localStorage);
+            for (let k of allKeys) {
+                if (k.startsWith('iqbike_active_order_')) {
+                    const tempOrd = JSON.parse(localStorage.getItem(k));
+                    if (tempOrd && tempOrd.assignedDriverWa === currentDriverWa) {
+                        order = tempOrd;
+                        break;
+                    }
+                }
+            }
+        }
         if (!order) return;
+
+        const targetSessionId = order.sessionId || passengerSessionId;
 
         if (newStatus === 'FINISHED') {
             document.getElementById('recName').innerText = order.passengerName;
@@ -2800,7 +2831,9 @@
                 routeChangesInfoEl.style.display = 'none';
             }
 
-            document.getElementById('receiptModal').style.display = 'flex';
+            if (userRole === 'penumpang') {
+                document.getElementById('receiptModal').style.display = 'flex';
+            }
 
             let history = JSON.parse(localStorage.getItem('iqbike_history') || '[]');
             order.type = 'INCOME';
@@ -2808,28 +2841,30 @@
             history.unshift(order);
             localStorage.setItem('iqbike_history', JSON.stringify(history));
 
-            let passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
+            let passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history_' + targetSessionId) || '[]');
             if (passHistory.length > 0) {
                 passHistory[0].status = 'FINISHED';
-                localStorage.setItem('iqbike_passenger_history', JSON.stringify(passHistory));
+                localStorage.setItem('iqbike_passenger_history_' + targetSessionId, JSON.stringify(passHistory));
             }
 
-            localStorage.removeItem('iqbike_active_order');
-            removeOrderFromCloud();
+            localStorage.removeItem('iqbike_active_order_' + targetSessionId);
+            db.collection("iqbike_system").doc("active_order_" + targetSessionId).delete().catch(() => {});
             
-            pickupCoords = null;
-            dropoffCoords = null;
-            computedTotalFare = 0;
-            document.getElementById('pickupLocation').value = '';
-            document.getElementById('dropoffLocation').value = '';
-            document.getElementById('fareText').innerText = "Rp 0";
+            if (userRole === 'penumpang') {
+                pickupCoords = null;
+                dropoffCoords = null;
+                computedTotalFare = 0;
+                document.getElementById('pickupLocation').value = '';
+                document.getElementById('dropoffLocation').value = '';
+                document.getElementById('fareText').innerText = "Rp 0";
 
-            if (pickupMarker) { map.removeLayer(pickupMarker); pickupMarker = null; }
-            if (dropoffMarker) { map.removeLayer(dropoffMarker); dropoffMarker = null; }
+                if (pickupMarker) { map.removeLayer(pickupMarker); pickupMarker = null; }
+                if (dropoffMarker) { map.removeLayer(dropoffMarker); dropoffMarker = null; }
+            }
         } else {
             order.status = newStatus;
-            localStorage.setItem('iqbike_active_order', JSON.stringify(order));
-            syncOrderToCloud(order);
+            localStorage.setItem('iqbike_active_order_' + targetSessionId, JSON.stringify(order));
+            db.collection("iqbike_system").doc("active_order_" + targetSessionId).set(order, { merge: true }).catch(() => {});
         }
 
         playNotificationSound();
@@ -3008,7 +3043,7 @@
     }
 
     function updatePassengerAppUI() {
-        const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
+        const order = JSON.parse(localStorage.getItem('iqbike_active_order_' + passengerSessionId));
         const btnSend = document.getElementById('btnSendOrder');
         const btnCancel = document.getElementById('btnCancelOrder');
         const btnJemput = document.getElementById('btnModeJemput');
@@ -3069,9 +3104,18 @@
     function updateDriverAppUI() {
         const container = document.getElementById('orderListContainer');
         const floatingPanel = document.getElementById('floatingRadarPanel');
-        const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
+        
+        // Cari semua orderan aktif dari berbagai session penumpang di localStorage
+        let activeOrdersList = [];
+        const allKeys = Object.keys(localStorage);
+        for (let k of allKeys) {
+            if (k.startsWith('iqbike_active_order_')) {
+                const ord = JSON.parse(localStorage.getItem(k));
+                if (ord) activeOrdersList.push(ord);
+            }
+        }
 
-        if (!order) {
+        if (activeOrdersList.length === 0) {
             floatingPanel.style.display = 'none';
             container.innerHTML = '';
             setTimeout(() => { if (map) map.invalidateSize(); }, 200);
@@ -3079,62 +3123,65 @@
         }
 
         floatingPanel.style.display = 'flex';
+        container.innerHTML = '';
 
-        let actionBtnHTML = '';
-        let navBtnHTML = '';
-        let driverCancelBtnHTML = '';
+        activeOrdersList.forEach(order => {
+            let actionBtnHTML = '';
+            let navBtnHTML = '';
+            let driverCancelBtnHTML = '';
 
-        let waBtnHTML = `
-            <button class="btn-whatsapp" onclick="openPassengerWa('${order.passengerPhone}', '${order.passengerName}', '${order.assignedDriverWa}')">
-                <i class="fa-brands fa-whatsapp"></i> Hubungi Penumpang via WA (${order.passengerPhone})
-            </button>
-        `;
+            let waBtnHTML = `
+                <button class="btn-whatsapp" onclick="openPassengerWa('${order.passengerPhone}', '${order.passengerName}', '${order.assignedDriverWa}')">
+                    <i class="fa-brands fa-whatsapp"></i> Hubungi Penumpang via WA (${order.passengerPhone})
+                </button>
+            `;
 
-        const isAlreadyAccepted = order.acceptedDrivers && order.acceptedDrivers.some(d => d.wa === currentDriverWa);
+            const isAlreadyAccepted = order.acceptedDrivers && order.acceptedDrivers.some(d => d.wa === currentDriverWa);
 
-        if (order.status === 'WAITING') {
-            if (!isAlreadyAccepted) {
-                actionBtnHTML = `
-                    <button class="driver-step-btn btn-accept" onclick="driverTakeOrder(${order.id})">
-                        <i class="fa-solid fa-motorcycle"></i> Terima / Ajukan Diri Ambil Orderan
+            if (order.status === 'WAITING') {
+                if (!isAlreadyAccepted) {
+                    actionBtnHTML = `
+                        <button class="driver-step-btn btn-accept" onclick="driverTakeOrder('${order.sessionId}')">
+                            <i class="fa-solid fa-motorcycle"></i> Terima / Ajukan Diri Ambil Orderan
+                        </button>`;
+                } else {
+                    actionBtnHTML = `
+                        <div style="background:#eef7e8; color:#2e7d32; font-size:11px; font-weight:bold; padding:8px; border-radius:6px; text-align:center;">
+                            ✅ Anda sudah mengajukan diri. Menunggu konfirmasi pemilihan oleh Penumpang...
+                        </div>`;
+                }
+            } else if (order.status === 'HEADING_PICKUP') {
+                navBtnHTML = `
+                    <button class="btn-nav-gmaps" onclick="openGoogleMapsNav(${order.pickupLat}, ${order.pickupLng})">
+                        <i class="fa-solid fa-location-arrow"></i> Navigasi Google Maps (Rute Jemput)
                     </button>`;
-            } else {
                 actionBtnHTML = `
-                    <div style="background:#eef7e8; color:#2e7d32; font-size:11px; font-weight:bold; padding:8px; border-radius:6px; text-align:center;">
-                        ✅ Anda sudah mengajukan diri. Menunggu konfirmasi pemilihan oleh Penumpang...
-                    </div>`;
+                    <button class="driver-step-btn btn-arrived" onclick="setOrderStatus('ARRIVED')">
+                        <i class="fa-solid fa-location-dot"></i> Saya Sudah Tiba di Titik Jemput
+                    </button>`;
+                driverCancelBtnHTML = `
+                    <button class="driver-step-btn btn-driver-cancel" onclick="driverCancelActiveOrder('${order.sessionId}')">
+                        <i class="fa-solid fa-xmark"></i> Batalkan & Keluar dari Penanganan
+                    </button>`;
+            } else if (order.status === 'ARRIVED') {
+                actionBtnHTML = `
+                    <button class="driver-step-btn btn-trip" onclick="setOrderStatus('ON_TRIP')">
+                        <i class="fa-solid fa-motorcycle"></i> Mulai Perjalanan (Berangkat)
+                    </button>`;
+            } else if (order.status === 'ON_TRIP') {
+                navBtnHTML = `
+                    <button class="driver-step-btn btn-nav-gmaps" onclick="openGoogleMapsNav(${order.dropoffLat}, ${order.dropoffLng})">
+                        <i class="fa-solid fa-location-arrow"></i> Navigasi Google Maps (Rute Tujuan)
+                    </button>`;
+                actionBtnHTML = `
+                    <button class="driver-step-btn btn-finish" onclick="setOrderStatus('FINISHED')">
+                        <i class="fa-solid fa-circle-check"></i> Selesaikan Perjalanan
+                    </button>`;
             }
-        } else if (order.status === 'HEADING_PICKUP') {
-            navBtnHTML = `
-                <button class="btn-nav-gmaps" onclick="openGoogleMapsNav(${order.pickupLat}, ${order.pickupLng})">
-                    <i class="fa-solid fa-location-arrow"></i> Navigasi Google Maps (Rute Jemput)
-                </button>`;
-            actionBtnHTML = `
-                <button class="driver-step-btn btn-arrived" onclick="setOrderStatus('ARRIVED')">
-                    <i class="fa-solid fa-location-dot"></i> Saya Sudah Tiba di Titik Jemput
-                </button>`;
-            driverCancelBtnHTML = `
-                <button class="driver-step-btn btn-driver-cancel" onclick="driverCancelActiveOrder()">
-                    <i class="fa-solid fa-xmark"></i> Batalkan & Keluar dari Penanganan
-                </button>`;
-        } else if (order.status === 'ARRIVED') {
-            actionBtnHTML = `
-                <button class="driver-step-btn btn-trip" onclick="setOrderStatus('ON_TRIP')">
-                    <i class="fa-solid fa-motorcycle"></i> Mulai Perjalanan (Berangkat)
-                </button>`;
-        } else if (order.status === 'ON_TRIP') {
-            navBtnHTML = `
-                <button class="driver-step-btn btn-nav-gmaps" onclick="openGoogleMapsNav(${order.dropoffLat}, ${order.dropoffLng})">
-                    <i class="fa-solid fa-location-arrow"></i> Navigasi Google Maps (Rute Tujuan)
-                </button>`;
-            actionBtnHTML = `
-                <button class="driver-step-btn btn-finish" onclick="setOrderStatus('FINISHED')">
-                    <i class="fa-solid fa-circle-check"></i> Selesaikan Perjalanan
-                </button>`;
-        }
 
-        container.innerHTML = `
-            <div class="order-card-driver">
+            const card = document.createElement('div');
+            card.className = 'order-card-driver';
+            card.innerHTML = `
                 <div style="display:flex; justify-content:space-between; font-weight:700;">
                     <span><i class="fa-solid fa-user"></i> ${order.passengerName}</span>
                     <span style="color: var(--primary-green-hover); font-size:16px;"><i class="fa-solid fa-money-bill-wave"></i> Rp ${order.fare.toLocaleString('id-ID')}</span>
@@ -3149,8 +3196,9 @@
                 ${navBtnHTML}
                 ${actionBtnHTML}
                 ${driverCancelBtnHTML}
-            </div>
-        `;
+            `;
+            container.appendChild(card);
+        });
 
         setTimeout(() => { if (map) map.invalidateSize(); }, 200);
     }
