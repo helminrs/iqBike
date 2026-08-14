@@ -1286,7 +1286,7 @@
 </div>
 
 <script>
-    // --- KONFIGURASI FIREBASE CLOUD (Sudah Diganti Sesuai Proyek Anda) ---
+    // --- KONFIGURASI FIREBASE CLOUD ---
     const firebaseConfig = {
         apiKey: "AIzaSyDQ9CLzERjKUz6ptZYQitr280q38b0LMb0",
         authDomain: "iqbike-1.firebaseapp.com",
@@ -2032,6 +2032,9 @@
         updateDriverBadgeUI(isDriverOnline);
         ensureDriverCloudPresence();
         
+        // Perbarui tampilan UI driver setelah status online/offline diubah
+        updateDriverAppUI();
+
         playNotificationSound();
         triggerCustomVibration('onlineOffline');
     }
@@ -2155,13 +2158,13 @@
                 const cloudOrder = doc.data();
                 const localOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
                 
+                // Jika order di cloud baru atau berbeda, bunyikan alarm/notifikasi untuk driver
                 if (!localOrder || localOrder.id !== cloudOrder.id) {
-                    localStorage.setItem('iqbike_active_order', JSON.stringify(cloudOrder));
                     playNotificationSound();
                     triggerCustomVibration('radarOrder');
-                } else {
-                    localStorage.setItem('iqbike_active_order', JSON.stringify(cloudOrder));
                 }
+                
+                localStorage.setItem('iqbike_active_order', JSON.stringify(cloudOrder));
 
                 if (userRole === 'driver' && cloudOrder.triggerPopupForDriver) {
                     const lastChange = cloudOrder.routeChanges && cloudOrder.routeChanges.length > 0 ? cloudOrder.routeChanges[cloudOrder.routeChanges.length - 1] : null;
@@ -2175,6 +2178,8 @@
             } else {
                 const localOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
                 if (localOrder && localOrder.status === 'FINISHED') {
+                    localStorage.removeItem('iqbike_active_order');
+                } else if (localOrder) {
                     localStorage.removeItem('iqbike_active_order');
                 }
             }
@@ -2526,6 +2531,7 @@
 
         localStorage.setItem('iqbike_active_order', JSON.stringify(newOrder));
         syncOrderToCloud(newOrder);
+
         playNotificationSound();
         triggerCustomVibration('radarOrder');
 
@@ -3017,6 +3023,8 @@
         const floatingPanel = document.getElementById('floatingRadarPanel');
         const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
 
+        // IZINKAN PANEL MUNCUL (BAIK ONLINE MAUPUN OFFLINE SESUAI PERMINTAAN ANDA)
+        // Cukup pastikan ordernya benar-benar ada di database.
         if (!order) {
             floatingPanel.style.display = 'none';
             container.innerHTML = '';
