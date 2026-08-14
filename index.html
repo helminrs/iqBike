@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>iqBike - Multi-Driver Cloud Realtime System</title>
+    <title>iqBike - Ultimate Multi-Driver Cloud System</title>
 
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1318,6 +1318,20 @@
     let currentDriverWa = localStorage.getItem('iqbike_driver_wa') || "6285934602965";
     let passengerVerifiedWa = localStorage.getItem('iqbike_passenger_wa') || "";
 
+    // --- AUTO SYNC GLOBAL DRIVER SAAT REFRESH ---
+    function ensureDriverCloudPresence() {
+        const onlineStatus = localStorage.getItem('iqbike_driver_online_status') !== 'false';
+        const driverGps = JSON.parse(localStorage.getItem('iqbike_driver_gps')) || { lat: userCurrentLat, lng: userCurrentLng };
+        
+        db.collection("iqbike_drivers").doc(currentDriverWa).set({
+            wa: currentDriverWa,
+            lat: driverGps.lat,
+            lng: driverGps.lng,
+            isOnline: onlineStatus,
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true }).catch(err => console.log("Auto presence sync error:", err));
+    }
+
     // --- PENGELOLAAN NOMOR WA PENUMPANG & TOMBOL SAMPAH ---
     function updatePassengerWaInputUI() {
         const inputEl = document.getElementById('passengerPhone');
@@ -1427,7 +1441,7 @@
             }
             localStorage.setItem('iqbike_driver_wa', currentDriverWa);
             document.getElementById('driverWaInput').value = currentDriverWa;
-            syncDriverToCloud();
+            ensureDriverCloudPresence();
             alert(`✅ Nomor WhatsApp Driver (${currentDriverWa}) Berhasil Terverifikasi Aktif & Disimpan!`);
         } else if (activeOtpTargetRole === 'penumpang') {
             passengerVerifiedWa = tempTargetPhone;
@@ -1955,6 +1969,9 @@
         document.getElementById('loginOverlay').style.display = 'none';
         document.getElementById('currentRoleText').innerText = (role === 'penumpang') ? 'Mode: Penumpang' : 'Mode: Driver';
 
+        // Pastikan status online driver tetap dipancarkan ke cloud meskipun masuk dari peran penumpang
+        ensureDriverCloudPresence();
+
         if (role === 'penumpang') {
             document.getElementById('passengerView').style.display = 'flex';
             document.getElementById('driverView').style.display = 'none';
@@ -1977,7 +1994,7 @@
             updateDriverAppUI();
             renderFinanceAndHistory();
 
-            syncDriverToCloud();
+            ensureDriverCloudPresence();
 
             const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
             if (activeOrder && activeOrder.triggerPopupForDriver) {
@@ -1996,7 +2013,7 @@
         isDriverOnline = !isDriverOnline;
         localStorage.setItem('iqbike_driver_online_status', isDriverOnline);
         updateDriverBadgeUI(isDriverOnline);
-        syncDriverToCloud();
+        ensureDriverCloudPresence();
         
         playNotificationSound();
         triggerCustomVibration('onlineOffline');
@@ -2060,26 +2077,12 @@
                     syncPassengerGpsToCloud(currentPos);
                 } else if (userRole === 'driver') {
                     localStorage.setItem('iqbike_driver_gps', JSON.stringify(currentPos));
-                    syncDriverToCloud();
+                    ensureDriverCloudPresence();
                 }
 
                 renderPassengerLocalMarkers();
             }, null, { enableHighAccuracy: true });
         }
-    }
-
-    function syncDriverToCloud() {
-        if (!currentDriverWa || currentDriverWa.length < 11) return;
-        const driverGps = { lat: userCurrentLat, lng: userCurrentLng };
-        const onlineStatus = localStorage.getItem('iqbike_driver_online_status') !== 'false';
-        
-        db.collection("iqbike_drivers").doc(currentDriverWa).set({
-            wa: currentDriverWa,
-            lat: driverGps.lat,
-            lng: driverGps.lng,
-            isOnline: onlineStatus,
-            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true }).catch(err => console.log("Sync driver error:", err));
     }
 
     function syncPassengerGpsToCloud(pos) {
@@ -2102,7 +2105,6 @@
     }
 
     function listenCloudData() {
-        // Pemantauan universal semua driver aktif secara realtime agar tidak hilang saat refresh
         db.collection("iqbike_drivers").onSnapshot((snapshot) => {
             let anyDriverOnline = false;
             let activeDriversList = {};
@@ -3094,6 +3096,9 @@
     window.onload = function() {
         initMap();
         
+        // Paksa sinkronisasi status online driver ke cloud seketika saat aplikasi dimuat/refresh
+        ensureDriverCloudPresence();
+
         const savedRole = localStorage.getItem('iqbike_saved_role');
         if (savedRole === 'penumpang' || savedRole === 'driver') {
             selectUserRole(savedRole);
