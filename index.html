@@ -2501,11 +2501,12 @@
         let order = JSON.parse(localStorage.getItem('iqbike_active_order'));
         if (!order || order.id !== orderId) return;
 
-        // ANIMASI LOADING / MENUNGGU PENUMPANG MEMILIH DRIVER PADA TOMBOL
+        // LANGSUNG UBAH TOMBOL BIRU MENJADI STATUS LOADING BUFFERING TANPA ALERT
         const btnAction = event.currentTarget;
         if (btnAction) {
             btnAction.disabled = true;
-            btnAction.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menunggu penumpang memilih driver...`;
+            btnAction.style.backgroundColor = "#f2994a"; // Mengubah warna tombol jadi oranye/proses
+            btnAction.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menunggu penumpang memilih...`;
         }
 
         if (!order.acceptedDrivers) order.acceptedDrivers = [];
@@ -2514,11 +2515,6 @@
         }
         localStorage.setItem('iqbike_active_order', JSON.stringify(order));
         syncOrderToCloud(order);
-        
-        setTimeout(() => {
-            updateDriverAppUI();
-            alert("Anda mengajukan diri mengambil orderan! Menunggu penumpang memilih...");
-        }, 600);
     }
 
     function setOrderStatus(newStatus) {
@@ -2659,7 +2655,13 @@
         floatingPanel.style.display = 'flex';
         let actionBtnHTML = '';
         if (order.status === 'WAITING') {
-            actionBtnHTML = `<button class="driver-step-btn btn-accept" onclick="driverTakeOrder(${order.id})"><i class="fa-solid fa-motorcycle"></i> Ambil Orderan</button>`;
+            // Cek apakah driver ini sudah menekan tombol "Ambil Orderan" sebelumnya
+            const hasAccepted = order.acceptedDrivers && order.acceptedDrivers.some(d => d.wa === currentDriverWa);
+            if (hasAccepted) {
+                actionBtnHTML = `<button class="driver-step-btn" style="background:#f2994a; color:#fff;" disabled><i class="fa-solid fa-spinner fa-spin"></i> Menunggu penumpang memilih...</button>`;
+            } else {
+                actionBtnHTML = `<button class="driver-step-btn btn-accept" onclick="driverTakeOrder(${order.id})"><i class="fa-solid fa-motorcycle"></i> Ambil Orderan</button>`;
+            }
         } else if (order.status === 'HEADING_PICKUP') {
             actionBtnHTML = `<button class="driver-step-btn btn-arrived" onclick="setOrderStatus('ARRIVED')">Sudah Tiba di Jemput</button>`;
         } else if (order.status === 'ARRIVED') {
