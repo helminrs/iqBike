@@ -879,8 +879,8 @@
                 <button onclick="driverTakeOrderFromNearbyModal()" class="btn-submit" style="background:var(--primary-green); color:#111; font-size:13px; font-weight:bold;">
                     <i class="fa-solid fa-motorcycle"></i> Terima / Ajukan Diri Sekarang
                 </button>
-                <button onclick="closeDriverNearbyOrderModal()" style="padding:8px; border:1px solid #ccc; background:#fff; color:#333; border-radius:8px; font-weight:bold; font-size:11px; cursor:pointer;">
-                    Tutup Pop-Up (Cek di Radar)
+                <button onclick="openDriverChangeDetails()" style="padding:9px; border:1px solid #ccc; background:#f4f5f7; color:#333; border-radius:8px; font-weight:bold; font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
+                    <i class="fa-solid fa-circle-info" style="color:var(--accent-blue);"></i> Lihat Detail Rincian Perubahan
                 </button>
             </div>
         </div>
@@ -1348,7 +1348,7 @@
     let driverMarkersMap = {}; 
     let passengerLiveMarker = null;
     let reverseGeocodeTimeout = null;
-    let lastNotifiedOrderId = null; // Menyimpan ID order agar pop-up tidak spam berulang
+    let lastNotifiedOrderId = null;
 
     let pendingNewDropoffCoords = null;
     let pendingNewDropoffName = "";
@@ -1359,7 +1359,6 @@
     let generatedOtpCode = "";
     let tempTargetPhone = "";
 
-    // Generate unique device session ID untuk membedakan HP/Tab penumpang satu dengan yang lain
     let passengerDeviceUuid = localStorage.getItem('iqbike_device_uuid');
     if (!passengerDeviceUuid) {
         passengerDeviceUuid = 'dev_' + Math.random().toString(36).substring(2, 11) + Date.now();
@@ -1679,7 +1678,7 @@
 
         startLiveGpsTracking();
         listenCloudData();
-        startPeriodicDriverRefresh(); // Auto-refresh berkala untuk driver agar tidak ketinggalan orderan
+        startPeriodicDriverRefresh();
     }
 
     function mountMapToContainer(containerId) {
@@ -2175,7 +2174,6 @@
         db.collection("iqbike_system").doc("active_order").delete().catch(err => console.log("Delete order error:", err));
     }
 
-    // Auto-refresh berkala untuk Driver agar tidak ketinggalan orderan
     function startPeriodicDriverRefresh() {
         setInterval(() => {
             if (userRole === 'driver' && isDriverOnline) {
@@ -2191,7 +2189,7 @@
                     }
                 }).catch(err => console.log("Periodic refresh error:", err));
             }
-        }, 3000); // Cek ulang setiap 3 detik
+        }, 3000);
     }
 
     function listenCloudData() {
@@ -2228,7 +2226,6 @@
                 const cloudOrder = doc.data();
                 const localOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
                 
-                // FILTER HANYA UNTUK PENUMPANG: Tab penumpang lain tidak boleh mengambil pesanan device lain
                 if (userRole === 'penumpang') {
                     const isMyOrder = (cloudOrder.deviceUuid === passengerDeviceUuid);
                     if (!isMyOrder && cloudOrder.status === 'WAITING') {
@@ -2245,7 +2242,6 @@
                 
                 localStorage.setItem('iqbike_active_order', JSON.stringify(cloudOrder));
 
-                // CEK APAKAH PERLU MUNCUL POP-UP ORDER TERDEKAT (KHUSUS DRIVER ONLINE & STATUS WAITING)
                 if (userRole === 'driver') {
                     checkAndShowNearbyOrderPopup(cloudOrder);
                 }
@@ -2273,14 +2269,12 @@
     function checkAndShowNearbyOrderPopup(order) {
         if (!isDriverOnline || !order || order.status !== 'WAITING') return;
 
-        // Jangan munculkan pop-up berulang untuk order ID yang sama
         if (lastNotifiedOrderId === order.id) return;
 
         const driverLatLng = L.latLng(userCurrentLat, userCurrentLng);
         const pickupLatLng = L.latLng(order.pickupLat, order.pickupLng);
         const distanceMeters = map ? map.distance(driverLatLng, pickupLatLng) : 0;
 
-        // Radius <= 3000 meter (3 km) untuk driver online
         if (distanceMeters <= 3000) {
             lastNotifiedOrderId = order.id;
 
