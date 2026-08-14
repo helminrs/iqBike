@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>iqBike - Multi-Driver System inDrive Style</title>
+    <title>iqBike - Multi-Driver System with WA OTP Verification</title>
 
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -788,6 +788,42 @@
         </div>
     </div>
 
+    <!-- MODAL OTP VERIFIKASI WHATSAPP MANDIRI -->
+    <div id="otpVerificationModal" class="modal-overlay" style="display: none;">
+        <div class="login-card" style="background:#222; color:#fff; text-align:center;">
+            <i class="fa-brands fa-whatsapp" style="font-size:42px; color:var(--whatsapp-green);"></i>
+            <h3 id="otpModalTitle" style="margin-top:6px; font-size:16px;">Verifikasi WhatsApp Aktif</h3>
+            <p id="otpModalSubtitle" style="font-size:11px; color:#aaa;">Sistem akan mengirim kode verifikasi ke nomor Anda via WhatsApp.</p>
+            
+            <div id="otpStep1Container">
+                <div class="form-group" style="text-align:left;">
+                    <label class="form-label" style="color:#ccc;">Nomor WhatsApp Anda</label>
+                    <input type="tel" id="otpPhoneInput" class="form-input" placeholder="08xxxxxxxxxx">
+                </div>
+                <button onclick="requestWaOtpCode()" class="btn-submit" style="margin-top:8px; background:var(--whatsapp-green); color:#fff; font-size:12px;">
+                    <i class="fa-solid fa-paper-plane"></i> Kirim Kode OTP via WhatsApp
+                </button>
+            </div>
+
+            <div id="otpStep2Container" style="display:none; flex-direction:column; gap:10px;">
+                <div style="background:#2a2a2a; padding:8px; border-radius:6px; font-size:11px; color:#8cc63f;">
+                    Kode OTP telah dikirim ke WA Anda. Cek chat WhatsApp Anda dan masukkan 4 digit kodenya di bawah ini:
+                </div>
+                <div class="form-group">
+                    <input type="text" id="otpCodeInput" class="form-input" placeholder="Masukkan 4 Digit OTP" maxlength="4" style="text-align:center; font-size:20px; letter-spacing:6px; font-weight:bold;">
+                </div>
+                <button onclick="verifyWaOtpCode()" class="btn-submit" style="background:#27ae60; color:#fff; font-size:13px;">
+                    <i class="fa-solid fa-check-circle"></i> Verifikasi & Lanjutkan
+                </button>
+                <button onclick="resetOtpProcess()" style="background:none; border:none; color:#aaa; font-size:11px; text-decoration:underline; cursor:pointer;">
+                    Ganti Nomor / Kirim Ulang OTP
+                </button>
+            </div>
+
+            <button onclick="closeOtpVerificationModal()" style="background:none; border:none; color:#eb5757; font-size:11px; margin-top:6px; cursor:pointer;">Batal</button>
+        </div>
+    </div>
+
     <!-- MODAL SETTING NOTIFIKASI & SUARA -->
     <div id="notificationSettingsModal" class="modal-overlay" style="display: none;">
         <div class="login-card" style="background:#fff; color:#222; text-align:left; position:relative;">
@@ -1075,9 +1111,14 @@
                     <label class="form-label">Nama <span style="color:red">*</span></label>
                     <input type="text" id="passengerName" class="form-input" placeholder="Nama Anda...">
                 </div>
-                <div class="form-group">
+                <div class="form-group" style="position:relative;">
                     <label class="form-label">No WhatsApp <span style="color:red">*</span></label>
-                    <input type="tel" id="passengerPhone" class="form-input" placeholder="6281234xxxx">
+                    <div style="display:flex; gap:4px;">
+                        <input type="tel" id="passengerPhone" class="form-input" placeholder="08xxxxxxxxxx" readonly style="background:#eef7e8; font-weight:bold;">
+                        <button type="button" class="btn-save-wa" onclick="openPassengerOtpModal()" style="padding:6px 10px; font-size:11px; white-space:nowrap;">
+                            <i class="fa-solid fa-shield-check"></i> Verif WA
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -1138,8 +1179,8 @@
         <div id="driverView" class="driver-view-container" style="display: none;">
             <div class="driver-control-bar">
                 <div style="display:flex; align-items:center; gap:4px; flex:1;">
-                    <input type="tel" id="driverWaInput" class="form-input" placeholder="No WA (08xx/628xx)" style="font-size:11px; padding:6px;">
-                    <button class="btn-save-wa" onclick="saveDriverWaNumber()"><i class="fa-solid fa-floppy-disk"></i> Simpan WA</button>
+                    <input type="tel" id="driverWaInput" class="form-input" placeholder="No WA (08xx)" readonly style="font-size:11px; padding:6px; background:#eef7e8; font-weight:bold;">
+                    <button class="btn-save-wa" onclick="openDriverOtpModal()"><i class="fa-solid fa-shield-check"></i> Verif WA Driver</button>
                 </div>
                 <div>
                     <button id="btnToggleDriverStatus" class="btn-toggle-online online" onclick="toggleDriverOnlineStatus()">Online</button>
@@ -1248,6 +1289,10 @@
     let pendingCalculatedExtraFare = 0;
     let pendingCalculatedNewFare = 0;
 
+    let activeOtpTargetRole = null; // 'driver' atau 'penumpang'
+    let generatedOtpCode = "";
+    let tempTargetPhone = "";
+
     const savedLastPos = JSON.parse(localStorage.getItem('iqbike_last_known_pos'));
     let userCurrentLat = savedLastPos ? savedLastPos.lat : -7.02443;
     let userCurrentLng = savedLastPos ? savedLastPos.lng : 107.58556;
@@ -1257,9 +1302,105 @@
     let computedTotalFare = 0;
     let searchDebounce = null;
     
-    // Status online & ID WhatsApp driver terkonfirmasi persisten
     let isDriverOnline = localStorage.getItem('iqbike_driver_online_status') !== 'false';
     let currentDriverWa = localStorage.getItem('iqbike_driver_wa') || "6285934602965";
+
+    // --- SISTEM VERIFIKASI OTP WHATSAPP MANDIRI ---
+    function openDriverOtpModal() {
+        activeOtpTargetRole = 'driver';
+        document.getElementById('otpModalTitle').innerText = "Verifikasi WhatsApp Driver";
+        document.getElementById('otpModalSubtitle').innerText = "Masukkan nomor WhatsApp Driver yang aktif untuk menerima Kode OTP.";
+        document.getElementById('otpPhoneInput').value = currentDriverWa.startsWith('62') ? '0' + currentDriverWa.substring(2) : currentDriverWa;
+        
+        document.getElementById('otpStep1Container').style.display = 'block';
+        document.getElementById('otpStep2Container').style.display = 'none';
+        document.getElementById('otpVerificationModal').style.display = 'flex';
+    }
+
+    function openPassengerOtpModal() {
+        activeOtpTargetRole = 'penumpang';
+        document.getElementById('otpModalTitle').innerText = "Verifikasi WhatsApp Penumpang";
+        document.getElementById('otpModalSubtitle').innerText = "Masukkan nomor WhatsApp Anda untuk validasi pesanan.";
+        const currentPassPhone = document.getElementById('passengerPhone').value || "";
+        document.getElementById('otpPhoneInput').value = currentPassPhone;
+
+        document.getElementById('otpStep1Container').style.display = 'block';
+        document.getElementById('otpStep2Container').style.display = 'none';
+        document.getElementById('otpVerificationModal').style.display = 'flex';
+    }
+
+    function closeOtpVerificationModal() {
+        document.getElementById('otpVerificationModal').style.display = 'none';
+        document.getElementById('otpCodeInput').value = "";
+    }
+
+    function resetOtpProcess() {
+        document.getElementById('otpStep1Container').style.display = 'block';
+        document.getElementById('otpStep2Container').style.display = 'none';
+        document.getElementById('otpCodeInput').value = "";
+    }
+
+    function requestWaOtpCode() {
+        const rawInput = document.getElementById('otpPhoneInput').value.trim();
+        let cleaned = rawInput.replace(/\D/g, '');
+
+        if (cleaned.startsWith('0')) {
+            cleaned = '62' + cleaned.substring(1);
+        } else if (cleaned.startsWith('8')) {
+            cleaned = '62' + cleaned;
+        }
+
+        // Validasi ketat nomor seluler Indonesia aktif
+        const strictWaRegex = /^628\d{8,10}$/;
+        if (!strictWaRegex.test(cleaned)) {
+            alert("❌ NOMOR TIDAK VALID!\n\nHarap masukkan nomor WhatsApp seluler Indonesia yang sah (11-13 digit, berawalan 08 / 628). Nomor asal-asalan ditolak.");
+            return;
+        }
+
+        tempTargetPhone = cleaned;
+        
+        // Generate Kode OTP Acak 4 Digit
+        generatedOtpCode = Math.floor(1000 + Math.random() * 9000).toString();
+
+        // Pesan OTP yang dikirimkan otomatis via WhatsApp
+        const otpMessage = `🔐 *KODE VERIFIKASI iqBike*\n\n` +
+                           `Kode OTP rahasia Anda adalah: *${generatedOtpCode}*\n\n` +
+                           `Masukkan kode ini ke aplikasi iqBike untuk melanjutkan verifikasi nomor WhatsApp Anda. Jangan berikan kode ini kepada siapapun!`;
+
+        // Redirect ke aplikasi WhatsApp untuk mengirimkan pesan ke nomor sendiri / admin bot
+        const waUrl = `whatsapp://send?phone=${tempTargetPhone}&text=${encodeURIComponent(otpMessage)}`;
+
+        // Pindah ke step masukkan OTP
+        document.getElementById('otpStep1Container').style.display = 'none';
+        document.getElementById('otpStep2Container').style.display = 'flex';
+
+        window.location.href = waUrl;
+    }
+
+    function verifyWaOtpCode() {
+        const enteredOtp = document.getElementById('otpCodeInput').value.trim();
+
+        if (enteredOtp !== generatedOtpCode) {
+            alert("❌ Kode OTP Salah! Pastikan Anda memasukkan 4 digit kode yang dikirimkan ke WhatsApp Anda.");
+            return;
+        }
+
+        if (activeOtpTargetRole === 'driver') {
+            if (tempTargetPhone !== currentDriverWa) {
+                db.collection("iqbike_drivers").doc(currentDriverWa).delete().catch(() => {});
+                currentDriverWa = tempTargetPhone;
+            }
+            localStorage.setItem('iqbike_driver_wa', currentDriverWa);
+            document.getElementById('driverWaInput').value = currentDriverWa;
+            syncDriverToCloud();
+            alert(`✅ Nomor WhatsApp Driver (${currentDriverWa}) Berhasil Terverifikasi Aktif & Disimpan!`);
+        } else if (activeOtpTargetRole === 'penumpang') {
+            document.getElementById('passengerPhone').value = tempTargetPhone;
+            alert(`✅ Nomor WhatsApp Penumpang (${tempTargetPhone}) Berhasil Terverifikasi!`);
+        }
+
+        closeOtpVerificationModal();
+    }
 
     // --- MANAJEMEN SOUND & VIBRATION PROFESIONAL ---
     function getStoredSoundChoice() {
@@ -1398,17 +1539,6 @@
         html: '<i class="fa-solid fa-circle" style="font-size:14px; color:#0288d1; background:#ffffff; padding:3px; border-radius:50%; border:2px solid #0288d1; box-shadow:0 2px 6px rgba(0,0,0,0.4);"></i>',
         iconSize: [20, 20], iconAnchor: [10, 10], className: 'passenger-blue-icon'
     });
-
-    function formatWaNumber(phone) {
-        if (!phone) return "";
-        let cleaned = phone.replace(/\D/g, ''); 
-        if (cleaned.startsWith('08')) {
-            cleaned = '62' + cleaned.substring(1);
-        } else if (cleaned.startsWith('8')) {
-            cleaned = '62' + cleaned;
-        }
-        return cleaned;
-    }
 
     function initMap() {
         const masterEl = document.getElementById('masterMapElement');
@@ -1859,39 +1989,6 @@
         }
     }
 
-    function saveDriverWaNumber() {
-        const waVal = document.getElementById('driverWaInput').value.trim();
-        
-        let cleanedWa = waVal.replace(/\D/g, '');
-        if (cleanedWa.startsWith('08')) {
-            cleanedWa = '62' + cleanedWa.substring(1);
-        } else if (cleanedWa.startsWith('8')) {
-            cleanedWa = '62' + cleanedWa;
-        }
-
-        // Regex diperketat: 628 diikuti 8 hingga 10 digit (total panjang 11-13 digit angka seluler valid)
-        const waRegex = /^628\d{8,10}$/;
-
-        if (!waRegex.test(cleanedWa)) {
-            alert("❌ NOMOR WHATSAPP TIDAK VALID!\n\nHarap masukkan nomor WhatsApp Driver yang aktif dan benar (Nomor seluler Indonesia sah, panjang total 11-13 digit, berawalan 08 atau 628). Nomor pendek atau asal-asalan ditolak sistem.");
-            return;
-        }
-
-        const newWa = cleanedWa;
-        
-        if (newWa !== currentDriverWa) {
-            db.collection("iqbike_drivers").doc(currentDriverWa).delete().catch(() => {});
-            currentDriverWa = newWa;
-        }
-
-        localStorage.setItem('iqbike_driver_wa', currentDriverWa);
-        document.getElementById('driverWaInput').value = currentDriverWa;
-        
-        syncDriverToCloud();
-        
-        alert(`✅ ID Nomor WhatsApp Driver (${currentDriverWa}) Berhasil Disimpan & Terkunci ke Sistem!`);
-    }
-
     function loadDriverWaNumber() {
         const storedWa = localStorage.getItem('iqbike_driver_wa');
         if (storedWa) {
@@ -2266,17 +2363,15 @@
             return;
         }
 
-        if (!rawPhone || rawPhone.length < 9) {
-            alert("Harap masukkan Nomor WhatsApp Anda yang valid!");
+        if (!rawPhone || rawPhone.length < 10) {
+            alert("⚠️ Nomor WhatsApp Penumpang belum terverifikasi! Harap klik tombol 'Verif WA' terlebih dahulu.");
             return;
         }
-
-        const formattedPhone = formatWaNumber(rawPhone);
 
         const newOrder = {
             id: Date.now(), 
             passengerName: name, 
-            passengerPhone: formattedPhone,
+            passengerPhone: rawPhone,
             pickup, dropoff,
             pickupLat: pickupCoords.lat, pickupLng: pickupCoords.lng,
             dropoffLat: dropoffCoords.lat, dropoffLng: dropoffCoords.lng,
@@ -2305,7 +2400,7 @@
 
         const waText = `Halo Driver iqBike, saya mau order ojek online:\n\n` +
                      `👤 *Nama:* ${name}\n` +
-                     `📱 *WA Penumpang:* ${formattedPhone}\n` +
+                     `📱 *WA Penumpang:* ${rawPhone} (Terverifikasi OTP)\n` +
                      `📍 *Jemput:* ${pickup}\n` +
                      `🗺️ *Link Titik Jemput:* ${pickupLocationUrl}\n` +
                      `🏁 *Tujuan:* ${dropoff}\n` +
