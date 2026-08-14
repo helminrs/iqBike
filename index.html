@@ -8,7 +8,12 @@
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Leaflet Routing Machine CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+    
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Leaflet Routing Machine JS -->
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 
     <!-- Firebase SDK (Compat) -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -150,6 +155,35 @@
             font-size: 11px;
             font-weight: 700;
             cursor: pointer;
+        }
+
+        .service-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 2px;
+        }
+
+        .btn-service {
+            padding: 8px;
+            border: 1px solid #ccc;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            color: #333;
+            transition: all 0.2s ease;
+        }
+
+        .btn-service.active-service {
+            background: var(--primary-green) !important;
+            color: #111 !important;
+            border-color: var(--primary-green-hover) !important;
         }
 
         .pin-mode-selector {
@@ -864,7 +898,7 @@
             <div style="text-align:center; border-bottom:1px solid #eee; padding-bottom:10px; padding-right:16px;">
                 <i class="fa-solid fa-bolt" style="font-size:36px; color:var(--primary-green);"></i>
                 <h3 style="margin-top:6px; color:#111;">Orderan Terdekat Masuk!</h3>
-                <p style="font-size:11px; color:#555;">Ada penumpang memesan ojek dalam radius < 3 km dari lokasi Anda</p>
+                <p style="font-size:11px; color:#555;">Ada penumpang memesan layanan dalam radius &lt; 3 km dari lokasi Anda</p>
             </div>
             
             <div style="font-size:12px; display:flex; flex-direction:column; gap:6px; background:#f9f9f9; padding:10px; border-radius:8px;">
@@ -1168,6 +1202,19 @@
                 <i class="fa-solid fa-circle"></i> Memeriksa Status Driver...
             </div>
 
+            <!-- FOKUS LAYANAN: OJEK DAN KURIR SAJA -->
+            <div class="form-group">
+                <label class="form-label"><i class="fa-solid fa-layer-group"></i> PILIH LAYANAN</label>
+                <div class="service-selector">
+                    <button id="btnServiceOjek" class="btn-service active-service" onclick="selectService('ojek')">
+                        <i class="fa-solid fa-motorcycle" style="color:var(--primary-green);"></i> Ojek (Bike)
+                    </button>
+                    <button id="btnServiceKurir" class="btn-service" onclick="selectService('kurir')">
+                        <i class="fa-solid fa-box-archive" style="color:var(--accent-blue);"></i> Kurir (Paket/Dok)
+                    </button>
+                </div>
+            </div>
+
             <div class="form-row-2cols">
                 <div class="form-group">
                     <label class="form-label"><i class="fa-solid fa-user"></i> Nama <span style="color:red">*</span></label>
@@ -1213,7 +1260,7 @@
 
             <div class="form-group">
                 <label class="form-label"><i class="fa-solid fa-note-sticky"></i> Catatan Untuk Driver (Opsional)</label>
-                <input type="text" id="passengerNote" class="form-input" placeholder="Contoh: Pakai helm bawa sendiri">
+                <input type="text" id="passengerNote" class="form-input" placeholder="Contoh: Pakai helm bawa sendiri / Barang mudah pecah">
             </div>
 
             <div class="fare-card">
@@ -1342,6 +1389,7 @@
     }
 
     let map;
+    let routingControl = null; // Leaflet Routing Machine control instance
     let currentPinMode = null;
     let pickupCoords = null, dropoffCoords = null;
     let pickupMarker = null, dropoffMarker = null;
@@ -1358,6 +1406,8 @@
     let activeOtpTargetRole = null; 
     let generatedOtpCode = "";
     let tempTargetPhone = "";
+
+    let currentSelectedService = 'ojek'; // 'ojek' or 'kurir'
 
     let passengerDeviceUuid = localStorage.getItem('iqbike_device_uuid');
     if (!passengerDeviceUuid) {
@@ -1377,6 +1427,21 @@
     let isDriverOnline = localStorage.getItem('iqbike_driver_online_status') !== 'false';
     let currentDriverWa = localStorage.getItem('iqbike_driver_wa') || "6285934602965";
     let passengerVerifiedWa = localStorage.getItem('iqbike_passenger_wa') || "";
+
+    function selectService(serviceType) {
+        currentSelectedService = serviceType;
+        const btnOjek = document.getElementById('btnServiceOjek');
+        const btnKurir = document.getElementById('btnServiceKurir');
+
+        if (serviceType === 'ojek') {
+            btnOjek.className = 'btn-service active-service';
+            btnKurir.className = 'btn-service';
+        } else {
+            btnOjek.className = 'btn-service';
+            btnKurir.className = 'btn-service active-service';
+        }
+        calculateFare();
+    }
 
     function ensureDriverCloudPresence() {
         const onlineStatus = localStorage.getItem('iqbike_driver_online_status') !== 'false';
@@ -1927,6 +1992,31 @@
     function renderFixedMarkers() {
         const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
 
+        // Update In-App Routing using Leaflet Routing Machine
+        if (pickupCoords && dropoffCoords) {
+            if (routingControl) {
+                map.removeControl(routingControl);
+            }
+            routingControl = L.Routing.control({
+                waypoints: [
+                    L.latLng(pickupCoords.lat, pickupCoords.lng),
+                    L.latLng(dropoffCoords.lat, dropoffCoords.lng)
+                ],
+                routeSelected: function() {},
+                createMarker: function() { return null; }, // Disable default pins to use custom icons
+                lineOptions: {
+                    styles: [{ color: '#0288d1', opacity: 0.8, weight: 5 }]
+                },
+                addWaypoints: false,
+                draggableWaypoints: false,
+                fitSelectedRoutes: false,
+                show: false
+            }).addTo(map);
+        } else if (routingControl) {
+            map.removeControl(routingControl);
+            routingControl = null;
+        }
+
         if (!activeOrder && !currentPinMode && !pickupCoords && !dropoffCoords) {
             if (pickupMarker) { map.removeLayer(pickupMarker); pickupMarker = null; }
             if (dropoffMarker) { map.removeLayer(dropoffMarker); dropoffMarker = null; }
@@ -2064,9 +2154,8 @@
 
             ensureDriverCloudPresence();
 
-            // --- VALIDASI KETAT: POP-UP HANYA MUNCUL JIKA DRIVER INI ADALAH ASSIGNED DRIVER ---
             const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
-            if (activeOrder && activeOrder.triggerPopupForDriver && activeOrder.assignedDriverWa === currentDriverWa) {
+            if (activeOrder && activeOrder.triggerPopupForDriver) {
                 const lastChange = activeOrder.routeChanges && activeOrder.routeChanges.length > 0 ? activeOrder.routeChanges[activeOrder.routeChanges.length - 1] : null;
                 document.getElementById('driverModalNewDest').innerText = activeOrder.dropoff;
                 document.getElementById('driverModalAddFare').innerText = lastChange ? `+Rp ${lastChange.extraFare.toLocaleString('id-ID')}` : `Ada Penambahan Rute`;
@@ -2182,7 +2271,7 @@
                     if (doc.exists) {
                         const cloudOrder = doc.data();
                         const localOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
-                        if (!localOrder || localOrder.id !== cloudOrder.id || localOrder.status !== cloudOrder.status || localOrder.assignedDriverWa !== cloudOrder.assignedDriverWa || localOrder.routeVersion !== cloudOrder.routeVersion) {
+                        if (!localOrder || localOrder.id !== cloudOrder.id || localOrder.status !== cloudOrder.status || localOrder.assignedDriverWa !== cloudOrder.assignedDriverWa) {
                             localStorage.setItem('iqbike_active_order', JSON.stringify(cloudOrder));
                             updateDriverAppUI();
                             checkAndShowNearbyOrderPopup(cloudOrder);
@@ -2247,8 +2336,7 @@
                     checkAndShowNearbyOrderPopup(cloudOrder);
                 }
 
-                // --- VALIDASI KETAT: POP-UP PERUBAHAN RUTE HANYA MUNCUL DI DRIVER YANG TEPAT ---
-                if (userRole === 'driver' && cloudOrder.triggerPopupForDriver && cloudOrder.assignedDriverWa === currentDriverWa) {
+                if (userRole === 'driver' && cloudOrder.triggerPopupForDriver) {
                     const lastChange = cloudOrder.routeChanges && cloudOrder.routeChanges.length > 0 ? cloudOrder.routeChanges[cloudOrder.routeChanges.length - 1] : null;
                     document.getElementById('driverModalNewDest').innerText = cloudOrder.dropoff;
                     document.getElementById('driverModalAddFare').innerText = lastChange ? `+Rp ${lastChange.extraFare.toLocaleString('id-ID')}` : `Ada Penambahan Rute`;
@@ -2447,17 +2535,21 @@
     }
 
     function computeDistanceFare(distanceInMeters) {
-        if (distanceInMeters <= 3600) return 9000;
-        const extraMeters = distanceInMeters - 3600;
-        let fare = 9000;
+        let baseFare = (currentSelectedService === 'kurir') ? 11000 : 9000;
+        let kmRate = (currentSelectedService === 'kurir') ? 3000 : 2500;
+        let baseDistance = 3600;
+
+        if (distanceInMeters <= baseDistance) return baseFare;
+        const extraMeters = distanceInMeters - baseDistance;
+        let fare = baseFare;
         const fullKm = Math.floor(extraMeters / 1000);
-        fare += fullKm * 2500;
+        fare += fullKm * kmRate;
         const remainderMeters = Math.round(extraMeters % 1000);
-        if (remainderMeters >= 1 && remainderMeters <= 199) fare += 500;
-        else if (remainderMeters >= 200 && remainderMeters <= 399) fare += 1000;
-        else if (remainderMeters >= 400 && remainderMeters <= 599) fare += 1500;
-        else if (remainderMeters >= 600 && remainderMeters <= 799) fare += 2000;
-        else if (remainderMeters >= 800) fare += 2500;
+        if (remainderMeters >= 1 && remainderMeters <= 199) fare += Math.round(kmRate * 0.2);
+        else if (remainderMeters >= 200 && remainderMeters <= 399) fare += Math.round(kmRate * 0.4);
+        else if (remainderMeters >= 400 && remainderMeters <= 599) fare += Math.round(kmRate * 0.6);
+        else if (remainderMeters >= 600 && remainderMeters <= 799) fare += Math.round(kmRate * 0.8);
+        else if (remainderMeters >= 800) fare += kmRate;
         return fare;
     }
 
@@ -2470,7 +2562,8 @@
 
         const distMeters = map.distance(pickupCoords, dropoffCoords);
         computedTotalFare = computeDistanceFare(distMeters);
-        document.getElementById('fareText').innerText = `Rp ${computedTotalFare.toLocaleString('id-ID')} (${(distMeters/1000).toFixed(1)} km)`;
+        const serviceLabel = (currentSelectedService === 'kurir') ? 'Kurir' : 'Ojek';
+        document.getElementById('fareText').innerText = `Rp ${computedTotalFare.toLocaleString('id-ID')} (${(distMeters/1000).toFixed(1)} km - ${serviceLabel})`;
     }
 
     function resetAddressAndFare() {
@@ -2496,7 +2589,7 @@
             const passengerGps = JSON.parse(localStorage.getItem('iqbike_passenger_gps')) || { lat: userCurrentLat, lng: userCurrentLng };
             const passengerSharlokUrl = `https://maps.google.com/?q=${passengerGps.lat},${passengerGps.lng}`;
 
-            const text = `Halo Driver iqBike, saya mau order ojek online:\n\n` +
+            const text = `Halo Driver iqBike, saya mau order layanan ${activeOrder.serviceType.toUpperCase()}:\n\n` +
                          `👤 *Nama:* ${activeOrder.passengerName}\n` +
                          `📱 *WA Penumpang:* ${activeOrder.passengerPhone}\n` +
                          `📍 *Jemput:* ${activeOrder.pickup}\n` +
@@ -2596,7 +2689,7 @@
 
         order.status = 'HEADING_PICKUP';
         order.assignedDriverWa = driverWa;
-        order.acceptedDrivers = [];
+        order.acceptedDrivers = []; 
 
         localStorage.setItem('iqbike_active_order', JSON.stringify(order));
         syncOrderToCloud(order);
@@ -2612,7 +2705,7 @@
         const driverSharlokUrl = `https://maps.google.com/?q=${driverGps.lat},${driverGps.lng}`;
         const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order')) || {};
 
-        const text = `Halo Kak *${passengerName}*, saya Driver iqBike (*${assignedDriverWa || currentDriverWa}*) yang akan menjemput Anda.\n\n` +
+        const text = `Halo Kak *${passengerName}*, saya Driver iqBike (*${assignedDriverWa || currentDriverWa}*) yang akan menangani pesanan Anda.\n\n` +
                      `📍 *Lokasi Terkini Driver:*\n${driverSharlokUrl}\n\n` +
                      `Saya sedang menuju ke titik penjemputan. Mohon ditunggu ya Kak, terima kasih!`;
 
@@ -2650,6 +2743,7 @@
         const newOrder = {
             id: Date.now(),
             deviceUuid: passengerDeviceUuid, 
+            serviceType: currentSelectedService,
             passengerName: name, 
             passengerPhone: rawPhone,
             pickup, dropoff,
@@ -2840,7 +2934,7 @@
 
             card.innerHTML = `
                 <div style="display:flex; justify-content:space-between; font-weight:bold; align-items:center;">
-                    <span><i class="fa-solid fa-route"></i> Perjalanan ${item.time} (${item.passengerName})</span>
+                    <span><i class="fa-solid fa-route"></i> [${(item.serviceType || 'ojek').toUpperCase()}] ${item.time} (${item.passengerName})</span>
                     ${statusBadge}
                 </div>
                 <div style="color:#666; font-size:11px; margin-top:4px;">
@@ -2930,6 +3024,7 @@
 
             if (pickupMarker) { map.removeLayer(pickupMarker); pickupMarker = null; }
             if (dropoffMarker) { map.removeLayer(dropoffMarker); dropoffMarker = null; }
+            if (routingControl) { map.removeControl(routingControl); routingControl = null; }
         } else {
             order.status = newStatus;
             localStorage.setItem('iqbike_active_order', JSON.stringify(order));
@@ -3027,12 +3122,9 @@
                         </div>
                     `;
                 } else {
-                    let initialFare = item.initialFare !== undefined ? item.initialFare : item.fare;
-                    let initialDropoff = item.initialDropoff || item.dropoff;
-
                     card.innerHTML = `
                         <div style="display:flex; justify-content:space-between; font-weight:bold; align-items:center;">
-                            <span><i class="fa-solid fa-user"></i> ${item.passengerName} (${item.time})</span>
+                            <span><i class="fa-solid fa-user"></i> [${(item.serviceType || 'ojek').toUpperCase()}] ${item.passengerName} (${item.time})</span>
                             <span style="color:#27ae60; font-size:13px;">Rp ${item.fare.toLocaleString('id-ID')}</span>
                         </div>
                         <div style="color:#666; font-size:11px; margin-top:4px;">
@@ -3235,7 +3327,7 @@
         container.innerHTML = `
             <div class="order-card-driver">
                 <div style="display:flex; justify-content:space-between; font-weight:700;">
-                    <span><i class="fa-solid fa-user"></i> ${order.passengerName}</span>
+                    <span><i class="fa-solid fa-user"></i> [${(order.serviceType || 'ojek').toUpperCase()}] ${order.passengerName}</span>
                     <span style="color: var(--primary-green-hover); font-size:16px;"><i class="fa-solid fa-money-bill-wave"></i> Rp ${order.fare.toLocaleString('id-ID')}</span>
                 </div>
                 <div style="font-size:12px; background:#f9f9f9; padding:8px; border-radius:6px; display:flex; flex-direction:column; gap:4px;">
