@@ -1808,7 +1808,6 @@
             updateDriverAppUI();
             renderFinanceAndHistory();
 
-            // Paksa sinkronisasi status online persisten ke cloud
             syncDriverToCloud();
 
             const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
@@ -1863,22 +1862,23 @@
     function saveDriverWaNumber() {
         const waVal = document.getElementById('driverWaInput').value.trim();
         
-        // Validasi ketat format nomor WhatsApp Indonesia standar (berawalan 628 atau 08, panjang total 10-13 digit)
         let cleanedWa = waVal.replace(/\D/g, '');
         if (cleanedWa.startsWith('08')) {
             cleanedWa = '62' + cleanedWa.substring(1);
+        } else if (cleanedWa.startsWith('8')) {
+            cleanedWa = '62' + cleanedWa;
         }
 
-        const waRegex = /^628\d{7,10}$/;
+        // Regex diperketat: 628 diikuti 8 hingga 10 digit (total panjang 11-13 digit angka seluler valid)
+        const waRegex = /^628\d{8,10}$/;
 
         if (!waRegex.test(cleanedWa)) {
-            alert("❌ NOMOR WHATSAPP TIDAK VALID!\n\nNomor WhatsApp Driver harus nomor seluler Indonesia yang sah (Contoh: 628123456789 atau 628123456789, minimal 10 digit dan berawalan 08/628). Nomor asal/palsu ditolak sistem.");
+            alert("❌ NOMOR WHATSAPP TIDAK VALID!\n\nHarap masukkan nomor WhatsApp Driver yang aktif dan benar (Nomor seluler Indonesia sah, panjang total 11-13 digit, berawalan 08 atau 628). Nomor pendek atau asal-asalan ditolak sistem.");
             return;
         }
 
         const newWa = cleanedWa;
         
-        // Jika nomor WA diganti, hapus dokumen lama di Firestore agar ID tidak nyangkut/duplikat
         if (newWa !== currentDriverWa) {
             db.collection("iqbike_drivers").doc(currentDriverWa).delete().catch(() => {});
             currentDriverWa = newWa;
@@ -1887,7 +1887,6 @@
         localStorage.setItem('iqbike_driver_wa', currentDriverWa);
         document.getElementById('driverWaInput').value = currentDriverWa;
         
-        // Langsung push status ke cloud dengan ID baru yang terverifikasi valid
         syncDriverToCloud();
         
         alert(`✅ ID Nomor WhatsApp Driver (${currentDriverWa}) Berhasil Disimpan & Terkunci ke Sistem!`);
@@ -1934,7 +1933,7 @@
     }
 
     function syncDriverToCloud() {
-        if (!currentDriverWa || currentDriverWa.length < 10) return;
+        if (!currentDriverWa || currentDriverWa.length < 11) return;
         const driverGps = { lat: userCurrentLat, lng: userCurrentLng };
         const onlineStatus = localStorage.getItem('iqbike_driver_online_status') !== 'false';
         
@@ -1967,7 +1966,6 @@
     }
 
     function listenCloudData() {
-        // Listener Driver: Mengambil semua dokumen driver, merender ikon motor (hijau jika online, abu-abu jika offline)
         db.collection("iqbike_drivers").onSnapshot((snapshot) => {
             let anyDriverOnline = false;
             let activeDriversList = {};
@@ -1996,7 +1994,6 @@
             }
         });
 
-        // Listener Active Order: Dilindungi agar tahan refresh dan tidak hilang saat berpindah tab
         db.collection("iqbike_system").doc("active_order").onSnapshot((doc) => {
             if (doc.exists) {
                 const cloudOrder = doc.data();
@@ -2063,7 +2060,6 @@
             const dData = driversObj[waKey];
             if (!dData.lat || !dData.lng) return;
 
-            // Jika driver online (true) -> Hijau, jika offline (false) -> Abu-abu, dan selalu muncul di peta
             const isOnline = dData.isOnline === true;
             const iconToUse = isOnline ? driverMotorIcon : driverOfflineIcon;
 
@@ -2383,7 +2379,7 @@
             const cancelLog = {
                 id: Date.now(),
                 type: 'EXPENSE',
-                note: `CANCEL OLEH DRIVER (Fiktif): ${order.passengerName} (${order.passengerPhone})`,
+                note: `CANCEL OLEH DRIVER (ISENG/BLOKIR): ${order.passengerName} (${order.passengerPhone})`,
                 amount: 0,
                 timestamp: Date.now(),
                 time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
