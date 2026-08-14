@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>iqBike - inDrive Style Multi-Driver Cloud System</title>
+    <title>iqBike - Multi-Driver Cloud System</title>
 
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -835,6 +835,25 @@
         </div>
     </div>
 
+    <!-- MODAL PILIHAN MULTI-DRIVER YANG MENERIMA ORDER -->
+    <div id="driverSelectionModal" class="modal-overlay" style="display: none;">
+        <div class="modal-detail-card" style="background:#222; color:#fff; border:1px solid #444;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #444; padding-bottom:10px;">
+                <h3 style="font-size:15px; font-weight:bold; color:var(--primary-green);"><i class="fa-solid fa-motorcycle"></i> Pilih Driver yang Menerima</h3>
+                <button onclick="closeDriverSelectionModal()" style="background:none; border:none; font-size:18px; color:#aaa; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p style="font-size:11px; color:#aaa;">Berikut adalah daftar driver yang siap dan mengajukan diri untuk mengambil pesanan Anda:</p>
+            
+            <div id="availableDriversListContainer" style="display:flex; flex-direction:column; gap:8px; max-height:50vh; overflow-y:auto;">
+                <p style="font-size: 11px; color: #a0a0a0; text-align:center;">Menunggu driver merespons...</p>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; margin-top:8px;">
+                <button onclick="closeDriverSelectionModal()" style="padding:8px 16px; background:#444; color:white; border:none; border-radius:6px; font-size:12px; font-weight:bold; cursor:pointer;">Tutup</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL SETTING NOTIFIKASI & SUARA -->
     <div id="notificationSettingsModal" class="modal-overlay" style="display: none;">
         <div class="login-card" style="background:#fff; color:#222; text-align:left; position:relative;">
@@ -1078,12 +1097,12 @@
                 <p style="font-size:12px; color:#777;">Rincian Pendapatan Transaksi</p>
             </div>
             <div style="font-size:13px; display:flex; flex-direction:column; gap:8px;">
-                <p><strong>Penumpang:</strong> <span id="recName">-</span></p>
-                <p><strong>Jemput:</strong> <span id="recPickup">-</span></p>
-                <p><strong>Tujuan Akhir:</strong> <span id="recDropoff">-</span></p>
+                <p><strong><i class="fa-solid fa-user"></i> Penumpang:</strong> <span id="recName">-</span></p>
+                <p><strong><i class="fa-solid fa-location-dot" style="color:#eb5757;"></i> Jemput:</strong> <span id="recPickup">-</span></p>
+                <p><strong><i class="fa-solid fa-flag-checkered"></i> Tujuan Akhir:</strong> <span id="recDropoff">-</span></p>
                 <div id="recRouteChangesInfo" style="font-size:11px; color:#666; background:#f9f9f9; padding:6px; border-radius:6px; display:none;"></div>
                 <div style="background:#f4f5f7; padding:10px; border-radius:8px; font-weight:bold; font-size:16px; color:#27ae60; display:flex; justify-content:space-between;">
-                    <span>Total Pendapatan:</span>
+                    <span><i class="fa-solid fa-money-bill-wave"></i> Total Pendapatan:</span>
                     <span id="recFare">Rp 0</span>
                 </div>
             </div>
@@ -1119,11 +1138,11 @@
 
             <div class="form-row-2cols">
                 <div class="form-group">
-                    <label class="form-label">Nama <span style="color:red">*</span></label>
+                    <label class="form-label"><i class="fa-solid fa-user"></i> Nama <span style="color:red">*</span></label>
                     <input type="text" id="passengerName" class="form-input" placeholder="Nama Anda...">
                 </div>
                 <div class="form-group" style="position:relative;">
-                    <label class="form-label">No WhatsApp <span style="color:red">*</span></label>
+                    <label class="form-label"><i class="fa-brands fa-whatsapp" style="color:var(--whatsapp-green);"></i> No WhatsApp <span style="color:red">*</span></label>
                     <div style="display:flex; gap:4px;">
                         <input type="tel" id="passengerPhone" class="form-input" placeholder="08xxxxxxxxxx" readonly style="background:#eef7e8; font-weight:bold;">
                         <button type="button" id="passengerVerifBtn" class="btn-save-wa" onclick="openPassengerOtpModal()">Verif WA</button>
@@ -1135,7 +1154,7 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label">PILIH & ATUR TITIK LOKASI DI PETA</label>
+                <label class="form-label"><i class="fa-solid fa-map-location-dot"></i> PILIH & ATUR TITIK LOKASI DI PETA</label>
                 <div class="pin-mode-selector">
                     <button id="btnModeJemput" class="btn-pin-mode" onclick="togglePinMode('jemput')">
                         <i class="fa-solid fa-location-dot" style="color:#eb5757;"></i> Set JEMPUT
@@ -1149,29 +1168,29 @@
             <div id="passengerMapWrapper" class="map-wrapper"></div>
 
             <div class="form-group">
-                <label class="form-label">Lokasi Penjemputan <span style="color:red">*</span></label>
+                <label class="form-label"><i class="fa-solid fa-location-dot" style="color:#eb5757;"></i> Lokasi Penjemputan <span style="color:red">*</span></label>
                 <input type="text" id="pickupLocation" class="form-input" placeholder="Pilih lokasi jemput..." oninput="handleSearchOrPaste('jemput')">
                 <div id="pickupSearchResults" class="search-results"></div>
             </div>
 
             <div class="form-group">
-                <label class="form-label">Lokasi Tujuan <span style="color:red">*</span></label>
+                <label class="form-label"><i class="fa-solid fa-flag-checkered"></i> Lokasi Tujuan <span style="color:red">*</span></label>
                 <input type="text" id="dropoffLocation" class="form-input" placeholder="Pilih lokasi tujuan..." oninput="handleSearchOrPaste('tujuan')">
                 <div id="dropoffSearchResults" class="search-results"></div>
             </div>
 
             <div class="form-group">
-                <label class="form-label">Catatan Untuk Driver (Opsional)</label>
+                <label class="form-label"><i class="fa-solid fa-note-sticky"></i> Catatan Untuk Driver (Opsional)</label>
                 <input type="text" id="passengerNote" class="form-input" placeholder="Contoh: Pakai helm bawa sendiri">
             </div>
 
             <div class="fare-card">
-                Estimasi Total Ongkos: <span id="fareText" style="color: var(--primary-green-hover); font-size: 13px;">Rp 0</span>
+                <i class="fa-solid fa-money-bill-wave"></i> Estimasi Total Ongkos: <span id="fareText" style="color: var(--primary-green-hover); font-size: 13px;">Rp 0</span>
             </div>
 
             <div style="display:flex; flex-direction:column; gap:5px; flex-shrink:0;">
                 <button id="btnSendOrder" class="btn-submit" type="button" onclick="handleMainActionButton()">
-                    <i class="fa-solid fa-paper-plane"></i> Cari & Kirim Pesanan ke Driver (inDrive Style)
+                    <i class="fa-solid fa-paper-plane"></i> Cari & Kirim Pesanan ke Driver
                 </button>
                 
                 <button id="btnCancelOrder" class="btn-cancel" type="button" onclick="cancelActiveOrder()" style="display:none;">
@@ -1213,17 +1232,17 @@
 
                 <div class="finance-grid-3cols">
                     <div class="clickable-finance-box" onclick="openHistoryDetailsModal('INCOME')">
-                        <div style="color:#aaa; font-size:10px;">Hasil Narik (+) <i class="fa-solid fa-chevron-right" style="font-size:8px;"></i></div>
+                        <div style="color:#aaa; font-size:10px;"><i class="fa-solid fa-circle-plus" style="color:#27ae60;"></i> Hasil Narik (+) <i class="fa-solid fa-chevron-right" style="font-size:8px;"></i></div>
                         <div style="font-weight:bold; color:#27ae60; font-size:12px;" id="grossIncomeText">Rp 0</div>
                     </div>
 
                     <div class="net-income-box">
-                        <div style="color:#aaa; font-size:9px; font-weight:bold;">KEUNTUNGAN BERSIH</div>
+                        <div style="color:#aaa; font-size:9px; font-weight:bold;"><i class="fa-solid fa-piggy-bank"></i> KEUNTUNGAN BERSIH</div>
                         <div style="font-size: 15px; font-weight: 800; color: var(--primary-green);" id="netIncomeText">Rp 0</div>
                     </div>
 
                     <div class="clickable-finance-box" onclick="openHistoryDetailsModal('EXPENSE')">
-                        <div style="color:#aaa; font-size:10px;">Pengeluaran (-) <i class="fa-solid fa-chevron-right" style="font-size:8px;"></i></div>
+                        <div style="color:#aaa; font-size:10px;"><i class="fa-solid fa-circle-minus" style="color:#eb5757;"></i> Pengeluaran (-) <i class="fa-solid fa-chevron-right" style="font-size:8px;"></i></div>
                         <div style="font-weight:bold; color:#eb5757; font-size:12px;" id="totalExpenseText">Rp 0</div>
                     </div>
                 </div>
@@ -1238,7 +1257,7 @@
             <div id="floatingRadarPanel" class="floating-radar-overlay" style="display:none;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <span style="font-weight: 800; font-size: 13px; color:#222;">
-                        <i class="fa-solid fa-circle-dot" style="color:red;"></i> Orderan Masuk Realtime (inDrive)
+                        <i class="fa-solid fa-circle-dot" style="color:red;"></i> Orderan Masuk Realtime
                     </span>
                     <span style="background:#8cc63f; color:#111; padding:2px 6px; border-radius:10px; font-size:10px; font-weight:bold;">
                         RADAR AKTIF
@@ -1332,7 +1351,6 @@
         }, { merge: true }).catch(err => console.log("Auto presence sync error:", err));
     }
 
-    // --- PENGELOLAAN NOMOR WA PENUMPANG & TOMBOL SAMPAH ---
     function updatePassengerWaInputUI() {
         const inputEl = document.getElementById('passengerPhone');
         const verifBtn = document.getElementById('passengerVerifBtn');
@@ -1359,7 +1377,6 @@
         }
     }
 
-    // --- SISTEM VERIFIKASI OTP WHATSAPP MANDIRI ---
     function openDriverOtpModal() {
         activeOtpTargetRole = 'driver';
         document.getElementById('otpModalTitle').innerText = "Verifikasi WhatsApp Driver";
@@ -1453,7 +1470,6 @@
         closeOtpVerificationModal();
     }
 
-    // --- MANAJEMEN SOUND & VIBRATION PROFESIONAL ---
     function getStoredSoundChoice() {
         return localStorage.getItem('iqbike_sound_choice') || 'gopark';
     }
@@ -1812,14 +1828,14 @@
 
         let html = `
             <div style="background:#fff; padding:6px 8px; border-radius:6px; border:1px solid #e0e0e0;">
-                <div><strong>Titik Jemput:</strong> ${order.pickup}</div>
-                <div style="margin-top:4px;"><strong>Tujuan Pesanan Awal:</strong> ${initialDropoff}</div>
-                <div style="color:#27ae60; font-weight:bold; margin-top:2px;">Ongkos Awal: Rp ${initialFare.toLocaleString('id-ID')}</div>
+                <div><strong><i class="fa-solid fa-location-dot" style="color:#eb5757;"></i> Titik Jemput:</strong> ${order.pickup}</div>
+                <div style="margin-top:4px;"><strong><i class="fa-solid fa-flag-checkered"></i> Tujuan Pesanan Awal:</strong> ${initialDropoff}</div>
+                <div style="color:#27ae60; font-weight:bold; margin-top:2px;"><i class="fa-solid fa-money-bill-wave"></i> Ongkos Awal: Rp ${initialFare.toLocaleString('id-ID')}</div>
             </div>
         `;
 
         if (order.routeChanges && order.routeChanges.length > 0) {
-            html += `<div style="margin-top:4px; font-weight:bold; color:var(--accent-blue);">Riwayat Perubahan / Singgah Tujuan (${order.routeChanges.length}x):</div>`;
+            html += `<div style="margin-top:4px; font-weight:bold; color:var(--accent-blue);"><i class="fa-solid fa-route"></i> Riwayat Perubahan / Singgah Tujuan (${order.routeChanges.length}x):</div>`;
             order.routeChanges.forEach((ch, idx) => {
                 html += `
                     <div style="background:#fff; padding:6px 8px; border-radius:6px; border:1px solid #e0e0e0; margin-top:4px;">
@@ -1834,7 +1850,7 @@
 
         html += `
             <div style="background:#eef7e8; padding:8px; border-radius:6px; border:1px solid #c8e6b8; margin-top:6px; display:flex; justify-content:space-between; align-items:center;">
-                <span style="font-weight:bold; color:#2e7d32;">Total Keseluruhan Ongkos Akhir:</span>
+                <span style="font-weight:bold; color:#2e7d32;"><i class="fa-solid fa-wallet"></i> Total Keseluruhan Ongkos Akhir:</span>
                 <span style="font-weight:800; color:#2e7d32; font-size:14px;">Rp ${order.fare.toLocaleString('id-ID')}</span>
             </div>
         `;
@@ -2180,7 +2196,7 @@
             }
         } else {
             statusBox.className = "status-box status-busy";
-            statusBox.innerHTML = `<i class="fa-solid fa-motorcycle"></i> Status: ${order.status === 'WAITING' ? 'Mencari & Menunggu Driver (inDrive Style)...' : 'Driver Sedang Menjalankan Pesanan'}`;
+            statusBox.innerHTML = `<i class="fa-solid fa-motorcycle"></i> Status: ${order.status === 'WAITING' ? 'Mencari & Menunggu Driver...' : 'Driver Sedang Menjalankan Pesanan'}`;
         }
     }
 
@@ -2366,16 +2382,17 @@
         const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
 
         if (activeOrder && activeOrder.status !== 'WAITING') {
-            // FORMAT LENGKAP WHATSAPP DARI PENUMPANG KE DRIVER (DENGAN SHARLOK PENUMPANG)
             const passengerGps = JSON.parse(localStorage.getItem('iqbike_passenger_gps')) || { lat: userCurrentLat, lng: userCurrentLng };
             const passengerSharlokUrl = `https://maps.google.com/?q=${passengerGps.lat},${passengerGps.lng}`;
 
             const text = `Halo Driver iqBike, saya *${activeOrder.passengerName}* (${activeOrder.passengerPhone}).\n\n` +
                          `📋 *DETAIL PESANAN:*\n` +
-                         `• Jemput: ${activeOrder.pickup}\n` +
-                         `• Tujuan: ${activeOrder.dropoff}\n` +
-                         `• Total Ongkos: Rp ${activeOrder.fare.toLocaleString('id-ID')}\n` +
-                         `• Catatan: ${activeOrder.note}\n\n` +
+                         `• <i class="fa-solid fa-user"></i> Nama: ${activeOrder.passengerName}\n` +
+                         `• <i class="fa-brands fa-whatsapp"></i> WA Penumpang: ${activeOrder.passengerPhone}\n` +
+                         `• <i class="fa-solid fa-location-dot" style="color:#eb5757;"></i> Jemput: ${activeOrder.pickup}\n` +
+                         `• <i class="fa-solid fa-flag-checkered"></i> Tujuan: ${activeOrder.dropoff}\n` +
+                         `• <i class="fa-solid fa-money-bill-wave"></i> Estimasi Ongkos: Rp ${activeOrder.fare.toLocaleString('id-ID')}\n` +
+                         `• <i class="fa-solid fa-note-sticky"></i> Catatan: ${activeOrder.note}\n\n` +
                          `📍 *SHARLOK TERKINI PENUMPANG:*\n${passengerSharlokUrl}`;
 
             const targetWa = activeOrder.assignedDriverWa || currentDriverWa;
@@ -2384,28 +2401,78 @@
             return;
         }
 
+        if (activeOrder && activeOrder.status === 'WAITING') {
+            openDriverSelectionModal();
+            return;
+        }
+
         sendOrderToCloudRadar();
     }
 
-    // --- FUNGSI CHAT WHATSAPP DARI DRIVER KE PENUMPANG ---
+    function openDriverSelectionModal() {
+        renderAvailableDriversList();
+        document.getElementById('driverSelectionModal').style.display = 'flex';
+    }
+
+    function closeDriverSelectionModal() {
+        document.getElementById('driverSelectionModal').style.display = 'none';
+    }
+
+    function renderAvailableDriversList() {
+        const container = document.getElementById('availableDriversListContainer');
+        const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
+
+        if (!order || !order.acceptedDrivers || order.acceptedDrivers.length === 0) {
+            container.innerHTML = '<p style="font-size: 11px; color: #a0a0a0; text-align:center; padding:12px;">Belum ada driver yang mengajukan diri. Mohon tunggu sebentar...</p>';
+            return;
+        }
+
+        container.innerHTML = '';
+        order.acceptedDrivers.forEach(driver => {
+            const card = document.createElement('div');
+            card.style.cssText = "background:#2a2a2a; padding:10px; border-radius:8px; border:1px solid #444; display:flex; flex-direction:column; gap:6px;";
+            card.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span><i class="fa-solid fa-motorcycle" style="color:var(--primary-green);"></i> <strong>Driver WA:</strong> ${driver.wa}</span>
+                    <span style="font-size:10px; color:#aaa;">Siap Menjemput</span>
+                </div>
+                <button onclick="passengerSelectDriver('${driver.wa}')" style="background:var(--whatsapp-green); color:#fff; border:none; padding:8px; border-radius:6px; font-weight:bold; font-size:12px; cursor:pointer;">
+                    <i class="fa-solid fa-check-circle"></i> Pilih Driver Ini
+                </button>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function passengerSelectDriver(driverWa) {
+        let order = JSON.parse(localStorage.getItem('iqbike_active_order'));
+        if (!order) return;
+
+        order.status = 'HEADING_PICKUP';
+        order.assignedDriverWa = driverWa;
+
+        localStorage.setItem('iqbike_active_order', JSON.stringify(order));
+        syncOrderToCloud(order);
+        closeDriverSelectionModal();
+
+        updatePassengerAppUI();
+        updateDriverAppUI();
+        alert(`Anda telah memilih Driver (${driverWa}). Status perjalanan dilanjutkan!`);
+    }
+
     function openPassengerWa(passengerPhone, passengerName, assignedDriverWa) {
         const driverGps = JSON.parse(localStorage.getItem('iqbike_driver_gps')) || { lat: userCurrentLat, lng: userCurrentLng };
         const driverSharlokUrl = `https://maps.google.com/?q=${driverGps.lat},${driverGps.lng}`;
         const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order')) || {};
 
-        const text = `Halo Kak *${passengerName}*, saya Driver iqBike (*${assignedDriverWa || currentDriverWa}*) yang mengambil pesanan Anda.\n\n` +
-                     `🛵 Saya sedang OTW menuju titik jemput.\n\n` +
-                     `📋 *DETAIL PESANAN ANDA:*\n` +
-                     `• Penjemputan: ${activeOrder.pickup}\n` +
-                     `• Tujuan: ${activeOrder.dropoff}\n` +
-                     `• Ongkos: Rp ${(activeOrder.fare || 0).toLocaleString('id-ID')}\n\n` +
-                     `📍 *LINK POSISI TERKINI DRIVER (OTW):*\n${driverSharlokUrl}`;
+        const text = `Halo Kak *${passengerName}*, saya Driver iqBike (*${assignedDriverWa || currentDriverWa}*) yang akan menjemput Anda.\n\n` +
+                     `📍 *Lokasi Terkini Driver:*\n${driverSharlokUrl}\n\n` +
+                     `Saya sedang menuju ke titik penjemputan. Mohon ditunggu ya Kak, terima kasih!`;
 
         const waUrl = `whatsapp://send?phone=${passengerPhone}&text=${encodeURIComponent(text)}`;
         window.location.href = waUrl;
     }
 
-    // --- ALUR: IN-DRIVE STYLE (KIRIM KE RADAR CLOUD DULU) ---
     function sendOrderToCloudRadar() {
         const rawPhone = document.getElementById('passengerPhone').value.trim();
         const name = document.getElementById('passengerName').value.trim();
@@ -2467,7 +2534,7 @@
         updateDriverAppUI();
         renderPassengerHistory();
 
-        alert("📡 Pesanan dikirim ke Radar Driver (inDrive Style).\nMenunggu driver online merespons dan mengambil pesanan Anda...");
+        alert("📡 Pesanan dikirim ke Radar Driver.\nMenunggu driver online merespons...");
     }
 
     function cancelActiveOrder() {
@@ -2495,12 +2562,13 @@
         if (confirm("Batalkan penanganan pesanan ini?")) {
             order.status = 'WAITING';
             order.assignedDriverWa = null;
+            order.acceptedDrivers = (order.acceptedDrivers || []).filter(d => d.wa !== currentDriverWa);
             localStorage.setItem('iqbike_active_order', JSON.stringify(order));
             syncOrderToCloud(order);
 
             updateDriverAppUI();
             updatePassengerAppUI();
-            alert("Pesanan dikembalikan ke radar umum.");
+            alert("Pesanan dibatalkan dari penanganan Anda.");
         }
     }
 
@@ -2627,9 +2695,9 @@
                     ${statusBadge}
                 </div>
                 <div style="color:#666; font-size:11px; margin-top:4px;">
-                    <div><strong>Jemput:</strong> ${item.pickup}</div>
-                    <div><strong>Tujuan Akhir:</strong> ${item.dropoff}</div>
-                    <div style="color:#27ae60; font-weight:bold; margin-top:2px;">Total Keseluruhan Ongkos: Rp ${item.fare.toLocaleString('id-ID')}</div>
+                    <div><strong><i class="fa-solid fa-location-dot" style="color:#eb5757;"></i> Jemput:</strong> ${item.pickup}</div>
+                    <div><strong><i class="fa-solid fa-flag-checkered"></i> Tujuan Akhir:</strong> ${item.dropoff}</div>
+                    <div style="color:#27ae60; font-weight:bold; margin-top:2px;"><i class="fa-solid fa-money-bill-wave"></i> Total Keseluruhan Ongkos: Rp ${item.fare.toLocaleString('id-ID')}</div>
                 </div>
                 ${actionButtonsHTML}
             `;
@@ -2637,14 +2705,18 @@
         });
     }
 
-    // --- DRIVER MENGAMBIL ORDERAN DARI RADAR ---
     function driverTakeOrder(orderId) {
         let order = JSON.parse(localStorage.getItem('iqbike_active_order'));
         if (!order || order.id !== orderId) return;
 
-        order.status = 'HEADING_PICKUP';
-        order.assignedDriverWa = currentDriverWa;
-        
+        if (!order.acceptedDrivers) {
+            order.acceptedDrivers = [];
+        }
+
+        if (!order.acceptedDrivers.some(d => d.wa === currentDriverWa)) {
+            order.acceptedDrivers.push({ wa: currentDriverWa, time: Date.now() });
+        }
+
         localStorage.setItem('iqbike_active_order', JSON.stringify(order));
         syncOrderToCloud(order);
 
@@ -2654,8 +2726,7 @@
         updateDriverAppUI();
         updatePassengerAppUI();
 
-        // Direct send WhatsApp ke penumpang setelah driver mengambil orderan (dgn detail & sharlok driver)
-        openPassengerWa(order.passengerPhone, order.passengerName, currentDriverWa);
+        alert("✅ Anda telah mengajukan diri mengambil orderan ini! Menunggu konfirmasi pemilihan dari penumpang.");
     }
 
     function setOrderStatus(newStatus) {
@@ -2816,8 +2887,8 @@
                             <span style="color:#27ae60; font-size:13px;">Rp ${item.fare.toLocaleString('id-ID')}</span>
                         </div>
                         <div style="color:#666; font-size:11px; margin-top:4px;">
-                            <div><strong>Jemput:</strong> ${item.pickup}</div>
-                            <div><strong>Tujuan Akhir:</strong> ${item.dropoff}</div>
+                            <div><strong><i class="fa-solid fa-location-dot" style="color:#eb5757;"></i> Jemput:</strong> ${item.pickup}</div>
+                            <div><strong><i class="fa-solid fa-flag-checkered"></i> Tujuan Akhir:</strong> ${item.dropoff}</div>
                         </div>
                     `;
                 }
@@ -2893,7 +2964,7 @@
         updatePassengerWaInputUI();
 
         if (!order) {
-            btnSend.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Cari & Kirim Pesanan ke Driver (inDrive Style)`;
+            btnSend.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Cari & Kirim Pesanan ke Driver`;
             btnSend.disabled = false;
             btnSend.classList.remove('btn-disabled');
             btnCancel.style.display = 'none';
@@ -2914,8 +2985,9 @@
         dropoffInput.value = order.dropoff || '';
 
         if (order.status === 'WAITING') {
-            btnSend.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menunggu Driver Mengambil Orderan...`;
-            btnSend.disabled = true;
+            const countAccepted = order.acceptedDrivers ? order.acceptedDrivers.length : 0;
+            btnSend.innerHTML = `<i class="fa-solid fa-motorcycle"></i> Lihat Pilihan Driver Menerima (${countAccepted} Driver)`;
+            btnSend.disabled = false;
             btnCancel.style.display = 'flex';
         } else if (order.status !== 'WAITING') {
             nameInput.disabled = true;
@@ -2961,11 +3033,20 @@
             </button>
         `;
 
+        const isAlreadyAccepted = order.acceptedDrivers && order.acceptedDrivers.some(d => d.wa === currentDriverWa);
+
         if (order.status === 'WAITING') {
-            actionBtnHTML = `
-                <button class="driver-step-btn btn-accept" onclick="driverTakeOrder(${order.id})">
-                    <i class="fa-solid fa-motorcycle"></i> Ambil Orderan Ini (OTW Jemput)
-                </button>`;
+            if (!isAlreadyAccepted) {
+                actionBtnHTML = `
+                    <button class="driver-step-btn btn-accept" onclick="driverTakeOrder(${order.id})">
+                        <i class="fa-solid fa-motorcycle"></i> Terima / Ajukan Diri Ambil Orderan
+                    </button>`;
+            } else {
+                actionBtnHTML = `
+                    <div style="background:#eef7e8; color:#2e7d32; font-size:11px; font-weight:bold; padding:8px; border-radius:6px; text-align:center;">
+                        ✅ Anda sudah mengajukan diri. Menunggu konfirmasi pemilihan oleh Penumpang...
+                    </div>`;
+            }
         } else if (order.status === 'HEADING_PICKUP') {
             navBtnHTML = `
                 <button class="btn-nav-gmaps" onclick="openGoogleMapsNav(${order.pickupLat}, ${order.pickupLng})">
@@ -2977,7 +3058,7 @@
                 </button>`;
             driverCancelBtnHTML = `
                 <button class="driver-step-btn btn-driver-cancel" onclick="driverCancelActiveOrder()">
-                    <i class="fa-solid fa-xmark"></i> Batalkan & Kembalikan ke Radar
+                    <i class="fa-solid fa-xmark"></i> Batalkan & Keluar dari Penanganan
                 </button>`;
         } else if (order.status === 'ARRIVED') {
             actionBtnHTML = `
@@ -2999,13 +3080,13 @@
             <div class="order-card-driver">
                 <div style="display:flex; justify-content:space-between; font-weight:700;">
                     <span><i class="fa-solid fa-user"></i> ${order.passengerName}</span>
-                    <span style="color: var(--primary-green-hover); font-size:16px;">Rp ${order.fare.toLocaleString('id-ID')}</span>
+                    <span style="color: var(--primary-green-hover); font-size:16px;"><i class="fa-solid fa-money-bill-wave"></i> Rp ${order.fare.toLocaleString('id-ID')}</span>
                 </div>
                 <div style="font-size:12px; background:#f9f9f9; padding:8px; border-radius:6px; display:flex; flex-direction:column; gap:4px;">
                     <p><strong style="color:#eb5757;"><i class="fa-solid fa-location-dot"></i> Jemput:</strong> ${order.pickup}</p>
                     <p><strong style="color:#111;"><i class="fa-solid fa-flag-checkered"></i> Tujuan:</strong> ${order.dropoff}</p>
-                    <p><strong>Catatan:</strong> ${order.note || '-'}</p>
-                    <p><strong>Status Order:</strong> <span style="color:var(--accent-blue); font-weight:bold;">${order.status === 'WAITING' ? 'Menunggu Driver Mengambil' : 'Sedang Anda Proses'}</span></p>
+                    <p><strong><i class="fa-solid fa-note-sticky"></i> Catatan:</strong> ${order.note || '-'}</p>
+                    <p><strong>Status Order:</strong> <span style="color:var(--accent-blue); font-weight:bold;">${order.status === 'WAITING' ? 'Menunggu Konfirmasi Penumpang' : 'Sedang Anda Proses'}</span></p>
                 </div>
                 ${order.status !== 'WAITING' ? waBtnHTML : ''}
                 ${navBtnHTML}
