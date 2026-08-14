@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>iqBike - Multi-Driver System with Persistent WA Verification</title>
+    <title>iqBike - Multi-Driver Cloud Realtime System</title>
 
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -724,6 +724,17 @@
             white-space: nowrap;
         }
 
+        .btn-trash-wa {
+            background: var(--accent-red);
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+            display: none;
+        }
+
         .settings-section-title {
             font-size: 12px;
             font-weight: bold;
@@ -1115,8 +1126,9 @@
                     <label class="form-label">No WhatsApp <span style="color:red">*</span></label>
                     <div style="display:flex; gap:4px;">
                         <input type="tel" id="passengerPhone" class="form-input" placeholder="08xxxxxxxxxx" readonly style="background:#eef7e8; font-weight:bold;">
-                        <button type="button" class="btn-save-wa" onclick="openPassengerOtpModal()">
-                            <i class="fa-solid fa-shield-check"></i> <span id="passengerVerifBtnText">Verif WA</span>
+                        <button type="button" id="passengerVerifBtn" class="btn-save-wa" onclick="openPassengerOtpModal()">Verif WA</button>
+                        <button type="button" id="passengerTrashBtn" class="btn-trash-wa" onclick="clearPassengerWa()" title="Hapus Nomor WA">
+                            <i class="fa-solid fa-trash-can"></i>
                         </button>
                     </div>
                 </div>
@@ -1289,7 +1301,7 @@
     let pendingCalculatedExtraFare = 0;
     let pendingCalculatedNewFare = 0;
 
-    let activeOtpTargetRole = null; // 'driver' atau 'penumpang'
+    let activeOtpTargetRole = null; 
     let generatedOtpCode = "";
     let tempTargetPhone = "";
 
@@ -1305,6 +1317,33 @@
     let isDriverOnline = localStorage.getItem('iqbike_driver_online_status') !== 'false';
     let currentDriverWa = localStorage.getItem('iqbike_driver_wa') || "6285934602965";
     let passengerVerifiedWa = localStorage.getItem('iqbike_passenger_wa') || "";
+
+    // --- PENGELOLAAN NOMOR WA PENUMPANG & TOMBOL SAMPAH ---
+    function updatePassengerWaInputUI() {
+        const inputEl = document.getElementById('passengerPhone');
+        const verifBtn = document.getElementById('passengerVerifBtn');
+        const trashBtn = document.getElementById('passengerTrashBtn');
+        const savedWa = localStorage.getItem('iqbike_passenger_wa') || "";
+
+        if (savedWa) {
+            inputEl.value = savedWa;
+            verifBtn.innerText = "Ganti WA";
+            trashBtn.style.display = "inline-block";
+        } else {
+            inputEl.value = "";
+            verifBtn.innerText = "Verif WA";
+            trashBtn.style.display = "none";
+        }
+    }
+
+    function clearPassengerWa() {
+        if (confirm("Hapus nomor WhatsApp yang tersimpan dari aplikasi penumpang?")) {
+            localStorage.removeItem('iqbike_passenger_wa');
+            passengerVerifiedWa = "";
+            updatePassengerWaInputUI();
+            alert("Nomor WhatsApp berhasil dihapus.");
+        }
+    }
 
     // --- SISTEM VERIFIKASI OTP WHATSAPP MANDIRI ---
     function openDriverOtpModal() {
@@ -1393,8 +1432,7 @@
         } else if (activeOtpTargetRole === 'penumpang') {
             passengerVerifiedWa = tempTargetPhone;
             localStorage.setItem('iqbike_passenger_wa', passengerVerifiedWa);
-            document.getElementById('passengerPhone').value = passengerVerifiedWa;
-            document.getElementById('passengerVerifBtnText').innerText = "Ganti WA";
+            updatePassengerWaInputUI();
             alert(`✅ Nomor WhatsApp Penumpang (${passengerVerifiedWa}) Berhasil Terverifikasi & Disimpan Permanen!`);
         }
 
@@ -1923,14 +1961,7 @@
             document.getElementById('btnHeaderPin').style.display = 'none';
             mountMapToContainer('passengerMapWrapper');
             
-            // Muat nomor WA penumpang yang tersimpan otomatis
-            const savedPassWa = localStorage.getItem('iqbike_passenger_wa');
-            if (savedPassWa) {
-                passengerVerifiedWa = savedPassWa;
-                document.getElementById('passengerPhone').value = savedPassWa;
-                document.getElementById('passengerVerifBtnText').innerText = "Ganti WA";
-            }
-
+            updatePassengerWaInputUI();
             updatePassengerAppUI();
             renderPassengerHistory();
         } else {
@@ -2029,7 +2060,7 @@
                     syncPassengerGpsToCloud(currentPos);
                 } else if (userRole === 'driver') {
                     localStorage.setItem('iqbike_driver_gps', JSON.stringify(currentPos));
-                    syncDriverToCloud(); // Auto sync heartbeat setiap GPS bergerak agar driver tidak offline otomatis
+                    syncDriverToCloud();
                 }
 
                 renderPassengerLocalMarkers();
@@ -2071,6 +2102,7 @@
     }
 
     function listenCloudData() {
+        // Pemantauan universal semua driver aktif secara realtime agar tidak hilang saat refresh
         db.collection("iqbike_drivers").onSnapshot((snapshot) => {
             let anyDriverOnline = false;
             let activeDriversList = {};
@@ -2925,12 +2957,7 @@
         const noteInput = document.getElementById('passengerNote');
         const dropoffInput = document.getElementById('dropoffLocation');
 
-        // Pastikan nomor WA penumpang yang tersimpan dimuat ke input
-        const savedPassWa = localStorage.getItem('iqbike_passenger_wa') || "";
-        if (savedPassWa && !phoneInput.value) {
-            phoneInput.value = savedPassWa;
-            document.getElementById('passengerVerifBtnText').innerText = "Ganti WA";
-        }
+        updatePassengerWaInputUI();
 
         if (!order) {
             btnSend.innerHTML = `<i class="fa-brands fa-whatsapp"></i> Kirim Pesan Orderan ke Driver`;
