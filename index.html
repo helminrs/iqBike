@@ -1326,6 +1326,13 @@
     let generatedOtpCode = "";
     let tempTargetPhone = "";
 
+    // Generate unique device session ID untuk membedakan HP/Tab penumpang satu dengan yang lain
+    let passengerDeviceUuid = localStorage.getItem('iqbike_device_uuid');
+    if (!passengerDeviceUuid) {
+        passengerDeviceUuid = 'dev_' + Math.random().toString(36).substring(2, 11) + Date.now();
+        localStorage.setItem('iqbike_device_uuid', passengerDeviceUuid);
+    }
+
     const savedLastPos = JSON.parse(localStorage.getItem('iqbike_last_known_pos'));
     let userCurrentLat = savedLastPos ? savedLastPos.lat : -7.02443;
     let userCurrentLng = savedLastPos ? savedLastPos.lng : 107.58556;
@@ -2156,9 +2163,20 @@
                 const cloudOrder = doc.data();
                 const localOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
                 
+                // CEK KEPEMILIKAN: Apakah order cloud ini milik device penumpang ini?
+                const isMyOrder = (cloudOrder.deviceUuid === passengerDeviceUuid);
+
+                // Jika bukan order device ini, tetapi statusnya masih WAITING, abaikan pop-up/notif agar tab penumpang lain bersih
+                if (!isMyOrder && cloudOrder.status === 'WAITING') {
+                    // Jangan simpan active_order orang lain ke tab penumpang ini
+                    return;
+                }
+
                 if (!localOrder || localOrder.id !== cloudOrder.id) {
-                    playNotificationSound();
-                    triggerCustomVibration('radarOrder');
+                    if (userRole === 'driver' || isMyOrder) {
+                        playNotificationSound();
+                        triggerCustomVibration('radarOrder');
+                    }
                 }
                 
                 localStorage.setItem('iqbike_active_order', JSON.stringify(cloudOrder));
@@ -2174,9 +2192,7 @@
                 }
             } else {
                 const localOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
-                if (localOrder && localOrder.status === 'FINISHED') {
-                    localStorage.removeItem('iqbike_active_order');
-                } else if (localOrder) {
+                if (localOrder) {
                     localStorage.removeItem('iqbike_active_order');
                 }
             }
@@ -2540,7 +2556,8 @@
         }
 
         const newOrder = {
-            id: Date.now(), 
+            id: Date.now(),
+            deviceUuid: passengerDeviceUuid, // Ikat pesanan ke ID unik device ini agar tab penumpang lain tidak mengambilnya
             passengerName: name, 
             passengerPhone: rawPhone,
             pickup, dropoff,
@@ -3003,7 +3020,8 @@
 
         updatePassengerWaInputUI();
 
-        if (!order) {
+        // Jika tidak ada order aktif milik device ini, reset form penumpang ke keadaan kosong
+        if (!order || (order.deviceUuid && order.deviceUuid !== passengerDeviceUuid)) {
             btnSend.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Cari & Kirim Pesanan ke Driver`;
             btnSend.disabled = false;
             btnSend.classList.remove('btn-disabled');
