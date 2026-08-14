@@ -2181,7 +2181,7 @@
                     if (doc.exists) {
                         const cloudOrder = doc.data();
                         const localOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
-                        if (!localOrder || localOrder.id !== cloudOrder.id || localOrder.status !== cloudOrder.status) {
+                        if (!localOrder || localOrder.id !== cloudOrder.id || localOrder.status !== cloudOrder.status || localOrder.assignedDriverWa !== cloudOrder.assignedDriverWa) {
                             localStorage.setItem('iqbike_active_order', JSON.stringify(cloudOrder));
                             updateDriverAppUI();
                             checkAndShowNearbyOrderPopup(cloudOrder);
@@ -2594,6 +2594,7 @@
 
         order.status = 'HEADING_PICKUP';
         order.assignedDriverWa = driverWa;
+        order.acceptedDrivers = []; // <--- DIKOSONGKAN AGAR TIDAK BISA DIAMBIL DRIVER LAIN ATAU DOUBLE
 
         localStorage.setItem('iqbike_active_order', JSON.stringify(order));
         syncOrderToCloud(order);
@@ -3161,6 +3162,15 @@
         const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
 
         if (!order) {
+            floatingPanel.style.display = 'none';
+            container.innerHTML = '';
+            setTimeout(() => { if (map) map.invalidateSize(); }, 200);
+            return;
+        }
+
+        // --- FILTER KETAT AGAR TIDAK DOUBLE ---
+        // Jika order sudah dipilih (status bukan WAITING), dan driver yang login BUKAN driver yang ditugaskan, sembunyikan card!
+        if (order.status !== 'WAITING' && order.assignedDriverWa && order.assignedDriverWa !== currentDriverWa) {
             floatingPanel.style.display = 'none';
             container.innerHTML = '';
             setTimeout(() => { if (map) map.invalidateSize(); }, 200);
