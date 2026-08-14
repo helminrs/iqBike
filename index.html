@@ -2634,11 +2634,10 @@
             btnCancel.style.display = 'flex';
         } else {
             btnCancel.style.display = 'none';
-            // Tombol chat WhatsApp dengan format lengkap & link share lokasi terkini penumpang
             btnSend.innerHTML = `<i class="fa-brands fa-whatsapp"></i> Chat Driver (${order.assignedDriverWa})`;
             btnSend.onclick = function() {
                 const shareLocUrl = `https://www.google.com/maps?q=${userCurrentLat},${userCurrentLng}`;
-                const msg = `Halo Driver iqBike, saya *${order.passengerName}* (Pesanan: *${order.serviceType.toUpperCase()}*).\n\n📍 *Jemput:* ${order.pickup}\n🏁 *Tujuan:* ${order.dropoff}\n💰 *Ongkos:* Rp ${order.fare.toLocaleString('id-ID')}\n📝 *Catatan:* ${order.note}\n\n🔗 *Share Lokasi Terkini Penumpang:* ${shareLocUrl}`;
+                const msg = `Halo Kak *${order.passengerName}*, Driver sedang menuju lokasi penjemputan Anda.\n\n• Penjemputan: ${order.pickup}\n\n📍 *Link Share Lokasi Terkini Driver:* ${shareLocUrl}`;
                 window.open(`https://api.whatsapp.com/send?phone=${order.assignedDriverWa}&text=${encodeURIComponent(msg)}`, '_blank');
             };
         }
@@ -2666,7 +2665,6 @@
                 actionBtnHTML = `<button class="driver-step-btn btn-accept" onclick="driverTakeOrder(${order.id})"><i class="fa-solid fa-motorcycle"></i> Ambil Orderan</button>`;
             }
         } else if (order.status === 'HEADING_PICKUP' || order.status === 'ARRIVED' || order.status === 'ON_TRIP') {
-            // PERBAIKAN: Setelah dipilih penumpang, tampilkan tombol konfirmasi Direct Send WhatsApp format lengkap
             let statusNext = order.status === 'HEADING_PICKUP' ? 'ARRIVED' : (order.status === 'ARRIVED' ? 'ON_TRIP' : 'FINISHED');
             let labelBtn = order.status === 'HEADING_PICKUP' ? 'Konfirmasi Direct Send WA (Menuju Jemput)' : (order.status === 'ARRIVED' ? 'Konfirmasi Direct Send WA (Sudah Tiba)' : 'Selesaikan Perjalanan');
             
@@ -2674,8 +2672,8 @@
                 <button class="driver-step-btn btn-whatsapp" onclick="sendDriverWhatsAppDirect(${order.id}, '${order.status}')">
                     <i class="fa-brands fa-whatsapp"></i> ${labelBtn}
                 </button>
-                <button class="driver-step-btn btn-arrived" style="margin-top:6px;" onclick="setOrderStatus('${statusNext}')">
-                    Lanjut Status Berikutnya (${statusNext})
+                <button class="driver-step-btn btn-arrived" style="margin-top:6px;" onclick="openGoogleMapsNav(${order.pickupLat}, ${order.pickupLng}); setOrderStatus('${statusNext}');">
+                    <i class="fa-solid fa-location-arrow"></i> Lanjut OTW Jemput (Buka Google Maps) & (${statusNext})
                 </button>
             `;
         }
@@ -2696,7 +2694,7 @@
         const driverShareLocUrl = `https://www.google.com/maps?q=${userCurrentLat},${userCurrentLng}`;
         let statusTextDesc = currentStatus === 'HEADING_PICKUP' ? 'Driver sedang menuju lokasi penjemputan Anda.' : 'Driver sudah tiba di titik penjemputan.';
         
-        const message = `Halo Kak *${order.passengerName}*, ${statusTextDesc}\n\n📦 *Detail Pesanan iqBike:*\n- Layanan: *${order.serviceType.toUpperCase()}*\n- Penjemputan: ${order.pickup}\n- Tujuan: ${order.dropoff}\n- Total Ongkos: Rp ${order.fare.toLocaleString('id-ID')}\n\n📍 *Link Share Lokasi Terkini Driver:* ${driverShareLocUrl}`;
+        const message = `Halo Kak *${order.passengerName}*, ${statusTextDesc}\n• Penjemputan: ${order.pickup}\n\n📍 *Link Share Lokasi Terkini Driver:* ${driverShareLocUrl}`;
         
         window.open(`https://api.whatsapp.com/send?phone=${order.passengerPhone}&text=${encodeURIComponent(message)}`, '_blank');
     }
