@@ -961,23 +961,6 @@
         </div>
     </div>
 
-    <!-- MODAL PILIH DRIVER (INDRIVE STYLE UNTUK PENUMPANG) -->
-    <div id="chooseDriverModal" class="modal-overlay" style="display: none;">
-        <div class="login-card" style="background:#fff; color:#222; text-align:left;">
-            <div style="text-align:center; border-bottom:1px solid #eee; padding-bottom:10px;">
-                <i class="fa-solid fa-motorcycle" style="font-size:36px; color:var(--primary-green);"></i>
-                <h3 style="margin-top:6px;">Driver Siap Menjemput!</h3>
-                <p id="chooseDriverSubtitle" style="font-size:11px; color:#777;">Pilih driver terdekat atau tunggu konfirmasi otomatis</p>
-            </div>
-            
-            <div id="availableDriversListContainer" style="display:flex; flex-direction:column; gap:8px; max-height:50vh; overflow-y:auto;">
-                <!-- Diisi via JS -->
-            </div>
-
-            <button onclick="cancelWaitingOrder()" style="background:#eb5757; color:white; border:none; padding:8px; border-radius:6px; font-weight:bold; font-size:11px; cursor:pointer; margin-top:6px;">Batalkan Pencarian</button>
-        </div>
-    </div>
-
     <!-- MODAL DRIVER ROUTE UPDATE -->
     <div id="driverRouteUpdateModal" class="modal-overlay" style="display: none;">
         <div class="login-card" style="background:#fff; color:#222; text-align:left; position:relative;">
@@ -1432,8 +1415,8 @@
         generatedOtpCode = Math.floor(1000 + Math.random() * 9000).toString();
 
         const otpMessage = `🔐 *KODE VERIFIKASI iqBike*\n\n` +
-                           `Kode OTP rahasia Anda adalah: *${generatedOtpCode}*\n\n` +
-                           `Masukkan kode ini ke aplikasi iqBike untuk melanjutkan verifikasi nomor WhatsApp Anda.`;
+                          `Kode OTP rahasia Anda adalah: *${generatedOtpCode}*\n\n` +
+                          `Masukkan kode ini ke aplikasi iqBike untuk melanjutkan verifikasi nomor WhatsApp Anda.`;
 
         const waUrl = `whatsapp://send?phone=${tempTargetPhone}&text=${encodeURIComponent(otpMessage)}`;
 
@@ -2383,24 +2366,46 @@
         const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
 
         if (activeOrder && activeOrder.status !== 'WAITING') {
-            openDriverWaFromPassenger(activeOrder.passengerName, activeOrder.passengerPhone, activeOrder.assignedDriverWa);
+            // FORMAT LENGKAP WHATSAPP DARI PENUMPANG KE DRIVER (DENGAN SHARLOK PENUMPANG)
+            const passengerGps = JSON.parse(localStorage.getItem('iqbike_passenger_gps')) || { lat: userCurrentLat, lng: userCurrentLng };
+            const passengerSharlokUrl = `https://maps.google.com/?q=${passengerGps.lat},${passengerGps.lng}`;
+
+            const text = `Halo Driver iqBike, saya *${activeOrder.passengerName}* (${activeOrder.passengerPhone}).\n\n` +
+                         `📋 *DETAIL PESANAN:*\n` +
+                         `• Jemput: ${activeOrder.pickup}\n` +
+                         `• Tujuan: ${activeOrder.dropoff}\n` +
+                         `• Total Ongkos: Rp ${activeOrder.fare.toLocaleString('id-ID')}\n` +
+                         `• Catatan: ${activeOrder.note}\n\n` +
+                         `📍 *SHARLOK TERKINI PENUMPANG:*\n${passengerSharlokUrl}`;
+
+            const targetWa = activeOrder.assignedDriverWa || currentDriverWa;
+            const waUrl = `whatsapp://send?phone=${targetWa}&text=${encodeURIComponent(text)}`;
+            window.location.href = waUrl;
             return;
         }
 
         sendOrderToCloudRadar();
     }
 
-    function openDriverWaFromPassenger(name, phone, driverWaPhone) {
-        const targetWa = driverWaPhone || currentDriverWa;
+    // --- FUNGSI CHAT WHATSAPP DARI DRIVER KE PENUMPANG ---
+    function openPassengerWa(passengerPhone, passengerName, assignedDriverWa) {
         const driverGps = JSON.parse(localStorage.getItem('iqbike_driver_gps')) || { lat: userCurrentLat, lng: userCurrentLng };
-        const driverLocationUrl = `https://maps.google.com/?q=${driverGps.lat},${driverGps.lng}`;
+        const driverSharlokUrl = `https://maps.google.com/?q=${driverGps.lat},${driverGps.lng}`;
+        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order')) || {};
 
-        const text = `Halo Driver, saya ${name} (${phone}). Mengonfirmasi terkait jemputan saya di iqBike.`;
-        const waUrl = `whatsapp://send?phone=${targetWa}&text=${encodeURIComponent(text)}`;
+        const text = `Halo Kak *${passengerName}*, saya Driver iqBike (*${assignedDriverWa || currentDriverWa}*) yang mengambil pesanan Anda.\n\n` +
+                     `🛵 Saya sedang OTW menuju titik jemput.\n\n` +
+                     `📋 *DETAIL PESANAN ANDA:*\n` +
+                     `• Penjemputan: ${activeOrder.pickup}\n` +
+                     `• Tujuan: ${activeOrder.dropoff}\n` +
+                     `• Ongkos: Rp ${(activeOrder.fare || 0).toLocaleString('id-ID')}\n\n` +
+                     `📍 *LINK POSISI TERKINI DRIVER (OTW):*\n${driverSharlokUrl}`;
+
+        const waUrl = `whatsapp://send?phone=${passengerPhone}&text=${encodeURIComponent(text)}`;
         window.location.href = waUrl;
     }
 
-    // --- ALUR BARU: IN-DRIVE STYLE (KIRIM KE RADAR CLOUD DULU) ---
+    // --- ALUR: IN-DRIVE STYLE (KIRIM KE RADAR CLOUD DULU) ---
     function sendOrderToCloudRadar() {
         const rawPhone = document.getElementById('passengerPhone').value.trim();
         const name = document.getElementById('passengerName').value.trim();
@@ -2438,13 +2443,13 @@
             fare: computedTotalFare,
             initialFare: computedTotalFare, 
             initialDropoff: dropoff,        
-            status: 'WAITING', // Status menunggu diambil driver di radar
+            status: 'WAITING', 
             note: note,
             routeChanges: [],
             routeVersion: Date.now(),
             triggerPopupForDriver: false,
-            acceptedDrivers: [], // Daftar driver yang mengklik ambil orderan ini
-            assignedDriverWa: null, // Driver yang resmi terpilih
+            acceptedDrivers: [], 
+            assignedDriverWa: null, 
             timestamp: Date.now(),
             time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
         };
@@ -2649,10 +2654,8 @@
         updateDriverAppUI();
         updatePassengerAppUI();
 
-        // Direct send WhatsApp ke penumpang setelah driver mengambil orderan
-        const text = `Halo Kak ${order.passengerName}, saya Driver iqBike (${currentDriverWa}) yang mengambil pesanan Anda. Saya sedang OTW menuju titik jemput.`;
-        const waUrl = `whatsapp://send?phone=${order.passengerPhone}&text=${encodeURIComponent(text)}`;
-        window.location.href = waUrl;
+        // Direct send WhatsApp ke penumpang setelah driver mengambil orderan (dgn detail & sharlok driver)
+        openPassengerWa(order.passengerPhone, order.passengerName, currentDriverWa);
     }
 
     function setOrderStatus(newStatus) {
