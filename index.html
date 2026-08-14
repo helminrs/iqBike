@@ -2064,8 +2064,9 @@
 
             ensureDriverCloudPresence();
 
+            // --- VALIDASI KETAT: POP-UP HANYA MUNCUL JIKA DRIVER INI ADALAH ASSIGNED DRIVER ---
             const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
-            if (activeOrder && activeOrder.triggerPopupForDriver) {
+            if (activeOrder && activeOrder.triggerPopupForDriver && activeOrder.assignedDriverWa === currentDriverWa) {
                 const lastChange = activeOrder.routeChanges && activeOrder.routeChanges.length > 0 ? activeOrder.routeChanges[activeOrder.routeChanges.length - 1] : null;
                 document.getElementById('driverModalNewDest').innerText = activeOrder.dropoff;
                 document.getElementById('driverModalAddFare').innerText = lastChange ? `+Rp ${lastChange.extraFare.toLocaleString('id-ID')}` : `Ada Penambahan Rute`;
@@ -2181,7 +2182,7 @@
                     if (doc.exists) {
                         const cloudOrder = doc.data();
                         const localOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
-                        if (!localOrder || localOrder.id !== cloudOrder.id || localOrder.status !== cloudOrder.status || localOrder.assignedDriverWa !== cloudOrder.assignedDriverWa) {
+                        if (!localOrder || localOrder.id !== cloudOrder.id || localOrder.status !== cloudOrder.status || localOrder.assignedDriverWa !== cloudOrder.assignedDriverWa || localOrder.routeVersion !== cloudOrder.routeVersion) {
                             localStorage.setItem('iqbike_active_order', JSON.stringify(cloudOrder));
                             updateDriverAppUI();
                             checkAndShowNearbyOrderPopup(cloudOrder);
@@ -2246,7 +2247,8 @@
                     checkAndShowNearbyOrderPopup(cloudOrder);
                 }
 
-                if (userRole === 'driver' && cloudOrder.triggerPopupForDriver) {
+                // --- VALIDASI KETAT: POP-UP PERUBAHAN RUTE HANYA MUNCUL DI DRIVER YANG TEPAT ---
+                if (userRole === 'driver' && cloudOrder.triggerPopupForDriver && cloudOrder.assignedDriverWa === currentDriverWa) {
                     const lastChange = cloudOrder.routeChanges && cloudOrder.routeChanges.length > 0 ? cloudOrder.routeChanges[cloudOrder.routeChanges.length - 1] : null;
                     document.getElementById('driverModalNewDest').innerText = cloudOrder.dropoff;
                     document.getElementById('driverModalAddFare').innerText = lastChange ? `+Rp ${lastChange.extraFare.toLocaleString('id-ID')}` : `Ada Penambahan Rute`;
@@ -2594,7 +2596,7 @@
 
         order.status = 'HEADING_PICKUP';
         order.assignedDriverWa = driverWa;
-        order.acceptedDrivers = []; // <--- DIKOSONGKAN AGAR TIDAK BISA DIAMBIL DRIVER LAIN ATAU DOUBLE
+        order.acceptedDrivers = [];
 
         localStorage.setItem('iqbike_active_order', JSON.stringify(order));
         syncOrderToCloud(order);
@@ -3168,8 +3170,6 @@
             return;
         }
 
-        // --- FILTER KETAT AGAR TIDAK DOUBLE ---
-        // Jika order sudah dipilih (status bukan WAITING), dan driver yang login BUKAN driver yang ditugaskan, sembunyikan card!
         if (order.status !== 'WAITING' && order.assignedDriverWa && order.assignedDriverWa !== currentDriverWa) {
             floatingPanel.style.display = 'none';
             container.innerHTML = '';
