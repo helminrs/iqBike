@@ -854,6 +854,38 @@
         </div>
     </div>
 
+    <!-- MODAL POP-UP ORDERAN TERDEKAT KHUSUS DRIVER ONLINE (RADIUS <= 3 KM) -->
+    <div id="driverNearbyOrderModal" class="modal-overlay" style="display: none;">
+        <div class="login-card" style="background:#fff; color:#222; text-align:left; position:relative; border:2px solid var(--primary-green);">
+            <button onclick="closeDriverNearbyOrderModal()" style="position:absolute; top:12px; right:12px; background:none; border:none; font-size:18px; color:#666; cursor:pointer; font-weight:bold;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div style="text-align:center; border-bottom:1px solid #eee; padding-bottom:10px; padding-right:16px;">
+                <i class="fa-solid fa-bolt" style="font-size:36px; color:var(--primary-green);"></i>
+                <h3 style="margin-top:6px; color:#111;">Orderan Terdekat Masuk!</h3>
+                <p style="font-size:11px; color:#555;">Ada penumpang memesan ojek dalam radius < 3 km dari lokasi Anda</p>
+            </div>
+            
+            <div style="font-size:12px; display:flex; flex-direction:column; gap:6px; background:#f9f9f9; padding:10px; border-radius:8px;">
+                <p><strong><i class="fa-solid fa-user"></i> Penumpang:</strong> <span id="nearbyModalName">-</span></p>
+                <p><strong><i class="fa-solid fa-location-dot" style="color:#eb5757;"></i> Jemput:</strong> <span id="nearbyModalPickup">-</span></p>
+                <p><strong><i class="fa-solid fa-flag-checkered"></i> Tujuan:</strong> <span id="nearbyModalDropoff">-</span></p>
+                <p style="color:var(--accent-blue); font-weight:bold;"><strong>Jarak Anda ke Jemput:</strong> <span id="nearbyModalDistance">0 meter</span></p>
+                <p style="color:#27ae60; font-weight:bold; font-size:14px;"><strong>Estimasi Ongkos:</strong> <span id="nearbyModalFare">Rp 0</span></p>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
+                <button onclick="driverTakeOrderFromNearbyModal()" class="btn-submit" style="background:var(--primary-green); color:#111; font-size:13px; font-weight:bold;">
+                    <i class="fa-solid fa-motorcycle"></i> Terima / Ajukan Diri Sekarang
+                </button>
+                <button onclick="closeDriverNearbyOrderModal()" style="padding:8px; border:1px solid #ccc; background:#fff; color:#333; border-radius:8px; font-weight:bold; font-size:11px; cursor:pointer;">
+                    Tutup Pop-Up (Cek di Radar)
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL SETTING NOTIFIKASI & SUARA -->
     <div id="notificationSettingsModal" class="modal-overlay" style="display: none;">
         <div class="login-card" style="background:#fff; color:#222; text-align:left; position:relative;">
@@ -1316,6 +1348,7 @@
     let driverMarkersMap = {}; 
     let passengerLiveMarker = null;
     let reverseGeocodeTimeout = null;
+    let lastNotifiedOrderId = null; // Menyimpan ID order agar pop-up tidak spam berulang
 
     let pendingNewDropoffCoords = null;
     let pendingNewDropoffName = "";
@@ -1646,6 +1679,7 @@
 
         startLiveGpsTracking();
         listenCloudData();
+        startPeriodicDriverRefresh(); // Auto-refresh berkala untuk driver agar tidak ketinggalan orderan
     }
 
     function mountMapToContainer(containerId) {
@@ -1824,6 +1858,18 @@
             localStorage.setItem('iqbike_active_order', JSON.stringify(activeOrder));
             syncOrderToCloud(activeOrder);
         }
+    }
+
+    function closeDriverNearbyOrderModal() {
+        document.getElementById('driverNearbyOrderModal').style.display = 'none';
+    }
+
+    function driverTakeOrderFromNearbyModal() {
+        const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
+        if (order) {
+            driverTakeOrder(order.id);
+        }
+        closeDriverNearbyOrderModal();
     }
 
     function openDriverChangeDetails() {
@@ -2129,6 +2175,25 @@
         db.collection("iqbike_system").doc("active_order").delete().catch(err => console.log("Delete order error:", err));
     }
 
+    // Auto-refresh berkala untuk Driver agar tidak ketinggalan orderan
+    function startPeriodicDriverRefresh() {
+        setInterval(() => {
+            if (userRole === 'driver' && isDriverOnline) {
+                db.collection("iqbike_system").doc("active_order").get().then((doc) => {
+                    if (doc.exists) {
+                        const cloudOrder = doc.data();
+                        const localOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
+                        if (!localOrder || localOrder.id !== cloudOrder.id || localOrder.status !== cloudOrder.status) {
+                            localStorage.setItem('iqbike_active_order', JSON.stringify(cloudOrder));
+                            updateDriverAppUI();
+                            checkAndShowNearbyOrderPopup(cloudOrder);
+                        }
+                    }
+                }).catch(err => console.log("Periodic refresh error:", err));
+            }
+        }, 3000); // Cek ulang setiap 3 detik
+    }
+
     function listenCloudData() {
         db.collection("iqbike_drivers").onSnapshot((snapshot) => {
             let anyDriverOnline = false;
@@ -2163,23 +2228,27 @@
                 const cloudOrder = doc.data();
                 const localOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
                 
-                // CEK KEPEMILIKAN: Apakah order cloud ini milik device penumpang ini?
-                const isMyOrder = (cloudOrder.deviceUuid === passengerDeviceUuid);
-
-                // Jika bukan order device ini, tetapi statusnya masih WAITING, abaikan pop-up/notif agar tab penumpang lain bersih
-                if (!isMyOrder && cloudOrder.status === 'WAITING') {
-                    // Jangan simpan active_order orang lain ke tab penumpang ini
-                    return;
+                // FILTER HANYA UNTUK PENUMPANG: Tab penumpang lain tidak boleh mengambil pesanan device lain
+                if (userRole === 'penumpang') {
+                    const isMyOrder = (cloudOrder.deviceUuid === passengerDeviceUuid);
+                    if (!isMyOrder && cloudOrder.status === 'WAITING') {
+                        return;
+                    }
                 }
 
                 if (!localOrder || localOrder.id !== cloudOrder.id) {
-                    if (userRole === 'driver' || isMyOrder) {
+                    if (userRole === 'driver' || (userRole === 'penumpang' && cloudOrder.deviceUuid === passengerDeviceUuid)) {
                         playNotificationSound();
                         triggerCustomVibration('radarOrder');
                     }
                 }
                 
                 localStorage.setItem('iqbike_active_order', JSON.stringify(cloudOrder));
+
+                // CEK APAKAH PERLU MUNCUL POP-UP ORDER TERDEKAT (KHUSUS DRIVER ONLINE & STATUS WAITING)
+                if (userRole === 'driver') {
+                    checkAndShowNearbyOrderPopup(cloudOrder);
+                }
 
                 if (userRole === 'driver' && cloudOrder.triggerPopupForDriver) {
                     const lastChange = cloudOrder.routeChanges && cloudOrder.routeChanges.length > 0 ? cloudOrder.routeChanges[cloudOrder.routeChanges.length - 1] : null;
@@ -2199,6 +2268,32 @@
             updatePassengerAppUI();
             updateDriverAppUI();
         });
+    }
+
+    function checkAndShowNearbyOrderPopup(order) {
+        if (!isDriverOnline || !order || order.status !== 'WAITING') return;
+
+        // Jangan munculkan pop-up berulang untuk order ID yang sama
+        if (lastNotifiedOrderId === order.id) return;
+
+        const driverLatLng = L.latLng(userCurrentLat, userCurrentLng);
+        const pickupLatLng = L.latLng(order.pickupLat, order.pickupLng);
+        const distanceMeters = map ? map.distance(driverLatLng, pickupLatLng) : 0;
+
+        // Radius <= 3000 meter (3 km) untuk driver online
+        if (distanceMeters <= 3000) {
+            lastNotifiedOrderId = order.id;
+
+            document.getElementById('nearbyModalName').innerText = order.passengerName;
+            document.getElementById('nearbyModalPickup').innerText = order.pickup;
+            document.getElementById('nearbyModalDropoff').innerText = order.dropoff;
+            document.getElementById('nearbyModalDistance').innerText = (distanceMeters >= 1000) ? (distanceMeters / 1000).toFixed(1) + " km" : Math.round(distanceMeters) + " meter";
+            document.getElementById('nearbyModalFare').innerText = `Rp ${order.fare.toLocaleString('id-ID')}`;
+
+            document.getElementById('driverNearbyOrderModal').style.display = 'flex';
+            playNotificationSound();
+            triggerCustomVibration('radarOrder');
+        }
     }
 
     function updatePassengerStatusBoxGlobal(anyOnline) {
@@ -2557,7 +2652,7 @@
 
         const newOrder = {
             id: Date.now(),
-            deviceUuid: passengerDeviceUuid, // Ikat pesanan ke ID unik device ini agar tab penumpang lain tidak mengambilnya
+            deviceUuid: passengerDeviceUuid, 
             passengerName: name, 
             passengerPhone: rawPhone,
             pickup, dropoff,
@@ -3020,7 +3115,6 @@
 
         updatePassengerWaInputUI();
 
-        // Jika tidak ada order aktif milik device ini, reset form penumpang ke keadaan kosong
         if (!order || (order.deviceUuid && order.deviceUuid !== passengerDeviceUuid)) {
             btnSend.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Cari & Kirim Pesanan ke Driver`;
             btnSend.disabled = false;
