@@ -1286,7 +1286,7 @@
 </div>
 
 <script>
-    // --- KONFIGURASI FIREBASE CLOUD ---
+    // --- KONFIGURASI FIREBASE CLOUD (Ganti dengan konfigurasi Firebase Anda yang asli) ---
     const firebaseConfig = {
         apiKey: "YOUR_API_KEY",
         authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -2385,15 +2385,16 @@
             const passengerGps = JSON.parse(localStorage.getItem('iqbike_passenger_gps')) || { lat: userCurrentLat, lng: userCurrentLng };
             const passengerSharlokUrl = `https://maps.google.com/?q=${passengerGps.lat},${passengerGps.lng}`;
 
-            const text = `Halo Driver iqBike, saya *${activeOrder.passengerName}* (${activeOrder.passengerPhone}).\n\n` +
-                         `📋 *DETAIL PESANAN:*\n` +
-                         `• <i class="fa-solid fa-user"></i> Nama: ${activeOrder.passengerName}\n` +
-                         `• <i class="fa-brands fa-whatsapp"></i> WA Penumpang: ${activeOrder.passengerPhone}\n` +
-                         `• <i class="fa-solid fa-location-dot" style="color:#eb5757;"></i> Jemput: ${activeOrder.pickup}\n` +
-                         `• <i class="fa-solid fa-flag-checkered"></i> Tujuan: ${activeOrder.dropoff}\n` +
-                         `• <i class="fa-solid fa-money-bill-wave"></i> Estimasi Ongkos: Rp ${activeOrder.fare.toLocaleString('id-ID')}\n` +
-                         `• <i class="fa-solid fa-note-sticky"></i> Catatan: ${activeOrder.note}\n\n` +
-                         `📍 *SHARLOK TERKINI PENUMPANG:*\n${passengerSharlokUrl}`;
+            const text = `Halo Driver iqBike, saya mau order ojek online:\n\n` +
+                         `👤 *Nama:* ${activeOrder.passengerName}\n` +
+                         `📱 *WA Penumpang:* ${activeOrder.passengerPhone}\n` +
+                         `📍 *Jemput:* ${activeOrder.pickup}\n` +
+                         `🗺️ *Link Titik Jemput:* ${passengerSharlokUrl}\n` +
+                         `🏁 *Tujuan:* ${activeOrder.dropoff}\n` +
+                         `⏱️ *Dijemput:* Secepatnya / Instan\n` +
+                         `💰 *Estimasi Ongkos:* Rp ${activeOrder.fare.toLocaleString('id-ID')}\n` +
+                         `📝 *Catatan:* ${activeOrder.note}\n\n` +
+                         `Mohon konfirmasinya ya, terima kasih!`;
 
             const targetWa = activeOrder.assignedDriverWa || currentDriverWa;
             const waUrl = `whatsapp://send?phone=${targetWa}&text=${encodeURIComponent(text)}`;
@@ -2726,7 +2727,7 @@
         updateDriverAppUI();
         updatePassengerAppUI();
 
-        alert("✅ Anda telah mengajukan diri mengambil orderan ini! Menunggu konfirmasi pemilihan dari penumpang.");
+        alert("✅ Anda telah mengajukan diri mengambil orderan ini! Menunggu konfirmasi pemilihan oleh Penumpang.");
     }
 
     function setOrderStatus(newStatus) {
