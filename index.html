@@ -2573,7 +2573,6 @@
                     const distanceMeters = map ? map.distance(driverLatLng, pickupLatLng) : 0;
                     const distanceKm = distanceMeters / 1000;
                     
-                    // Ketentuan ongkos jemput tambahan: Gratis 2 km pertama, di atas 2 km dikenakan Rp 2.000 / km
                     let pickupExtraFee = 0;
                     if (distanceKm > 2.0) {
                         pickupExtraFee = Math.ceil(distanceKm - 2.0) * 2000;
@@ -2589,7 +2588,6 @@
                 }
             });
 
-            // Urutkan berdasarkan jarak rute peta terdekat
             driversWithDistance.sort((a, b) => a.distanceMeters - b.distanceMeters);
 
             container.innerHTML = '';
@@ -2599,10 +2597,7 @@
                 return;
             }
 
-            // AUTO-SELECT / TIMEOUT & LOGIKA PILIHAN:
-            // Jika hanya ada 1 driver dan jarak jemput < 3km, atau otomatis pilih jika memenuhi syarat
             if (driversWithDistance.length === 1 && driversWithDistance[0].distanceKm < 3.0) {
-                // Auto pilih driver tunggal yang memenuhi syarat jarak aman (< 3km)
                 setTimeout(() => {
                     passengerSelectDriver(driversWithDistance[0].wa, driversWithDistance[0].pickupExtraFee);
                 }, 300);
@@ -2882,10 +2877,25 @@
             }
 
             let actionButtonsHTML = '';
+            // Jika item ini adalah pesanan yang sedang aktif/proses
             if (activeOrder && activeOrder.id === item.id) {
+                let chatWaButton = '';
+                if (item.assignedDriverWa) {
+                    chatWaButton = `
+                        <button class="btn-whatsapp" onclick="openPassengerWa('${item.passengerPhone}', '${item.passengerName}', '${item.assignedDriverWa}')" style="margin-top:4px;">
+                            <i class="fa-brands fa-whatsapp"></i> Chat WhatsApp ke Driver (${item.assignedDriverWa})
+                        </button>
+                    `;
+                }
                 actionButtonsHTML = `
-                    <div style="background:#fff3e0; color:#e65100; font-size:10px; font-weight:bold; padding:6px; border-radius:6px; text-align:center; margin-top:4px;">
-                        📌 Sedang Berlangsung / Aktif (Terkunci)
+                    <div style="display:flex; flex-direction:column; gap:4px; margin-top:6px;">
+                        <div style="background:#fff3e0; color:#e65100; font-size:10px; font-weight:bold; padding:4px; border-radius:4px; text-align:center;">
+                            📌 Pesanan Sedang Aktif / Berlangsung
+                        </div>
+                        ${chatWaButton}
+                        <button class="btn-cancel" onclick="cancelActiveOrder()" style="padding:6px; font-size:11px; margin-top:2px;">
+                            <i class="fa-solid fa-xmark"></i> Batalkan Pesanan Ini
+                        </button>
                     </div>
                 `;
             } else if (activeOrder) {
@@ -3234,6 +3244,7 @@
             return;
         }
 
+        // Pastikan driver melihat kartu order jika berstatus WAITING atau sedang ditangani oleh driver ini
         if (order.status !== 'WAITING' && order.assignedDriverWa && order.assignedDriverWa !== currentDriverWa) {
             floatingPanel.style.display = 'none';
             container.innerHTML = '';
