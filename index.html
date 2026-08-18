@@ -440,15 +440,19 @@
         }
 
         .history-card {
-            border: 1px solid #e0e0e0;
+            border-left: 5px solid #ccc;
             padding: 10px 12px;
             border-radius: 8px;
             font-size: 12px;
-            background: #fafafa;
+            background: #ffffff;
             display: flex;
             flex-direction: column;
             gap: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
+
+        .history-card.is-ojek { border-left-color: var(--primary-green); }
+        .history-card.is-kurir { border-left-color: var(--accent-blue); }
 
         .modal-detail-card {
             background: #fff;
@@ -487,10 +491,22 @@
             display: none;
         }
 
-        .btn-repeat-order, .btn-swap-route {
-            padding: 6px 8px;
-            background: #f0f2f5;
-            border: 1px solid #ccc;
+        .btn-repeat-order {
+            padding: 6px 10px;
+            background: #eef7e8;
+            border: 1px solid var(--primary-green);
+            color: var(--primary-green-hover);
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-swap-route {
+            padding: 6px 10px;
+            background: #f0f8ff;
+            border: 1px solid var(--accent-blue);
+            color: var(--accent-blue);
             border-radius: 6px;
             font-size: 10px;
             font-weight: bold;
@@ -1630,22 +1646,26 @@
         }
 
         passHistory.forEach((item) => {
+            const serviceType = (item.serviceType || 'ojek').toLowerCase();
             const card = document.createElement('div');
-            card.className = 'history-card';
+            card.className = `history-card is-${serviceType}`;
+            
             card.innerHTML = `
                 <div style="display:flex; justify-content:space-between; font-weight:bold;">
-                    <span>[${(item.serviceType || 'ojek').toUpperCase()}] ${item.timeReceived || '-'}</span>
-                    <span style="color:#27ae60;">Rp ${item.fare.toLocaleString('id-ID')}</span>
+                    <span style="color: ${serviceType === 'kurir' ? 'var(--accent-blue)' : 'var(--primary-green-hover)'}">
+                        [${serviceType.toUpperCase()}] ${item.timeReceived || '-'}
+                    </span>
+                    <span style="color:#222;">Rp ${item.fare.toLocaleString('id-ID')}</span>
                 </div>
                 <div style="color:#666; font-size:11px;">
-                    <div><strong>Jemput:</strong> ${item.pickup}</div>
-                    <div><strong>Tujuan:</strong> ${item.dropoff}</div>
+                    <div><strong>📍 Jemput:</strong> ${item.pickup}</div>
+                    <div><strong>🏁 Tujuan:</strong> ${item.dropoff}</div>
                 </div>
                 <div style="display:flex; gap:6px; margin-top:4px;">
-                    <button class="btn-repeat-order" onclick="repeatOrderFromHistory('${item.pickup}', '${item.dropoff}', ${item.pickupLat}, ${item.pickupLng}, ${item.dropoffLat}, ${item.dropoffLng}, ${item.fare}, '${item.serviceType || 'ojek'}')">
+                    <button class="btn-repeat-order" onclick="repeatOrderFromHistory('${item.pickup}', '${item.dropoff}', ${item.pickupLat}, ${item.pickupLng}, ${item.dropoffLat}, ${item.dropoffLng}, ${item.fare}, '${serviceType}')">
                         <i class="fa-solid fa-rotate-right"></i> Ulangi
                     </button>
-                    <button class="btn-swap-route" onclick="swapRouteFromHistory('${item.pickup}', '${item.dropoff}', ${item.pickupLat}, ${item.pickupLng}, ${item.dropoffLat}, ${item.dropoffLng}, ${item.fare}, '${item.serviceType || 'ojek'}')">
+                    <button class="btn-swap-route" onclick="swapRouteFromHistory('${item.pickup}', '${item.dropoff}', ${item.pickupLat}, ${item.pickupLng}, ${item.dropoffLat}, ${item.dropoffLng}, ${item.fare}, '${serviceType}')">
                         <i class="fa-solid fa-right-left"></i> Tukar PP
                     </button>
                 </div>
