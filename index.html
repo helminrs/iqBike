@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>iqBike - Multi-Driver Cloud System</title>
+    <title>iqBike - Pesan Ojek & Kurir Cepat</title>
 
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#8cc63f">
@@ -28,7 +28,6 @@
             --border-color: #e0e0e0;
             --accent-red: #eb5757;
             --accent-blue: #0288d1;
-            --accent-orange: #f2994a;
             --whatsapp-green: #25D366;
         }
 
@@ -62,7 +61,7 @@
             overflow: hidden;
         }
 
-        .login-overlay, .modal-overlay {
+        .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(18, 18, 18, 0.95);
@@ -89,26 +88,10 @@
             position: relative;
         }
 
-        .role-btn {
-            padding: 14px;
-            border-radius: 10px;
-            border: none;
-            font-weight: 800;
-            font-size: 15px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .role-passenger { background: var(--primary-green); color: #111; }
-        .role-driver { background: #333; color: #fff; border: 1px solid #555; }
-
         .header {
             background-color: var(--bg-dark);
             color: var(--text-light);
-            padding: 10px 12px;
+            padding: 10px 14px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -127,32 +110,21 @@
         .header-actions {
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
         }
 
-        .btn-header-install, .btn-header-pin, .btn-header-settings {
+        .btn-header-install {
             background: #222;
             color: var(--primary-green);
             border: 1px solid #444;
-            padding: 5px 8px;
+            padding: 5px 10px;
             border-radius: 8px;
-            font-size: 10px;
+            font-size: 11px;
             font-weight: 700;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 4px;
-        }
-
-        .btn-switch-role {
-            background: #2a2a2a;
-            color: var(--primary-green);
-            border: 1px solid #444;
-            padding: 5px 8px;
-            border-radius: 8px;
-            font-size: 10px;
-            font-weight: 700;
-            cursor: pointer;
         }
 
         .service-selector {
@@ -217,20 +189,11 @@
             position: relative;
             width: 100%;
             flex: 1;
-            min-height: 280px;
+            min-height: 240px;
             background-color: #e5e3df;
             border-radius: 10px;
             overflow: hidden;
             border: 1px solid var(--border-color);
-        }
-
-        .map-wrapper-full {
-            flex: 1;
-            width: 100%;
-            height: 100% !important;
-            border-radius: 0 !important;
-            border: none !important;
-            position: relative;
         }
 
         #map {
@@ -323,14 +286,6 @@
             height: 100%;
             padding: 10px;
             gap: 8px;
-        }
-
-        .driver-view-container {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            height: 100%;
-            position: relative;
         }
 
         .status-box {
@@ -498,9 +453,7 @@
             align-items: center;
             justify-content: center;
             gap: 6px;
-            transition: background 0.2s;
         }
-        .btn-swap-route:hover { background-color: #bbdefb; }
 
         .btn-repeat-order {
             flex: 1;
@@ -512,155 +465,6 @@
             font-size: 11px;
             font-weight: bold;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            transition: background 0.2s;
-        }
-        .btn-repeat-order:hover { background-color: #dcedc8; }
-
-        .order-card-driver {
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 12px;
-            background: #fff;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .btn-whatsapp {
-            width: 100%;
-            padding: 10px;
-            background-color: var(--whatsapp-green);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 12px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-
-        .btn-nav-gmaps {
-            width: 100%;
-            padding: 10px;
-            background-color: #4285f4;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 12px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-
-        .driver-step-btn {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 13px;
-            color: white;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-
-        .btn-accept { background-color: var(--accent-blue); }
-        .btn-arrived { background-color: var(--accent-orange); }
-        .btn-trip { background-color: var(--primary-green); color: #111; }
-        .btn-finish { background-color: #27ae60; }
-        .btn-driver-cancel { background-color: #eb5757; color: white; margin-top: 4px; }
-
-        .finance-card {
-            background: #121212;
-            color: white;
-            padding: 10px 12px;
-            border-radius: 0 0 12px 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            z-index: 1000;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-        }
-
-        .finance-grid-3cols {
-            display: grid;
-            grid-template-columns: 1fr 1.2fr 1fr;
-            gap: 6px;
-            background: #1e1e1e;
-            padding: 8px;
-            border-radius: 8px;
-            text-align: center;
-            align-items: center;
-        }
-
-        .clickable-finance-box {
-            cursor: pointer;
-            padding: 6px 4px;
-            border-radius: 6px;
-            transition: background 0.2s;
-            background: #282828;
-        }
-
-        .clickable-finance-box:hover { background: #333; }
-
-        .net-income-box {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 4px;
-            border-left: 1px solid #333;
-            border-right: 1px solid #333;
-        }
-
-        .filter-select {
-            padding: 4px 8px;
-            border-radius: 6px;
-            border: 1px solid #444;
-            background: #222;
-            color: white;
-            font-size: 10px;
-            font-weight: bold;
-            outline: none;
-        }
-
-        .expense-btn {
-            background: var(--accent-red);
-            color: white;
-            border: none;
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 6px;
-        }
-
-        .pdf-export-btn {
-            background: #4285f4;
-            color: white;
-            border: none;
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -692,73 +496,6 @@
             overflow-y: auto;
         }
 
-        .floating-radar-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #ffffff;
-            border-radius: 18px 18px 0 0;
-            padding: 14px;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.25);
-            z-index: 1002;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            animation: slideUp 0.3s ease-out;
-        }
-
-        @keyframes slideUp {
-            from { transform: translateY(100%); }
-            to { transform: translateY(0); }
-        }
-
-        .mini-gps-badge {
-            position: absolute;
-            bottom: 16px;
-            left: 16px;
-            background: rgba(18, 18, 18, 0.85);
-            color: #8cc63f;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: bold;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            z-index: 1001;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            backdrop-filter: blur(4px);
-        }
-
-        .mini-gps-badge.offline {
-            color: #eb5757 !important;
-        }
-
-        .driver-control-bar {
-            background: #1e1e1e;
-            padding: 8px 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: #fff;
-            font-size: 12px;
-            border-bottom: 1px solid #333;
-            gap: 6px;
-        }
-
-        .btn-toggle-online {
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: bold;
-            border: none;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-        .btn-toggle-online.online { background: #27ae60; color: #fff; }
-        .btn-toggle-online.offline { background: #eb5757; color: #fff; }
-
         .btn-save-wa {
             background: var(--primary-green);
             color: #111;
@@ -781,124 +518,12 @@
             cursor: pointer;
             display: none;
         }
-
-        .settings-section-title {
-            font-size: 12px;
-            font-weight: bold;
-            color: #444;
-            margin-bottom: 6px;
-            text-transform: uppercase;
-            text-align: left;
-        }
-        .sound-option-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            width: 100%;
-        }
-        .sound-option-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 12px;
-            background: #f8f9fa;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: bold;
-            color: #333;
-            transition: all 0.2s;
-        }
-        .sound-option-item:hover {
-            background: #f1f3f5;
-        }
-        .sound-option-item.selected {
-            border-color: var(--primary-green);
-            background: #eef7e8;
-            color: #2e7d32;
-        }
-        .sound-preview-btn {
-            background: none;
-            border: none;
-            color: #0288d1;
-            cursor: pointer;
-            font-size: 13px;
-            padding: 4px 8px;
-        }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <div id="loginOverlay" class="login-overlay" style="display: none;">
-        <i class="fa-solid fa-motorcycle" style="font-size: 48px; color: var(--primary-green); margin-bottom: 12px;"></i>
-        <h2 style="font-size: 22px; font-weight: 800;">Selamat Datang di iqBike</h2>
-        <p style="font-size: 12px; color: #aaa; margin-bottom: 20px;">Pilih jenis akun/peran Anda untuk melanjutkan</p>
-        
-        <div class="login-card">
-            <button class="role-btn role-passenger" onclick="selectUserRole('penumpang')">
-                <i class="fa-solid fa-user"></i> Masuk Sebagai PENUMPANG (Web/PWA)
-            </button>
-            <button class="role-btn role-driver" onclick="openDriverPinModal()">
-                <i class="fa-solid fa-id-card"></i> Masuk Sebagai iqDriver (Install APK / PWA)
-            </button>
-            <button class="role-btn" onclick="openInstallGuideModal()" style="background:#0288d1; color:#fff; font-size:13px; margin-top:4px;">
-                <i class="fa-solid fa-download"></i> Cara Install iqDriver di HP Driver
-            </button>
-        </div>
-    </div>
-
-    <!-- MODAL PANDUAN INSTAL PWA (WEB APP) -->
-    <div id="installGuideModal" class="modal-overlay" style="display: none;">
-        <div class="modal-detail-card" style="background:#222; color:#fff; border:1px solid #444; text-align:left;">
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #444; padding-bottom:10px;">
-                <h3 style="font-size:15px; font-weight:bold; color:var(--primary-green);"><i class="fa-solid fa-mobile-screen-button"></i> Panduan Install iqDriver di HP Driver</h3>
-                <button onclick="closeInstallGuideModal()" style="background:none; border:none; font-size:18px; color:#aaa; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            
-            <p style="font-size:11px; color:#aaa; margin-top:4px;">Agar fitur notifikasi push, getar panjang, dan akses cepat aktif saat membuka WhatsApp atau aplikasi lain, install aplikasi ini di HP Driver:</p>
-            
-            <div id="pwaNativeInstallBox" style="display:none; background:#2a2a2a; padding:12px; border-radius:8px; border:1px solid var(--primary-green); text-align:center; margin-top:6px;">
-                <p style="font-size:12px; font-weight:bold; color:#fff; margin-bottom:8px;">✨ Tombol Pintas Instalasi Otomatis:</p>
-                <button onclick="triggerPwaInstallPrompt()" class="btn-submit" style="background:var(--primary-green); color:#111; font-size:13px; font-weight:bold;">
-                    <i class="fa-solid fa-circle-down"></i> Install Aplikasi Sekarang
-                </button>
-            </div>
-
-            <div style="font-size:11px; display:flex; flex-direction:column; gap:8px; background:#2a2a2a; padding:10px; border-radius:8px; margin-top:6px;">
-                <p style="color:var(--primary-green); font-weight:bold;"><i class="fa-brands fa-android"></i> Pengguna Android (Chrome / Browser):</p>
-                <ol style="padding-left:16px; color:#ddd; display:flex; flex-direction:column; gap:4px;">
-                    <li>Buka menu browser (ikon titik tiga <i class="fa-solid fa-ellipsis-vertical"></i> di kanan atas).</li>
-                    <li>Ketuk opsi <strong>"Tambahkan ke Layar Utama"</strong> atau <strong>"Install Aplikasi"</strong>.</li>
-                    <li>Konfirmasi dengan mengetuk <strong>"Install"</strong>. Ikon iqDriver akan muncul di menu utama HP Anda.</li>
-                </ol>
-            </div>
-
-            <button onclick="closeInstallGuideModal()" style="width:100%; padding:10px; background:#444; color:white; border:none; border-radius:8px; font-size:12px; font-weight:bold; margin-top:6px; cursor:pointer;">Tutup Panduan</button>
-        </div>
-    </div>
-
-    <!-- MODAL NOTIFIKASI PEMBATALAN ORDER OLEH PENUMPANG -->
-    <div id="passengerCancelledModal" class="modal-overlay" style="display: none;">
-        <div class="login-card" style="background:#fff; color:#222; text-align:left; border:2px solid var(--accent-red);">
-            <div style="text-align:center; border-bottom:1px solid #eee; padding-bottom:10px;">
-                <i class="fa-solid fa-triangle-exclamation" style="font-size:40px; color:var(--accent-red);"></i>
-                <h3 style="margin-top:8px; color:var(--accent-red);">Pesanan Dibatalkan Penumpang!</h3>
-                <p style="font-size:11px; color:#555;">Penumpang telah membatalkan pesanan ini secara aktif.</p>
-            </div>
-            <div style="font-size:12px; display:flex; flex-direction:column; gap:6px; background:#f9f9f9; padding:10px; border-radius:8px;">
-                <p><strong><i class="fa-solid fa-user"></i> Penumpang:</strong> <span id="cancelModalPassName">-</span></p>
-                <p><strong><i class="fa-solid fa-location-dot" style="color:#eb5757;"></i> Rute:</strong> <span id="cancelModalRoute">-</span></p>
-                <p style="color:#eb5757; font-weight:bold;"><strong>Status:</strong> Dicatat ke Riwayat Pengeluaran (Biaya Rp 0)</p>
-            </div>
-            <button class="btn-submit" onclick="closePassengerCancelledModal()" style="margin-top:6px; background:var(--accent-red); color:#fff; font-size:13px;">
-                <i class="fa-solid fa-check"></i> Mengerti & Kembali Siaga
-            </button>
-        </div>
-    </div>
-
-    <!-- MODAL CUSTOM PENGGANTI ALERT BROWSER -->
+    <!-- MODAL CUSTOM ALERT -->
     <div id="customAlertModal" class="modal-overlay" style="display: none;">
         <div class="login-card" style="background:#fff; color:#222; text-align:center; border:2px solid var(--primary-green);">
             <i class="fa-solid fa-circle-check" style="font-size:42px; color:var(--primary-green);"></i>
@@ -910,12 +535,12 @@
         </div>
     </div>
 
-    <!-- MODAL OTP VERIFIKASI WHATSAPP MANDIRI -->
+    <!-- MODAL OTP WHATSAPP PENUMPANG -->
     <div id="otpVerificationModal" class="modal-overlay" style="display: none;">
         <div class="login-card" style="background:#222; color:#fff; text-align:center;">
             <i class="fa-brands fa-whatsapp" style="font-size:42px; color:var(--whatsapp-green);"></i>
-            <h3 id="otpModalTitle" style="margin-top:6px; font-size:16px;">Verifikasi WhatsApp Aktif</h3>
-            <p id="otpModalSubtitle" style="font-size:11px; color:#aaa;">Sistem akan mengirim kode verifikasi ke nomor Anda via WhatsApp.</p>
+            <h3 style="margin-top:6px; font-size:16px;">Verifikasi WhatsApp Penumpang</h3>
+            <p style="font-size:11px; color:#aaa;">Masukkan nomor WhatsApp Anda untuk validasi pesanan.</p>
             
             <div id="otpStep1Container">
                 <div class="form-group" style="text-align:left;">
@@ -929,7 +554,7 @@
 
             <div id="otpStep2Container" style="display:none; flex-direction:column; gap:10px;">
                 <div style="background:#2a2a2a; padding:8px; border-radius:6px; font-size:11px; color:#8cc63f;">
-                    Kode OTP telah dikirim ke WA Anda. Cek chat WhatsApp Anda dan masukkan 4 digit kodenya di bawah ini:
+                    Cek chat WhatsApp Anda dan masukkan 4 digit kode OTP di bawah ini:
                 </div>
                 <div class="form-group">
                     <input type="text" id="otpCodeInput" class="form-input" placeholder="Masukkan 4 Digit OTP" maxlength="4" style="text-align:center; font-size:20px; letter-spacing:6px; font-weight:bold;">
@@ -937,23 +562,20 @@
                 <button onclick="verifyWaOtpCode()" class="btn-submit" style="background:#27ae60; color:#fff; font-size:13px;">
                     <i class="fa-solid fa-check-circle"></i> Verifikasi & Lanjutkan
                 </button>
-                <button onclick="resetOtpProcess()" style="background:none; border:none; color:#aaa; font-size:11px; text-decoration:underline; cursor:pointer;">
-                    Ganti Nomor / Kirim Ulang OTP
-                </button>
             </div>
 
             <button onclick="closeOtpVerificationModal()" style="background:none; border:none; color:#eb5757; font-size:11px; margin-top:6px; cursor:pointer;">Batal</button>
         </div>
     </div>
 
-    <!-- MODAL PILIHAN MULTI-DRIVER YANG MENERIMA ORDER -->
+    <!-- MODAL PILIHAN DRIVER TERDEKAT -->
     <div id="driverSelectionModal" class="modal-overlay" style="display: none;">
         <div class="modal-detail-card" style="background:#222; color:#fff; border:1px solid #444;">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #444; padding-bottom:10px;">
                 <h3 style="font-size:15px; font-weight:bold; color:var(--primary-green);"><i class="fa-solid fa-motorcycle"></i> Pilih iqDriver Terdekat</h3>
                 <button onclick="closeDriverSelectionModal()" style="background:none; border:none; font-size:18px; color:#aaa; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <p style="font-size:11px; color:#aaa;">Berikut daftar iqDriver siap yang diurutkan berdasarkan jarak terdekat rute map (Jemput &le; 2 km gratis, &gt; 2 km tambah Rp 2rb/km):</p>
+            <p style="font-size:11px; color:#aaa;">Berikut daftar iqDriver siap di sekitar lokasi jemput Anda:</p>
             
             <div id="availableDriversListContainer" style="display:flex; flex-direction:column; gap:8px; max-height:50vh; overflow-y:auto;">
                 <p style="font-size: 11px; color: #a0a0a0; text-align:center;">Menunggu iqDriver merespons...</p>
@@ -965,239 +587,14 @@
         </div>
     </div>
 
-    <!-- MODAL POP-UP ORDERAN TERDEKAT KHUSUS iqDriver ONLINE -->
-    <div id="driverNearbyOrderModal" class="modal-overlay" style="display: none;">
-        <div class="login-card" style="background:#fff; color:#222; text-align:left; position:relative; border:2px solid var(--primary-green);">
-            <button onclick="closeDriverNearbyOrderModal()" style="position:absolute; top:12px; right:12px; background:none; border:none; font-size:18px; color:#666; cursor:pointer; font-weight:bold;">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-
-            <div style="text-align:center; border-bottom:1px solid #eee; padding-bottom:10px; padding-right:16px;">
-                <i class="fa-solid fa-bolt" style="font-size:36px; color:var(--primary-green);"></i>
-                <h3 style="margin-top:6px; color:#111;">Orderan Terdekat Masuk!</h3>
-                <p style="font-size:11px; color:#555;">Ada penumpang memesan layanan di sekitar lokasi Anda</p>
-            </div>
-            
-            <div style="font-size:12px; display:flex; flex-direction:column; gap:6px; background:#f9f9f9; padding:10px; border-radius:8px;">
-                <p><strong><i class="fa-solid fa-user"></i> Penumpang:</strong> <span id="nearbyModalName">-</span></p>
-                <p><strong><i class="fa-solid fa-location-dot" style="color:#eb5757;"></i> Jemput:</strong> <span id="nearbyModalPickup">-</span></p>
-                <p><strong><i class="fa-solid fa-flag-checkered"></i> Tujuan:</strong> <span id="nearbyModalDropoff">-</span></p>
-                <p style="color:var(--accent-blue); font-weight:bold;"><strong>Jarak Jemput Anda:</strong> <span id="nearbyModalDistance">0 meter</span></p>
-                <p style="color:#27ae60; font-weight:bold; font-size:14px;"><strong>Estimasi Ongkos:</strong> <span id="nearbyModalFare">Rp 0</span></p>
-            </div>
-
-            <div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
-                <button onclick="driverTakeOrderFromNearbyModal()" class="btn-submit" style="background:var(--primary-green); color:#111; font-size:13px; font-weight:bold;">
-                    <i class="fa-solid fa-motorcycle"></i> Terima / Ajukan Diri Sekarang
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL SETTING NOTIFIKASI & SUARA -->
-    <div id="notificationSettingsModal" class="modal-overlay" style="display: none;">
-        <div class="login-card" style="background:#fff; color:#222; text-align:left; position:relative;">
-            <button onclick="closeNotificationSettingsModal()" style="position:absolute; top:12px; right:12px; background:none; border:none; font-size:18px; color:#666; cursor:pointer; font-weight:bold;">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-            <div style="text-align:center; border-bottom:1px solid #eee; padding-bottom:10px; padding-right:16px;">
-                <i class="fa-solid fa-bell-concierge" style="font-size:32px; color:var(--primary-green);"></i>
-                <h3 style="margin-top:6px; font-size:16px;">Pengaturan Suara & Notifikasi iqDriver</h3>
-                <p style="font-size:11px; color:#777;">Atur nada & getaran spesifik untuk setiap jenis event</p>
-            </div>
-
-            <div style="display:flex; flex-direction:column; gap:12px; max-height:55vh; overflow-y:auto; padding-top:4px;">
-                
-                <div>
-                    <div class="settings-section-title">1. Nada Order Masuk Radar (<span style="color:var(--accent-orange);">Getar Panjang</span>)</div>
-                    <div class="sound-option-group" id="soundRadarList">
-                        <div class="sound-option-item" onclick="setSpecificSoundChoice('radar', 'sound1')">
-                            <span>🔔 Beep Ganda Tinggi</span>
-                            <button type="button" class="sound-preview-btn" onclick="event.stopPropagation(); previewSpecificSound('radar', 'sound1')"><i class="fa-solid fa-play"></i></button>
-                        </div>
-                        <div class="sound-option-item" onclick="setSpecificSoundChoice('radar', 'sound2')">
-                            <span>🎵 Chime Lembut 3 Nada</span>
-                            <button type="button" class="sound-preview-btn" onclick="event.stopPropagation(); previewSpecificSound('radar', 'sound2')"><i class="fa-solid fa-play"></i></button>
-                        </div>
-                        <div class="sound-option-item" onclick="setSpecificSoundChoice('radar', 'sound3')">
-                            <span>🛎️ Ding Tinggi Eksklusif</span>
-                            <button type="button" class="sound-preview-btn" onclick="event.stopPropagation(); previewSpecificSound('radar', 'sound3')"><i class="fa-solid fa-play"></i></button>
-                        </div>
-                        <div class="sound-option-item" onclick="setSpecificSoundChoice('radar', 'silent')"><span>🔕 Senyap</span></div>
-                    </div>
-                </div>
-
-                <div style="border-top:1px solid #eee; padding-top:8px;">
-                    <div class="settings-section-title">2. Nada Saat Dipilih Penumpang (<span style="color:var(--primary-green);">Getar Panjang</span>)</div>
-                    <div class="sound-option-group" id="soundPickedList">
-                        <div class="sound-option-item" onclick="setSpecificSoundChoice('picked', 'sound2')">
-                            <span>🎵 Chime Lembut 3 Nada</span>
-                            <button type="button" class="sound-preview-btn" onclick="event.stopPropagation(); previewSpecificSound('picked', 'sound2')"><i class="fa-solid fa-play"></i></button>
-                        </div>
-                        <div class="sound-option-item" onclick="setSpecificSoundChoice('picked', 'sound3')">
-                            <span>🛎️ Ding Tinggi Eksklusif</span>
-                            <button type="button" class="sound-preview-btn" onclick="event.stopPropagation(); previewSpecificSound('picked', 'sound3')"><i class="fa-solid fa-play"></i></button>
-                        </div>
-                        <div class="sound-option-item" onclick="setSpecificSoundChoice('picked', 'sound4')">
-                            <span>⚡ Ping Cepat Kilat</span>
-                            <button type="button" class="sound-preview-btn" onclick="event.stopPropagation(); previewSpecificSound('picked', 'sound4')"><i class="fa-solid fa-play"></i></button>
-                        </div>
-                        <div class="sound-option-item" onclick="setSpecificSoundChoice('picked', 'silent')"><span>🔕 Senyap</span></div>
-                    </div>
-                </div>
-
-                <div style="border-top:1px solid #eee; padding-top:8px;">
-                    <div class="settings-section-title">3. Notifikasi Lain / Status Offline (<span style="color:#777;">Getar Pendek</span>)</div>
-                    <div class="sound-option-group" id="soundOtherList">
-                        <div class="sound-option-item" onclick="setSpecificSoundChoice('other', 'classicbeep')">
-                            <span>📢 Standar Bip Tunggal</span>
-                            <button type="button" class="sound-preview-btn" onclick="event.stopPropagation(); previewSpecificSound('other', 'classicbeep')"><i class="fa-solid fa-play"></i></button>
-                        </div>
-                        <div class="sound-option-item" onclick="setSpecificSoundChoice('other', 'silent')"><span>🔕 Senyap</span></div>
-                    </div>
-                </div>
-
-                <div style="border-top:1px solid #eee; padding-top:8px;">
-                    <div class="settings-section-title">Pengaturan Push Notifikasi Luar Aplikasi</div>
-                    <label style="display:flex; align-items:center; gap:8px; font-size:12px; font-weight:normal; cursor:pointer; margin-bottom:6px;">
-                        <input type="checkbox" id="vibrationToggle" onchange="toggleVibrationSetting()" style="width:16px; height:16px; accent-color:var(--primary-green);">
-                        Aktifkan Pola Getaran Khusus
-                    </label>
-                    <button type="button" onclick="requestBrowserNotificationPermission()" style="width:100%; padding:8px; background:#0288d1; color:#fff; border:none; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">
-                        <i class="fa-solid fa-bell"></i> Aktifkan Izin Notifikasi Sistem (Agar Muncul di Luar Aplikasi / WhatsApp)
-                    </button>
-                </div>
-            </div>
-
-            <button onclick="closeNotificationSettingsModal()" style="margin-top:6px; padding:10px; background:#333; color:white; border:none; border-radius:8px; font-weight:bold; font-size:12px; cursor:pointer;">
-                Simpan & Tutup
-            </button>
-        </div>
-    </div>
-
-    <div id="driverPinModal" class="modal-overlay" style="display: none;">
-        <div class="login-card" style="background:#222; color:#fff; text-align:center;">
-            <i class="fa-solid fa-lock" style="font-size:36px; color:var(--primary-green);"></i>
-            <h3 style="margin-top:6px;">Login Mode iqDriver</h3>
-            <p style="font-size:11px; color:#aaa;">Masukkan PIN iqDriver Anda (Default: 8899)</p>
-            
-            <div class="form-group">
-                <input type="password" id="inputDriverPin" class="form-input" placeholder="Masukkan 4 Digit PIN" maxlength="6" style="text-align:center; font-size:18px; letter-spacing:4px;">
-            </div>
-
-            <div style="display:flex; flex-direction:column; gap:8px;">
-                <button onclick="verifyDriverPin()" class="btn-submit" style="padding:10px; font-size:13px; background:var(--primary-green); color:#111;">Masuk iqDriver</button>
-                <button onclick="triggerResetPinWa()" style="background:none; border:none; color:var(--primary-green); font-size:11px; text-decoration:underline; cursor:pointer;">
-                    Lupa PIN? Minta Kode Verifikasi via WA Admin
-                </button>
-                <button onclick="closeDriverPinModal()" style="background:none; border:none; color:#eb5757; font-size:11px; margin-top:4px; cursor:pointer;">Batal</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="resetPinModal" class="modal-overlay" style="display: none;">
-        <div class="login-card" style="background:#222; color:#fff; text-align:center;">
-            <i class="fa-solid fa-key" style="font-size:36px; color:var(--accent-orange);"></i>
-            <h3 style="margin-top:6px;">Reset PIN iqDriver</h3>
-            <p style="font-size:11px; color:#aaa;">Masukkan Kode Verifikasi dari Admin WA dan buat PIN baru</p>
-
-            <div class="form-group">
-                <label class="form-label" style="color:#ccc;">Kode Verifikasi Admin WA</label>
-                <input type="text" id="inputMasterKey" class="form-input" placeholder="Kode dari Admin" style="text-align:center;">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" style="color:#ccc;">PIN Baru (Min 4 Angka)</label>
-                <input type="password" id="inputNewPin" class="form-input" placeholder="Buat PIN Baru" style="text-align:center;">
-            </div>
-
-            <div style="display:flex; gap:8px; margin-top:8px;">
-                <button onclick="closeResetPinModal()" style="flex:1; padding:10px; border:1px solid #555; background:#333; color:white; border-radius:8px; font-size:12px; font-weight:bold;">Batal</button>
-                <button onclick="saveResetPin()" style="flex:1; padding:10px; border:none; background:var(--primary-green); color:#111; border-radius:8px; font-size:12px; font-weight:bold;">Simpan PIN</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL KONFIRMASI UBAH TUJUAN -->
-    <div id="confirmDestinationChangeModal" class="modal-overlay" style="display: none;">
-        <div class="login-card" style="background:#fff; color:#222; text-align:left;">
-            <div style="text-align:center; border-bottom:1px solid #eee; padding-bottom:10px;">
-                <i class="fa-solid fa-route" style="font-size:36px; color:var(--accent-blue);"></i>
-                <h3 style="margin-top:6px;">Konfirmasi Ubah Tujuan</h3>
-                <p style="font-size:11px; color:#777;">Perubahan tujuan dihitung sebagai rute singgah tambahan</p>
-            </div>
-            
-            <div style="font-size:12px; display:flex; flex-direction:column; gap:6px; background:#f9f9f9; padding:10px; border-radius:8px;">
-                <p><strong>Tujuan Semula:</strong> <span id="modalOldDest">-</span></p>
-                <p><strong>Tujuan Baru:</strong> <span id="modalNewDest">-</span></p>
-                <p style="color:var(--accent-blue); font-weight:bold;"><strong>Selisih Jarak Tambahan:</strong> <span id="modalAddKm">0 km</span></p>
-                <p style="color:#eb5757; font-weight:bold;"><strong>Biaya Tambahan Rute:</strong> <span id="modalAddFare">Rp 0</span></p>
-                <hr style="border:0; border-top:1px solid #ddd; margin:4px 0;">
-                <p style="color:#27ae60; font-weight:bold; font-size:14px;"><strong>Total Keseluruhan Ongkos Baru:</strong> <span id="modalNewFare">Rp 0</span></p>
-            </div>
-
-            <div style="display:flex; gap:8px; margin-top:10px;">
-                <button onclick="cancelDestinationChange()" style="flex:1; padding:10px; border:1px solid #ccc; background:#fff; border-radius:8px; font-weight:bold; font-size:12px;">Batal</button>
-                <button onclick="applyDestinationChange()" style="flex:1; padding:10px; border:none; background:var(--accent-blue); color:white; border-radius:8px; font-weight:bold; font-size:12px;">Setuju & Ubah</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL iqDriver ROUTE UPDATE -->
-    <div id="driverRouteUpdateModal" class="modal-overlay" style="display: none;">
-        <div class="login-card" style="background:#fff; color:#222; text-align:left; position:relative;">
-            <button onclick="closeDriverRouteUpdateModal()" style="position:absolute; top:12px; right:12px; background:none; border:none; font-size:18px; color:#666; cursor:pointer; font-weight:bold;">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-
-            <div style="text-align:center; border-bottom:1px solid #eee; padding-bottom:10px; padding-right:16px;">
-                <i class="fa-solid fa-circle-check" style="font-size:36px; color:#27ae60;"></i>
-                <h3 style="margin-top:6px;">Perubahan Terkonfirmasi</h3>
-                <p style="font-size:11px; color:#777;">Penumpang telah menyetujui penambahan rute & ongkos tujuan</p>
-            </div>
-            
-            <div style="font-size:12px; display:flex; flex-direction:column; gap:6px; background:#f9f9f9; padding:10px; border-radius:8px;">
-                <p><strong>Tujuan Baru:</strong> <span id="driverModalNewDest">-</span></p>
-                <p style="color:#eb5757; font-weight:bold;"><strong>Tambahan Biaya:</strong> <span id="driverModalAddFare">Rp 0</span></p>
-                <p style="color:#27ae60; font-weight:bold; font-size:13px;"><strong>Total Ongkos Baru:</strong> <span id="driverModalNewFare">Rp 0</span></p>
-            </div>
-
-            <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
-                <button onclick="openGoogleMapsFromDriverModal()" class="btn-nav-gmaps" style="padding:12px; font-size:13px; background:#4285f4; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
-                    <i class="fa-solid fa-location-arrow"></i> Buka Navigasi Google Maps Rute Tujuan Baru
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <div id="expenseModal" class="modal-overlay" style="display: none;">
-        <div class="login-card" style="background:#fff; color:#222; text-align:left;">
-            <div style="text-align:center; border-bottom:1px solid #eee; padding-bottom:10px;">
-                <i class="fa-solid fa-wallet" style="font-size:36px; color:var(--accent-red);"></i>
-                <h3 style="margin-top:6px;">Tambah Pengeluaran iqDriver</h3>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Keterangan (Contoh: Bensin, Parkir)</label>
-                <input type="text" id="expenseNote" class="form-input" placeholder="Masukkan keterangan...">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Jumlah Pengeluaran (Rp)</label>
-                <input type="number" id="expenseAmount" class="form-input" placeholder="Contoh: 15000">
-            </div>
-            <div style="display:flex; gap:8px; margin-top:10px;">
-                <button onclick="closeExpenseModal()" style="flex:1; padding:10px; border:1px solid #ccc; background:#fff; border-radius:8px; font-weight:bold;">Batal</button>
-                <button onclick="saveExpense()" style="flex:1; padding:10px; border:none; background:var(--accent-red); color:white; border-radius:8px; font-weight:bold;">Simpan</button>
-            </div>
-        </div>
-    </div>
-
+    <!-- MODAL RIWAYAT PERJALANAN -->
     <div id="passengerHistoryModal" class="modal-overlay" style="display: none;">
-        <div class="modal-detail-card">
+        <div class="modal-detail-card" style="color:#222;">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:10px;">
                 <h3 style="font-size:15px; font-weight:bold;"><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Perjalanan</h3>
                 <button onclick="closePassengerHistoryModal()" style="background:none; border:none; font-size:18px; color:#666; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <p style="font-size:11px; color:#666;">Detail rute awal, perubahan titik singgah, status selesai, atau pembatalan tersimpan lengkap.</p>
+            <p style="font-size:11px; color:#666;">Detail rute awal, perubahan titik singgah, atau status perjalanan tersimpan.</p>
             
             <div id="passengerHistoryContainer" style="display:flex; flex-direction:column; gap:8px; max-height:50vh; overflow-y:auto;">
                 <p style="font-size: 11px; color: #a0a0a0; text-align:center;">Belum ada riwayat pesanan.</p>
@@ -1209,82 +606,20 @@
         </div>
     </div>
 
-    <div id="historyDetailsModal" class="modal-overlay" style="display: none;">
-        <div class="modal-detail-card">
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:10px;">
-                <h3 id="historyModalTitle" style="font-size:15px; font-weight:bold;">Rincian Transaksi</h3>
-                <button onclick="closeHistoryDetailsModal()" style="background:none; border:none; font-size:18px; color:#666; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-
-            <div id="historyDetailsListContainer" style="display:flex; flex-direction:column; gap:8px; max-height:50vh; overflow-y:auto;"></div>
-
-            <div id="expenseActionContainer" style="display:none;">
-                <button class="expense-btn" onclick="openExpenseModalFromDetail()">
-                    <i class="fa-solid fa-plus-circle"></i> + Catat Pengeluaran Baru
-                </button>
-            </div>
-
-            <div id="pdfActionContainer" style="display:none;">
-                <button class="pdf-export-btn" onclick="exportStatementPdf()">
-                    <i class="fa-solid fa-file-pdf"></i> Cetak / Simpan PDF (Rekening Koran)
-                </button>
-            </div>
-
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
-                <button onclick="clearHistorySpecific()" style="background:none; border:none; color:red; font-size:11px; cursor:pointer; font-weight:bold;">
-                    <i class="fa-solid fa-trash"></i> Hapus Semua Data Di Sini
-                </button>
-                <button onclick="closeHistoryDetailsModal()" style="padding:8px 16px; background:#333; color:white; border:none; border-radius:6px; font-size:12px; font-weight:bold;">Tutup</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="receiptModal" class="modal-overlay" style="display: none;">
-        <div class="login-card" style="background:#fff; color:#222; text-align:left;">
-            <div style="text-align:center; border-bottom:1px solid #eee; padding-bottom:10px;">
-                <i class="fa-solid fa-circle-check" style="font-size:40px; color:#27ae60;"></i>
-                <h3 style="margin-top:8px;">Perjalanan Selesai</h3>
-                <p style="font-size:12px; color:#777;">Rincian Pendapatan Transaksi</p>
-            </div>
-            <div style="font-size:13px; display:flex; flex-direction:column; gap:8px;">
-                <p><strong><i class="fa-solid fa-user"></i> Penumpang:</strong> <span id="recName">-</span> (<span id="recPhone">-</span>)</p>
-                <p><strong><i class="fa-solid fa-location-dot" style="color:#eb5757;"></i> Jemput:</strong> <span id="recPickup">-</span></p>
-                <p><strong><i class="fa-solid fa-flag-checkered"></i> Tujuan Akhir:</strong> <span id="recDropoff">-</span></p>
-                <div id="recRouteChangesInfo" style="font-size:11px; color:#666; background:#f9f9f9; padding:6px; border-radius:6px; display:none;"></div>
-                <div style="background:#f4f5f7; padding:10px; border-radius:8px; font-weight:bold; font-size:16px; color:#27ae60; display:flex; justify-content:space-between;">
-                    <span><i class="fa-solid fa-money-bill-wave"></i> Total Pendapatan:</span>
-                    <span id="recFare">Rp 0</span>
-                </div>
-            </div>
-            <button class="btn-submit" onclick="closeReceiptModal()" style="margin-top:10px; background:var(--primary-green); color:#111;">
-                <i class="fa-solid fa-check"></i> Tutup & Siap Order Baru
-            </button>
-        </div>
-    </div>
-
     <header class="header">
         <div class="brand-title">
             <i class="fa-solid fa-motorcycle" style="color: var(--primary-green);"></i>
             <span>iqBike</span>
         </div>
         <div class="header-actions">
-            <button class="btn-header-install" onclick="openInstallGuideModal()" title="Install Aplikasi">
+            <button class="btn-header-install" onclick="triggerPwaInstallPrompt()">
                 <i class="fa-solid fa-download"></i> Install
-            </button>
-            <button class="btn-header-settings" onclick="openNotificationSettingsModal()">
-                <i class="fa-solid fa-gear"></i> Suara
-            </button>
-            <button id="btnHeaderPin" class="btn-header-pin" onclick="changeDriverPinDirect()" style="display:none;">
-                <i class="fa-solid fa-key"></i> PIN
-            </button>
-            <button class="btn-switch-role" onclick="showLoginOverlay()">
-                <i class="fa-solid fa-right-from-bracket"></i> <span id="currentRoleText">Ganti Mode</span>
             </button>
         </div>
     </header>
 
     <main class="content-area">
-        <div id="passengerView" class="passenger-view-container" style="display: none;">
+        <div id="passengerView" class="passenger-view-container">
             <div id="driverStatusBox" class="status-box status-online">
                 <i class="fa-solid fa-circle"></i> Memeriksa Status iqDriver...
             </div>
@@ -1371,66 +706,6 @@
                 </button>
             </div>
         </div>
-
-        <div id="driverView" class="driver-view-container" style="display: none;">
-            <div class="driver-control-bar">
-                <div style="display:flex; align-items:center; gap:4px; flex:1;">
-                    <input type="tel" id="driverWaInput" class="form-input" placeholder="No WA (08xx)" readonly style="font-size:11px; padding:6px; background:#eef7e8; font-weight:bold;">
-                    <button class="btn-save-wa" onclick="openDriverOtpModal()"><i class="fa-solid fa-shield-check"></i> Ganti WA</button>
-                </div>
-                <div>
-                    <button id="btnToggleDriverStatus" class="btn-toggle-online online" onclick="toggleDriverOnlineStatus()">Online</button>
-                </div>
-            </div>
-
-            <div class="finance-card">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:11px; font-weight:bold; color:#aaa;"><i class="fa-solid fa-wallet"></i> RINGKASAN KEUANGAN iqDriver</span>
-                    <select id="timeFilter" class="filter-select" onchange="renderFinanceAndHistory()">
-                        <option value="today">Hari Ini</option>
-                        <option value="week">Minggu Ini</option>
-                        <option value="7days">7 Hari Terakhir</option>
-                        <option value="30days">30 Hari Terakhir</option>
-                        <option value="all" selected>Semua (Sejak Install)</option>
-                    </select>
-                </div>
-
-                <div class="finance-grid-3cols">
-                    <div class="clickable-finance-box" onclick="openHistoryDetailsModal('INCOME')">
-                        <div style="color:#aaa; font-size:10px;"><i class="fa-solid fa-circle-plus" style="color:#27ae60;"></i> Hasil Narik (+) <i class="fa-solid fa-chevron-right" style="font-size:8px;"></i></div>
-                        <div style="font-weight:bold; color:#27ae60; font-size:12px;" id="grossIncomeText">Rp 0</div>
-                    </div>
-
-                    <div class="net-income-box">
-                        <div style="color:#aaa; font-size:9px; font-weight:bold;"><i class="fa-solid fa-piggy-bank"></i> KEUNTUNGAN BERSIH</div>
-                        <div style="font-size: 15px; font-weight: 800; color: var(--primary-green);" id="netIncomeText">Rp 0</div>
-                    </div>
-
-                    <div class="clickable-finance-box" onclick="openHistoryDetailsModal('EXPENSE')">
-                        <div style="color:#aaa; font-size:10px;"><i class="fa-solid fa-circle-minus" style="color:#eb5757;"></i> Pengeluaran (-) <i class="fa-solid fa-chevron-right" style="font-size:8px;"></i></div>
-                        <div style="font-weight:bold; color:#eb5757; font-size:12px;" id="totalExpenseText">Rp 0</div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="driverMapContainer" class="map-wrapper-full"></div>
-
-            <div id="miniGpsBadge" class="mini-gps-badge">
-                <i class="fa-solid fa-signal"></i> <span id="gpsBadgeText">GPS iqDriver ONLINE</span>
-            </div>
-
-            <div id="floatingRadarPanel" class="floating-radar-overlay" style="display:none;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-weight: 800; font-size: 13px; color:#222;">
-                        <i class="fa-solid fa-circle-dot" style="color:red;"></i> Orderan Masuk Realtime
-                    </span>
-                    <span style="background:#8cc63f; color:#111; padding:2px 6px; border-radius:10px; font-size:10px; font-weight:bold;">
-                        RADAR AKTIF
-                    </span>
-                </div>
-                <div id="orderListContainer" style="display: flex; flex-direction: column; gap: 8px;"></div>
-            </div>
-        </div>
     </main>
 </div>
 
@@ -1451,15 +726,6 @@
 </div>
 
 <script>
-    // Registrasi Service Worker agar Push Notifications berjalan di latar belakang (Background Worker)
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js')
-                .then(reg => console.log('ServiceWorker registered:', reg.scope))
-                .catch(err => console.log('ServiceWorker registration failed:', err));
-        });
-    }
-
     const firebaseConfig = {
         apiKey: "AIzaSyDQ9CLzERjKUz6ptZYQitr280q38b0LMb0",
         authDomain: "iqbike-1.firebaseapp.com",
@@ -1476,48 +742,20 @@
     }
     const db = firebase.firestore();
 
-    const ADMIN_MASTER_KEY = "9922";
     let deferredPwaInstallPrompt = null;
-
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPwaInstallPrompt = e;
-        const nativeBox = document.getElementById('pwaNativeInstallBox');
-        if (nativeBox) nativeBox.style.display = 'block';
     });
 
-    function requestBrowserNotificationPermission() {
-        if ("Notification" in window) {
-            Notification.requestPermission().then((permission) => {
-                if (permission === "granted") {
-                    showCustomAlert("Berhasil", "✅ Izin Notifikasi Sistem Berhasil Diaktifkan! Notifikasi pop-up & getar akan muncul walau Anda sedang membuka WhatsApp / YouTube.");
-                } else {
-                    showCustomAlert("Ditolak", "⚠️ Izin notifikasi ditolak oleh browser. Harap aktifkan lewat setelan izin situs browser.");
-                }
+    function triggerPwaInstallPrompt() {
+        if (deferredPwaInstallPrompt) {
+            deferredPwaInstallPrompt.prompt();
+            deferredPwaInstallPrompt.userChoice.then(() => {
+                deferredPwaInstallPrompt = null;
             });
         } else {
-            showCustomAlert("Tidak Didukung", "Browser Anda tidak mendukung Notifikasi Sistem Push.");
-        }
-    }
-
-    function triggerSystemPushNotification(title, bodyText) {
-        if ("Notification" in window && Notification.permission === "granted") {
-            try {
-                navigator.serviceWorker.ready.then((reg) => {
-                    reg.showNotification(title, {
-                        body: bodyText,
-                        icon: 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/motorcycle.svg',
-                        vibrate: [400, 150, 400, 150, 600],
-                        tag: 'iqdriver-order',
-                        renotify: true,
-                        requireInteraction: true
-                    });
-                }).catch(() => {
-                    new Notification(title, { body: bodyText });
-                });
-            } catch (e) {
-                new Notification(title, { body: bodyText });
-            }
+            showCustomAlert("Pemberitahuan", "✨ Buka menu titik tiga di browser Anda (kanan atas) dan pilih opsi 'Tambahkan ke Layar Utama' atau 'Install Aplikasi'.");
         }
     }
 
@@ -1531,29 +769,6 @@
         document.getElementById('customAlertModal').style.display = 'none';
     }
 
-    function openInstallGuideModal() {
-        document.getElementById('installGuideModal').style.display = 'flex';
-    }
-
-    function closeInstallGuideModal() {
-        document.getElementById('installGuideModal').style.display = 'none';
-    }
-
-    function triggerPwaInstallPrompt() {
-        if (deferredPwaInstallPrompt) {
-            deferredPwaInstallPrompt.prompt();
-            deferredPwaInstallPrompt.userChoice.then((choiceResult) => {
-                deferredPwaInstallPrompt = null;
-            });
-        } else {
-            showCustomAlert("Pemberitahuan", "✨ Fitur instalasi otomatis sudah siap! Buka menu titik tiga di browser Anda dan pilih opsi 'Tambahkan ke Layar Utama'.");
-        }
-    }
-
-    function getStoredPin() {
-        return localStorage.getItem('iqbike_driver_pin') || "8899";
-    }
-
     let map;
     let routingControl = null;
     let currentPinMode = null;
@@ -1562,19 +777,6 @@
     let driverMarkersMap = {}; 
     let passengerLiveMarker = null;
     let reverseGeocodeTimeout = null;
-    let lastNotifiedOrderId = null;
-    let lastNotifiedCancelId = null;
-    let lastNotifiedPickedId = null;
-
-    let pendingNewDropoffCoords = null;
-    let pendingNewDropoffName = "";
-    let pendingCalculatedExtraFare = 0;
-    let pendingCalculatedNewFare = 0;
-
-    let activeOtpTargetRole = null; 
-    let generatedOtpCode = "";
-    let tempTargetPhone = "";
-
     let currentSelectedService = 'ojek';
 
     let passengerDeviceUuid = localStorage.getItem('iqbike_device_uuid');
@@ -1586,14 +788,9 @@
     const savedLastPos = JSON.parse(localStorage.getItem('iqbike_last_known_pos'));
     let userCurrentLat = savedLastPos ? savedLastPos.lat : -7.02443;
     let userCurrentLng = savedLastPos ? savedLastPos.lng : 107.58556;
-    
     let isInitialMapCenterDone = false;
-    let userRole = null; 
     let computedTotalFare = 0;
     let searchDebounce = null;
-    
-    let isDriverOnline = localStorage.getItem('iqbike_driver_online_status') !== 'false';
-    let currentDriverWa = localStorage.getItem('iqbike_driver_wa') || "6285934602965";
     let passengerVerifiedWa = localStorage.getItem('iqbike_passenger_wa') || "";
 
     function selectService(serviceType) {
@@ -1609,19 +806,6 @@
             btnKurir.className = 'btn-service active-service';
         }
         calculateFare();
-    }
-
-    function ensureDriverCloudPresence() {
-        const onlineStatus = localStorage.getItem('iqbike_driver_online_status') !== 'false';
-        const driverGps = JSON.parse(localStorage.getItem('iqbike_driver_gps')) || { lat: userCurrentLat, lng: userCurrentLng };
-        
-        db.collection("iqbike_drivers").doc(currentDriverWa).set({
-            wa: currentDriverWa,
-            lat: driverGps.lat,
-            lng: driverGps.lng,
-            isOnline: onlineStatus,
-            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true }).catch(err => console.log("Auto presence sync error:", err));
     }
 
     function updatePassengerWaInputUI() {
@@ -1642,7 +826,7 @@
     }
 
     function clearPassengerWa() {
-        if (confirm("Hapus nomor WhatsApp yang tersimpan dari aplikasi penumpang?")) {
+        if (confirm("Hapus nomor WhatsApp yang tersimpan?")) {
             localStorage.removeItem('iqbike_passenger_wa');
             passengerVerifiedWa = "";
             updatePassengerWaInputUI();
@@ -1650,25 +834,11 @@
         }
     }
 
-    function openDriverOtpModal() {
-        activeOtpTargetRole = 'driver';
-        document.getElementById('otpModalTitle').innerText = "Verifikasi WhatsApp iqDriver";
-        document.getElementById('otpModalSubtitle').innerText = "Masukkan nomor WhatsApp iqDriver yang aktif.";
-        document.getElementById('otpPhoneInput').value = currentDriverWa.startsWith('62') ? '0' + currentDriverWa.substring(2) : currentDriverWa;
-        
-        document.getElementById('otpStep1Container').style.display = 'block';
-        document.getElementById('otpStep2Container').style.display = 'none';
-        document.getElementById('otpVerificationModal').style.display = 'flex';
-    }
+    let generatedOtpCode = "";
+    let tempTargetPhone = "";
 
     function openPassengerOtpModal() {
-        activeOtpTargetRole = 'penumpang';
-        document.getElementById('otpModalTitle').innerText = "Verifikasi WhatsApp Penumpang";
-        document.getElementById('otpModalSubtitle').innerText = "Masukkan nomor WhatsApp Anda untuk validasi pesanan.";
-        
-        const existingPassWa = localStorage.getItem('iqbike_passenger_wa') || "";
-        document.getElementById('otpPhoneInput').value = existingPassWa ? (existingPassWa.startsWith('62') ? '0' + existingPassWa.substring(2) : existingPassWa) : "";
-
+        document.getElementById('otpPhoneInput').value = "";
         document.getElementById('otpStep1Container').style.display = 'block';
         document.getElementById('otpStep2Container').style.display = 'none';
         document.getElementById('otpVerificationModal').style.display = 'flex';
@@ -1676,12 +846,6 @@
 
     function closeOtpVerificationModal() {
         document.getElementById('otpVerificationModal').style.display = 'none';
-        document.getElementById('otpCodeInput').value = "";
-    }
-
-    function resetOtpProcess() {
-        document.getElementById('otpStep1Container').style.display = 'block';
-        document.getElementById('otpStep2Container').style.display = 'none';
         document.getElementById('otpCodeInput').value = "";
     }
 
@@ -1712,153 +876,21 @@
 
         document.getElementById('otpStep1Container').style.display = 'none';
         document.getElementById('otpStep2Container').style.display = 'flex';
-
         window.location.href = waUrl;
     }
 
     function verifyWaOtpCode() {
         const enteredOtp = document.getElementById('otpCodeInput').value.trim();
-
         if (enteredOtp !== generatedOtpCode) {
-            showCustomAlert("Kode Salah", "❌ Kode OTP Salah! Pastikan Anda memasukkan 4 digit kode yang dikirimkan ke WhatsApp Anda.");
+            showCustomAlert("Kode Salah", "❌ Kode OTP Salah! Masukkan 4 digit kode yang dikirim ke WhatsApp Anda.");
             return;
         }
 
-        if (activeOtpTargetRole === 'driver') {
-            if (tempTargetPhone !== currentDriverWa) {
-                db.collection("iqbike_drivers").doc(currentDriverWa).delete().catch(() => {});
-                currentDriverWa = tempTargetPhone;
-            }
-            localStorage.setItem('iqbike_driver_wa', currentDriverWa);
-            document.getElementById('driverWaInput').value = currentDriverWa;
-            ensureDriverCloudPresence();
-            showCustomAlert("Berhasil", `✅ Nomor WhatsApp iqDriver (${currentDriverWa}) Berhasil Terverifikasi Aktif & Disimpan!`);
-        } else if (activeOtpTargetRole === 'penumpang') {
-            passengerVerifiedWa = tempTargetPhone;
-            localStorage.setItem('iqbike_passenger_wa', passengerVerifiedWa);
-            updatePassengerWaInputUI();
-            showCustomAlert("Berhasil", `✅ Nomor WhatsApp Penumpang (${passengerVerifiedWa}) Berhasil Terverifikasi & Disimpan Permanen!`);
-        }
-
+        passengerVerifiedWa = tempTargetPhone;
+        localStorage.setItem('iqbike_passenger_wa', passengerVerifiedWa);
+        updatePassengerWaInputUI();
         closeOtpVerificationModal();
-    }
-
-    function getStoredSoundChoice(type) {
-        if (type === 'radar') return localStorage.getItem('iqbike_sound_radar') || 'sound1';
-        if (type === 'picked') return localStorage.getItem('iqbike_sound_picked') || 'sound2';
-        return localStorage.getItem('iqbike_sound_other') || 'classicbeep';
-    }
-
-    function setSpecificSoundChoice(type, soundName) {
-        if (type === 'radar') localStorage.setItem('iqbike_sound_radar', soundName);
-        else if (type === 'picked') localStorage.setItem('iqbike_sound_picked', soundName);
-        else localStorage.setItem('iqbike_sound_other', soundName);
-
-        updateSoundSettingsUI();
-        playSpecificSoundChoice(soundName);
-        triggerCustomVibration(type === 'other' ? 'short' : 'long');
-    }
-
-    function getStoredVibrationChoice() {
-        const val = localStorage.getItem('iqbike_vibration_enabled');
-        return val !== 'false';
-    }
-
-    function toggleVibrationSetting() {
-        const isChecked = document.getElementById('vibrationToggle').checked;
-        localStorage.setItem('iqbike_vibration_enabled', isChecked);
-    }
-
-    function updateSoundSettingsUI() {
-        const rSound = getStoredSoundChoice('radar');
-        const pSound = getStoredSoundChoice('picked');
-        const oSound = getStoredSoundChoice('other');
-
-        document.querySelectorAll('#soundRadarList .sound-option-item').forEach(el => {
-            el.classList.remove('selected');
-            if ((el.getAttribute('onclick')||'').includes(rSound)) el.classList.add('selected');
-        });
-        document.querySelectorAll('#soundPickedList .sound-option-item').forEach(el => {
-            el.classList.remove('selected');
-            if ((el.getAttribute('onclick')||'').includes(pSound)) el.classList.add('selected');
-        });
-        document.querySelectorAll('#soundOtherList .sound-option-item').forEach(el => {
-            el.classList.remove('selected');
-            if ((el.getAttribute('onclick')||'').includes(oSound)) el.classList.add('selected');
-        });
-
-        const vibToggle = document.getElementById('vibrationToggle');
-        if (vibToggle) vibToggle.checked = getStoredVibrationChoice();
-    }
-
-    function openNotificationSettingsModal() {
-        updateSoundSettingsUI();
-        document.getElementById('notificationSettingsModal').style.display = 'flex';
-    }
-
-    function closeNotificationSettingsModal() {
-        document.getElementById('notificationSettingsModal').style.display = 'none';
-    }
-
-    function previewSpecificSound(type, soundName) {
-        playSpecificSoundChoice(soundName);
-        triggerCustomVibration(type === 'other' ? 'short' : 'long');
-    }
-
-    function playSpecificSoundChoice(choice) {
-        if (choice === 'silent') return;
-
-        try {
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            if (!AudioContext) return;
-            const ctx = new AudioContext();
-
-            const playTone = (freq, start, duration, type = 'sine') => {
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.type = type;
-                osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
-                
-                gain.gain.setValueAtTime(0.2, ctx.currentTime + start);
-                gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + start + duration);
-
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-
-                osc.start(ctx.currentTime + start);
-                osc.stop(ctx.currentTime + start + duration);
-            };
-
-            if (choice === 'sound1') {
-                playTone(880, 0, 0.12, 'sine');
-                playTone(1174.66, 0.15, 0.18, 'sine');
-            } else if (choice === 'sound2') {
-                playTone(523.25, 0, 0.1, 'triangle');
-                playTone(659.25, 0.1, 0.1, 'triangle');
-                playTone(783.99, 0.2, 0.2, 'triangle');
-            } else if (choice === 'sound3') {
-                playTone(1318.51, 0, 0.08, 'sine');
-                playTone(1567.98, 0.1, 0.25, 'sine');
-            } else if (choice === 'sound4') {
-                playTone(987.77, 0, 0.08, 'square');
-                playTone(1318.51, 0.09, 0.12, 'square');
-            } else {
-                playTone(800, 0, 0.2, 'sine');
-            }
-        } catch (e) {
-            console.log("Audio context error:", e);
-        }
-    }
-
-    function triggerCustomVibration(vibeType) {
-        if (!getStoredVibrationChoice()) return;
-        if (navigator.vibrate) {
-            if (vibeType === 'long') {
-                navigator.vibrate([400, 150, 400, 150, 600]);
-            } else {
-                navigator.vibrate(150);
-            }
-        }
+        showCustomAlert("Berhasil", `✅ Nomor WhatsApp (${passengerVerifiedWa}) Berhasil Terverifikasi!`);
     }
 
     const redPinIcon = L.divIcon({
@@ -1876,11 +908,6 @@
         iconSize: [24, 24], iconAnchor: [12, 12], className: 'driver-motor-icon'
     });
 
-    const driverOfflineIcon = L.divIcon({
-        html: '<i class="fa-solid fa-motorcycle" style="font-size:12px; color:#fff; background:#7f8c8d; padding:5px; border-radius:50%; border:2px solid #ffffff; box-shadow:0 2px 6px rgba(0,0,0,0.4);"></i>',
-        iconSize: [24, 24], iconAnchor: [12, 12], className: 'driver-offline-icon'
-    });
-
     const passengerBlueDotIcon = L.divIcon({
         html: '<i class="fa-solid fa-circle" style="font-size:14px; color:#0288d1; background:#ffffff; padding:3px; border-radius:50%; border:2px solid #0288d1; box-shadow:0 2px 6px rgba(0,0,0,0.4);"></i>',
         iconSize: [20, 20], iconAnchor: [10, 10], className: 'passenger-blue-icon'
@@ -1888,7 +915,11 @@
 
     function initMap() {
         const masterEl = document.getElementById('masterMapElement');
-        masterEl.style.display = 'block';
+        const targetContainer = document.getElementById('passengerMapWrapper');
+        if (targetContainer && masterEl) {
+            targetContainer.appendChild(masterEl);
+            masterEl.style.display = 'block';
+        }
         
         map = L.map('map', { zoomControl: false }).setView([userCurrentLat, userCurrentLng], 16);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
@@ -1903,12 +934,7 @@
             const center = map.getCenter();
             const btn = document.getElementById('btnMyLocation');
             const dist = map.distance(center, L.latLng(userCurrentLat, userCurrentLng));
-
-            if (dist > 50) {
-                btn.style.color = 'var(--accent-red)';
-            } else {
-                btn.style.color = 'var(--accent-blue)';
-            }
+            btn.style.color = (dist > 50) ? 'var(--accent-red)' : 'var(--accent-blue)';
 
             if (currentPinMode) {
                 handleMapCenterChange(center);
@@ -1917,21 +943,10 @@
 
         startLiveGpsTracking();
         listenCloudData();
-        startPeriodicDriverRefresh();
-    }
-
-    function mountMapToContainer(containerId) {
-        const masterEl = document.getElementById('masterMapElement');
-        const targetContainer = document.getElementById(containerId);
-        if (targetContainer && masterEl) {
-            targetContainer.appendChild(masterEl);
-            setTimeout(() => { map.invalidateSize(); }, 200);
-        }
     }
 
     function togglePinMode(mode) {
         const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
-
         if (mode === 'jemput' && activeOrder && activeOrder.status !== 'WAITING') {
             showCustomAlert("Terkunci", "🔒 Lokasi Penjemputan telah TERKUNCI karena iqDriver sudah mengonfirmasi pesanan!");
             return;
@@ -1985,7 +1000,6 @@
                 .then(res => res.json())
                 .then(data => {
                     const placeName = (data && data.display_name) ? data.display_name.split(',').slice(0, 3).join(',') : "Lokasi Terpilih";
-                    
                     document.getElementById('centerPinLabel').innerText = placeName.split(',')[0];
 
                     if (currentPinMode === 'jemput') {
@@ -1993,7 +1007,9 @@
                         document.getElementById('pickupLocation').value = placeName;
                         calculateFare();
                     } else if (currentPinMode === 'tujuan') {
-                        handleDestinationChangeAttempt(centerLatLng, placeName);
+                        dropoffCoords = centerLatLng;
+                        document.getElementById('dropoffLocation').value = placeName;
+                        calculateFare();
                     }
                     renderFixedMarkers();
                 }).catch(() => {
@@ -2002,345 +1018,27 @@
         }, 300);
     }
 
-    function handleDestinationChangeAttempt(newLatLng, newPlaceName) {
-        if (userRole !== 'penumpang') return;
-
-        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
-
-        if (!activeOrder) {
-            dropoffCoords = newLatLng;
-            document.getElementById('dropoffLocation').value = newPlaceName;
-            calculateFare();
-            return;
-        }
-
-        const currentLastDropoffCoords = L.latLng(activeOrder.dropoffLat, activeOrder.dropoffLng);
-        const addDistMeters = map.distance(currentLastDropoffCoords, newLatLng);
-
-        if (addDistMeters < 50) return;
-
-        pendingCalculatedExtraFare = computeDistanceFare(addDistMeters);
-        pendingCalculatedNewFare = activeOrder.fare + pendingCalculatedExtraFare;
-        pendingNewDropoffCoords = newLatLng;
-        pendingNewDropoffName = newPlaceName;
-
-        document.getElementById('modalOldDest').innerText = activeOrder.dropoff;
-        document.getElementById('modalNewDest').innerText = newPlaceName;
-        document.getElementById('modalAddKm').innerText = `+${(addDistMeters/1000).toFixed(1)} km`;
-        document.getElementById('modalAddFare').innerText = `+Rp ${pendingCalculatedExtraFare.toLocaleString('id-ID')}`;
-        document.getElementById('modalNewFare').innerText = `Rp ${pendingCalculatedNewFare.toLocaleString('id-ID')}`;
-
-        document.getElementById('confirmDestinationChangeModal').style.display = 'flex';
-    }
-
-    function applyDestinationChange() {
-        let activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
-        if (!activeOrder) return;
-
-        dropoffCoords = pendingNewDropoffCoords;
-        document.getElementById('dropoffLocation').value = pendingNewDropoffName;
-
-        if (!activeOrder.routeChanges) {
-            activeOrder.routeChanges = [];
-        }
-        
-        activeOrder.routeChanges.push({
-            from: activeOrder.dropoff,
-            to: pendingNewDropoffName,
-            extraFare: pendingCalculatedExtraFare
-        });
-
-        activeOrder.dropoff = pendingNewDropoffName;
-        activeOrder.dropoffLat = pendingNewDropoffCoords.lat;
-        activeOrder.dropoffLng = pendingNewDropoffCoords.lng;
-        activeOrder.fare = pendingCalculatedNewFare;
-        activeOrder.routeVersion = Date.now(); 
-        activeOrder.triggerPopupForDriver = true; 
-
-        localStorage.setItem('iqbike_active_order', JSON.stringify(activeOrder));
-        computedTotalFare = pendingCalculatedNewFare;
-
-        let passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
-        if (passHistory.length > 0) {
-            passHistory[0] = { ...activeOrder }; 
-            localStorage.setItem('iqbike_passenger_history', JSON.stringify(passHistory));
-        }
-
-        document.getElementById('fareText').innerText = `Rp ${computedTotalFare.toLocaleString('id-ID')}`;
-        document.getElementById('confirmDestinationChangeModal').style.display = 'none';
-
-        syncOrderToCloud(activeOrder);
-        renderFixedMarkers();
-        updatePassengerAppUI();
-        updateDriverAppUI();
-        renderPassengerHistory();
-        showCustomAlert("Berhasil", "Titik Tujuan & Penambahan Ongkos Berhasil Diperbarui!");
-    }
-
-    function cancelDestinationChange() {
-        document.getElementById('confirmDestinationChangeModal').style.display = 'none';
-        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
-        if (activeOrder) {
-            dropoffCoords = L.latLng(activeOrder.dropoffLat, activeOrder.dropoffLng);
-            document.getElementById('dropoffLocation').value = activeOrder.dropoff;
-            renderFixedMarkers();
-        }
-    }
-
-    function closeDriverRouteUpdateModal() {
-        document.getElementById('driverRouteUpdateModal').style.display = 'none';
-        
-        let activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
-        if (activeOrder && activeOrder.triggerPopupForDriver) {
-            activeOrder.triggerPopupForDriver = false;
-            localStorage.setItem('iqbike_active_order', JSON.stringify(activeOrder));
-            syncOrderToCloud(activeOrder);
-        }
-    }
-
-    function closeDriverNearbyOrderModal() {
-        document.getElementById('driverNearbyOrderModal').style.display = 'none';
-    }
-
-    function driverTakeOrderFromNearbyModal() {
-        const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
-        if (order) {
-            driverTakeOrder(order.id);
-        }
-        closeDriverNearbyOrderModal();
-    }
-
-    function openGoogleMapsFromDriverModal() {
-        const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
-        if (order) {
-            openGoogleMapsNav(order.dropoffLat, order.dropoffLng);
-        }
-        closeDriverRouteUpdateModal();
-    }
-
     function renderFixedMarkers() {
-        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
-
         if (pickupCoords && dropoffCoords) {
-            if (routingControl) {
-                map.removeControl(routingControl);
-            }
+            if (routingControl) map.removeControl(routingControl);
             routingControl = L.Routing.control({
-                waypoints: [
-                    L.latLng(pickupCoords.lat, pickupCoords.lng),
-                    L.latLng(dropoffCoords.lat, dropoffCoords.lng)
-                ],
-                routeSelected: function() {},
+                waypoints: [L.latLng(pickupCoords.lat, pickupCoords.lng), L.latLng(dropoffCoords.lat, dropoffCoords.lng)],
                 createMarker: function() { return null; },
-                lineOptions: {
-                    styles: [{ color: '#0288d1', opacity: 0.8, weight: 5 }]
-                },
-                addWaypoints: false,
-                draggableWaypoints: false,
-                fitSelectedRoutes: false,
-                show: false
+                lineOptions: { styles: [{ color: '#0288d1', opacity: 0.8, weight: 5 }] },
+                addWaypoints: false, draggableWaypoints: false, fitSelectedRoutes: false, show: false
             }).addTo(map);
         } else if (routingControl) {
             map.removeControl(routingControl);
             routingControl = null;
         }
 
-        if (!activeOrder && !currentPinMode && !pickupCoords && !dropoffCoords) {
-            if (pickupMarker) { map.removeLayer(pickupMarker); pickupMarker = null; }
-            if (dropoffMarker) { map.removeLayer(dropoffMarker); dropoffMarker = null; }
-            return;
-        }
-
         if (pickupCoords) {
-            if (!pickupMarker) {
-                pickupMarker = L.marker(pickupCoords, {icon: redPinIcon}).addTo(map);
-            } else {
-                pickupMarker.setLatLng(pickupCoords);
-            }
+            if (!pickupMarker) pickupMarker = L.marker(pickupCoords, {icon: redPinIcon}).addTo(map);
+            else pickupMarker.setLatLng(pickupCoords);
         }
-
         if (dropoffCoords) {
-            if (!dropoffMarker) {
-                dropoffMarker = L.marker(dropoffCoords, {icon: finishFlagIcon}).addTo(map);
-            } else {
-                dropoffMarker.setLatLng(dropoffCoords);
-            }
-        }
-    }
-
-    function showLoginOverlay() {
-        document.getElementById('loginOverlay').style.display = 'flex';
-    }
-
-    function openDriverPinModal() {
-        document.getElementById('inputDriverPin').value = '';
-        document.getElementById('driverPinModal').style.display = 'flex';
-    }
-
-    function closeDriverPinModal() {
-        document.getElementById('driverPinModal').style.display = 'none';
-        document.getElementById('inputDriverPin').value = '';
-    }
-
-    function verifyDriverPin() {
-        const inputPin = document.getElementById('inputDriverPin').value.trim();
-        const currentPin = getStoredPin();
-
-        if (inputPin === currentPin) {
-            closeDriverPinModal();
-            selectUserRole('driver');
-        } else {
-            showCustomAlert("PIN Salah", "PIN Salah! Masukkan PIN yang benar atau minta reset PIN via WA Admin.");
-        }
-    }
-
-    function triggerResetPinWa() {
-        const message = "Halo Admin iqBike, saya Lupa PIN iqDriver. Mohon berikan Kode Verifikasi Master untuk reset PIN.";
-        const waUrl = `whatsapp://send?phone=${currentDriverWa}&text=${encodeURIComponent(message)}`;
-
-        closeDriverPinModal();
-        document.getElementById('inputMasterKey').value = '';
-        document.getElementById('inputNewPin').value = '';
-        document.getElementById('resetPinModal').style.display = 'flex';
-        
-        window.location.href = waUrl;
-    }
-
-    function closeResetPinModal() {
-        document.getElementById('resetPinModal').style.display = 'none';
-        document.getElementById('inputMasterKey').value = '';
-        document.getElementById('inputNewPin').value = '';
-    }
-
-    function saveResetPin() {
-        const masterKeyInput = document.getElementById('inputMasterKey').value.trim();
-        const newPinInput = document.getElementById('inputNewPin').value.trim();
-
-        if (masterKeyInput !== ADMIN_MASTER_KEY) {
-            showCustomAlert("Gagal", "Kode Verifikasi Admin WA Salah!");
-            return;
-        }
-
-        if (!newPinInput || newPinInput.length < 4) {
-            showCustomAlert("Gagal", "PIN Baru minimal 4 angka!");
-            return;
-        }
-
-        localStorage.setItem('iqbike_driver_pin', newPinInput);
-        showCustomAlert("Berhasil", "PIN Berhasil diperbarui! Silakan login dengan PIN Baru.");
-        closeResetPinModal();
-        openDriverPinModal();
-    }
-
-    function changeDriverPinDirect() {
-        const currentPin = getStoredPin();
-        const oldPinInput = prompt("Masukkan PIN Lama Anda saat ini:");
-        
-        if (oldPinInput === currentPin) {
-            const newPin = prompt("Masukkan PIN Baru Anda (4 Digit Angka):");
-            if (newPin && newPin.trim().length >= 4) {
-                localStorage.setItem('iqbike_driver_pin', newPin.trim());
-                showCustomAlert("Berhasil", "PIN Berhasil Diubah!");
-            } else {
-                showCustomAlert("Gagal", "PIN baru harus minimal 4 digit angka.");
-            }
-        } else {
-            showCustomAlert("Gagal", "PIN Lama Salah!");
-        }
-    }
-
-    function selectUserRole(role) {
-        userRole = role;
-        localStorage.setItem('iqbike_saved_role', role);
-
-        document.getElementById('loginOverlay').style.display = 'none';
-        document.getElementById('currentRoleText').innerText = (role === 'penumpang') ? 'Mode: Penumpang' : 'Mode: iqDriver';
-
-        ensureDriverCloudPresence();
-
-        if (role === 'penumpang') {
-            document.getElementById('passengerView').style.display = 'flex';
-            document.getElementById('driverView').style.display = 'none';
-            document.getElementById('btnHeaderPin').style.display = 'none';
-            mountMapToContainer('passengerMapWrapper');
-            
-            updatePassengerWaInputUI();
-            updatePassengerAppUI();
-            renderPassengerHistory();
-        } else {
-            document.getElementById('passengerView').style.display = 'none';
-            document.getElementById('driverView').style.display = 'flex';
-            document.getElementById('btnHeaderPin').style.display = 'inline-block';
-            document.getElementById('centerPinContainer').style.display = 'none';
-            document.getElementById('btnConfirmLocation').style.display = 'none';
-            mountMapToContainer('driverMapContainer');
-            loadDriverWaNumber();
-            
-            updateDriverBadgeUI(isDriverOnline);
-            updateDriverAppUI();
-            renderFinanceAndHistory();
-
-            ensureDriverCloudPresence();
-
-            const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
-            if (activeOrder && activeOrder.triggerPopupForDriver) {
-                const lastChange = activeOrder.routeChanges && activeOrder.routeChanges.length > 0 ? activeOrder.routeChanges[activeOrder.routeChanges.length - 1] : null;
-                document.getElementById('driverModalNewDest').innerText = activeOrder.dropoff;
-                document.getElementById('driverModalAddFare').innerText = lastChange ? `+Rp ${lastChange.extraFare.toLocaleString('id-ID')}` : `Ada Penambahan Rute`;
-                document.getElementById('driverModalNewFare').innerText = `Rp ${activeOrder.fare.toLocaleString('id-ID')}`;
-                document.getElementById('driverRouteUpdateModal').style.display = 'flex';
-                
-                playSpecificSoundChoice(getStoredSoundChoice('other'));
-                triggerCustomVibration('short');
-            }
-        }
-    }
-
-    function toggleDriverOnlineStatus() {
-        isDriverOnline = !isDriverOnline;
-        localStorage.setItem('iqbike_driver_online_status', isDriverOnline);
-        updateDriverBadgeUI(isDriverOnline);
-        ensureDriverCloudPresence();
-        
-        updateDriverAppUI();
-
-        playSpecificSoundChoice(getStoredSoundChoice('other'));
-        triggerCustomVibration('short');
-    }
-
-    function updateDriverBadgeUI(online) {
-        const badge = document.getElementById('miniGpsBadge');
-        const text = document.getElementById('gpsBadgeText');
-        const btn = document.getElementById('btnToggleDriverStatus');
-        
-        if (btn) {
-            if (online) {
-                btn.className = "btn-toggle-online online";
-                btn.innerText = "Online";
-            } else {
-                btn.className = "btn-toggle-online offline";
-                btn.innerText = "Offline";
-            }
-        }
-
-        if (!badge || !text) return;
-
-        if (online) {
-            badge.classList.remove('offline');
-            text.innerText = "GPS iqDriver ONLINE";
-        } else {
-            badge.classList.add('offline');
-            text.innerText = "GPS iqDriver OFFLINE";
-        }
-    }
-
-    function loadDriverWaNumber() {
-        const storedWa = localStorage.getItem('iqbike_driver_wa');
-        if (storedWa) {
-            currentDriverWa = storedWa;
-            document.getElementById('driverWaInput').value = storedWa;
-        } else {
-            document.getElementById('driverWaInput').value = currentDriverWa;
+            if (!dropoffMarker) dropoffMarker = L.marker(dropoffCoords, {icon: finishFlagIcon}).addTo(map);
+            else dropoffMarker.setLatLng(dropoffCoords);
         }
     }
 
@@ -2350,25 +1048,16 @@
                 const currentPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
                 userCurrentLat = currentPos.lat;
                 userCurrentLng = currentPos.lng;
-
                 localStorage.setItem('iqbike_last_known_pos', JSON.stringify(currentPos));
 
-                if (userRole === 'driver' && map) {
-                    map.setView([userCurrentLat, userCurrentLng], 16);
-                } else if (!isInitialMapCenterDone && userRole === 'penumpang') {
+                if (!isInitialMapCenterDone) {
                     map.setView([userCurrentLat, userCurrentLng], 16);
                     document.getElementById('btnMyLocation').style.color = 'var(--accent-blue)';
                     isInitialMapCenterDone = true;
                 }
 
-                if (userRole === 'penumpang') {
-                    localStorage.setItem('iqbike_passenger_gps', JSON.stringify(currentPos));
-                    syncPassengerGpsToCloud(currentPos);
-                } else if (userRole === 'driver') {
-                    localStorage.setItem('iqbike_driver_gps', JSON.stringify(currentPos));
-                    ensureDriverCloudPresence();
-                }
-
+                localStorage.setItem('iqbike_passenger_gps', JSON.stringify(currentPos));
+                syncPassengerGpsToCloud(currentPos);
                 renderPassengerLocalMarkers();
             }, null, { enableHighAccuracy: true });
         }
@@ -2376,40 +1065,20 @@
 
     function syncPassengerGpsToCloud(pos) {
         db.collection("iqbike_system").doc("passenger_gps").set({
-            lat: pos.lat,
-            lng: pos.lng,
+            lat: pos.lat, lng: pos.lng,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true }).catch(err => console.log("Sync passenger gps error:", err));
+        }, { merge: true }).catch(() => {});
     }
 
     function syncOrderToCloud(orderData) {
         db.collection("iqbike_system").doc("active_order").set({
             ...orderData,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true }).catch(err => console.log("Sync order error:", err));
+        }, { merge: true }).catch(() => {});
     }
 
     function removeOrderFromCloud() {
-        db.collection("iqbike_system").doc("active_order").delete().catch(err => console.log("Delete order error:", err));
-    }
-
-    function startPeriodicDriverRefresh() {
-        setInterval(() => {
-            if (userRole === 'driver' && isDriverOnline) {
-                db.collection("iqbike_system").doc("active_order").get().then((doc) => {
-                    if (doc.exists) {
-                        const cloudOrder = doc.data();
-                        const localOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
-                        if (!localOrder || localOrder.id !== cloudOrder.id || localOrder.status !== cloudOrder.status || localOrder.assignedDriverWa !== cloudOrder.assignedDriverWa) {
-                            localStorage.setItem('iqbike_active_order', JSON.stringify(cloudOrder));
-                            updateDriverAppUI();
-                            checkAndShowNearbyOrderPopup(cloudOrder);
-                            checkIfPickedByPassenger(cloudOrder);
-                        }
-                    }
-                }).catch(err => console.log("Periodic refresh error:", err));
-            }
-        }, 3000);
+        db.collection("iqbike_system").doc("active_order").delete().catch(() => {});
     }
 
     function listenCloudData() {
@@ -2419,150 +1088,25 @@
 
             snapshot.forEach((doc) => {
                 const data = doc.data();
-                const waKey = doc.id;
-                activeDriversList[waKey] = data;
-
-                if (data.isOnline === true) {
-                    anyDriverOnline = true;
-                }
+                activeDriversList[doc.id] = data;
+                if (data.isOnline === true) anyDriverOnline = true;
             });
 
             renderAllMultiDriversOnMap(activeDriversList);
             updatePassengerStatusBoxGlobal(anyDriverOnline);
         });
 
-        db.collection("iqbike_system").doc("passenger_gps").onSnapshot((doc) => {
-            if (doc.exists) {
-                const data = doc.data();
-                if (data.lat && data.lng) {
-                    localStorage.setItem('iqbike_passenger_gps', JSON.stringify({ lat: data.lat, lng: data.lng }));
-                    renderPassengerLocalMarkers();
-                }
-            }
-        });
-
         db.collection("iqbike_system").doc("active_order").onSnapshot((doc) => {
             if (doc.exists) {
                 const cloudOrder = doc.data();
-                const localOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
-                
-                if (userRole === 'penumpang') {
-                    const isMyOrder = (cloudOrder.deviceUuid === passengerDeviceUuid);
-                    if (!isMyOrder && cloudOrder.status === 'WAITING') {
-                        return;
-                    }
-                }
-
-                if (cloudOrder.status === 'CANCELLED_BY_PASSENGER') {
-                    if (userRole === 'driver' && (cloudOrder.assignedDriverWa === currentDriverWa || !cloudOrder.assignedDriverWa)) {
-                        if (lastNotifiedCancelId !== cloudOrder.id) {
-                            lastNotifiedCancelId = cloudOrder.id;
-                            document.getElementById('cancelModalPassName').innerText = cloudOrder.passengerName;
-                            document.getElementById('cancelModalRoute').innerText = `${cloudOrder.pickup} ➔ ${cloudOrder.dropoff}`;
-                            document.getElementById('passengerCancelledModal').style.display = 'flex';
-                            
-                            let history = JSON.parse(localStorage.getItem('iqbike_history') || '[]');
-                            if (!history.some(h => h.id === cloudOrder.id)) {
-                                const cancelTimeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                                history.unshift({
-                                    id: cloudOrder.id,
-                                    type: 'EXPENSE',
-                                    isCancelledOrder: true,
-                                    serviceType: cloudOrder.serviceType || 'ojek',
-                                    passengerName: cloudOrder.passengerName,
-                                    passengerPhone: cloudOrder.passengerPhone,
-                                    pickup: cloudOrder.pickup,
-                                    dropoff: cloudOrder.dropoff,
-                                    note: `Order Batal (${cloudOrder.passengerName})`,
-                                    amount: 0,
-                                    timestamp: Date.now(),
-                                    timeReceived: cloudOrder.timeReceived || '-',
-                                    timeCancelled: cancelTimeStr,
-                                    dateString: new Date().toLocaleDateString()
-                                });
-
-                                localStorage.setItem('iqbike_history', JSON.stringify(history));
-                                renderFinanceAndHistory();
-                            }
-
-                            playSpecificSoundChoice(getStoredSoundChoice('other'));
-                            triggerCustomVibration('short');
-                            triggerSystemPushNotification("Pesanan Dibatalkan", "Penumpang membatalkan pesanan.");
-                        }
-                    }
-                }
-
-                if (!localOrder || localOrder.id !== cloudOrder.id) {
-                    if (userRole === 'driver' || (userRole === 'penumpang' && cloudOrder.deviceUuid === passengerDeviceUuid)) {
-                        playSpecificSoundChoice(getStoredSoundChoice('radar'));
-                        triggerCustomVibration('long');
-                        triggerSystemPushNotification("iqDriver Radar", "Ada orderan baru di sekitar Anda!");
-                    }
-                }
-
-                if (userRole === 'driver') {
-                    checkAndShowNearbyOrderPopup(cloudOrder);
-                    checkIfPickedByPassenger(cloudOrder);
-                }
-                
-                localStorage.setItem('iqbike_active_order', JSON.stringify(cloudOrder));
-
-                if (userRole === 'driver' && cloudOrder.triggerPopupForDriver) {
-                    const lastChange = cloudOrder.routeChanges && cloudOrder.routeChanges.length > 0 ? cloudOrder.routeChanges[cloudOrder.routeChanges.length - 1] : null;
-                    document.getElementById('driverModalNewDest').innerText = cloudOrder.dropoff;
-                    document.getElementById('driverModalAddFare').innerText = lastChange ? `+Rp ${lastChange.extraFare.toLocaleString('id-ID')}` : `Ada Penambahan Rute`;
-                    document.getElementById('driverModalNewFare').innerText = `Rp ${cloudOrder.fare.toLocaleString('id-ID')}`;
-                    document.getElementById('driverRouteUpdateModal').style.display = 'flex';
-                    
-                    playSpecificSoundChoice(getStoredSoundChoice('other'));
-                    triggerCustomVibration('short');
+                if (cloudOrder.deviceUuid === passengerDeviceUuid) {
+                    localStorage.setItem('iqbike_active_order', JSON.stringify(cloudOrder));
                 }
             } else {
-                const localOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
-                if (localOrder) {
-                    localStorage.removeItem('iqbike_active_order');
-                }
+                localStorage.removeItem('iqbike_active_order');
             }
             updatePassengerAppUI();
-            updateDriverAppUI();
         });
-    }
-
-    function checkAndShowNearbyOrderPopup(order) {
-        if (!isDriverOnline || !order || order.status !== 'WAITING') return;
-
-        if (lastNotifiedOrderId === order.id) return;
-
-        const driverLatLng = L.latLng(userCurrentLat, userCurrentLng);
-        const pickupLatLng = L.latLng(order.pickupLat, order.pickupLng);
-        const distanceMeters = map ? map.distance(driverLatLng, pickupLatLng) : 0;
-
-        if (distanceMeters <= 5000) {
-            lastNotifiedOrderId = order.id;
-
-            document.getElementById('nearbyModalName').innerText = order.passengerName;
-            document.getElementById('nearbyModalPickup').innerText = order.pickup;
-            document.getElementById('nearbyModalDropoff').innerText = order.dropoff;
-            document.getElementById('nearbyModalDistance').innerText = (distanceMeters >= 1000) ? (distanceMeters / 1000).toFixed(1) + " km" : Math.round(distanceMeters) + " meter";
-            document.getElementById('nearbyModalFare').innerText = `Rp ${order.fare.toLocaleString('id-ID')}`;
-
-            document.getElementById('driverNearbyOrderModal').style.display = 'flex';
-            
-            playSpecificSoundChoice(getStoredSoundChoice('radar'));
-            triggerCustomVibration('long');
-            triggerSystemPushNotification("Orderan iqDriver Masuk!", `Ada pesanan dari ${order.passengerName}`);
-        }
-    }
-
-    function checkIfPickedByPassenger(order) {
-        if (userRole === 'driver' && order && order.status === 'HEADING_PICKUP' && order.assignedDriverWa === currentDriverWa) {
-            if (lastNotifiedPickedId !== order.id) {
-                lastNotifiedPickedId = order.id;
-                playSpecificSoundChoice(getStoredSoundChoice('picked'));
-                triggerCustomVibration('long');
-                triggerSystemPushNotification("🎉 Anda Dipilih Penumpang!", "Penumpang telah memilih Anda sebagai iqDriver untuk pesanan ini.");
-            }
-        }
     }
 
     function updatePassengerStatusBoxGlobal(anyOnline) {
@@ -2586,26 +1130,21 @@
 
     function renderAllMultiDriversOnMap(driversObj) {
         if (!map) return;
-
-        Object.keys(driverMarkersMap).forEach(existingWa => {
-            if (!driversObj[existingWa]) {
-                map.removeLayer(driverMarkersMap[existingWa]);
-                delete driverMarkersMap[existingWa];
+        Object.keys(driverMarkersMap).forEach(wa => {
+            if (!driversObj[wa]) {
+                map.removeLayer(driverMarkersMap[wa]);
+                delete driverMarkersMap[wa];
             }
         });
 
-        Object.keys(driversObj).forEach(waKey => {
-            const dData = driversObj[waKey];
-            if (!dData.lat || !dData.lng) return;
+        Object.keys(driversObj).forEach(wa => {
+            const dData = driversObj[wa];
+            if (!dData.lat || !dData.lng || !dData.isOnline) return;
 
-            const isOnline = dData.isOnline === true;
-            const iconToUse = isOnline ? driverMotorIcon : driverOfflineIcon;
-
-            if (!driverMarkersMap[waKey]) {
-                driverMarkersMap[waKey] = L.marker([dData.lat, dData.lng], {icon: iconToUse, zIndexOffset: 1000}).addTo(map);
+            if (!driverMarkersMap[wa]) {
+                driverMarkersMap[wa] = L.marker([dData.lat, dData.lng], {icon: driverMotorIcon, zIndexOffset: 1000}).addTo(map);
             } else {
-                driverMarkersMap[waKey].setLatLng([dData.lat, dData.lng]);
-                driverMarkersMap[waKey].setIcon(iconToUse);
+                driverMarkersMap[wa].setLatLng([dData.lat, dData.lng]);
             }
         });
     }
@@ -2625,10 +1164,7 @@
         const currentLatLng = L.latLng(userCurrentLat, userCurrentLng);
         map.setView(currentLatLng, 16);
         document.getElementById('btnMyLocation').style.color = 'var(--accent-blue)';
-
-        if (currentPinMode) {
-            handleMapCenterChange(currentLatLng);
-        }
+        if (currentPinMode) handleMapCenterChange(currentLatLng);
     }
 
     function handleSearchOrPaste(type) {
@@ -2645,40 +1181,13 @@
 
         if (!query) {
             container.style.display = 'none';
-            if (type === 'jemput') {
-                pickupCoords = null;
-                if (pickupMarker) { map.removeLayer(pickupMarker); pickupMarker = null; }
-            }
-            if (type === 'tujuan') {
-                dropoffCoords = null;
-                if (dropoffMarker) { map.removeLayer(dropoffMarker); dropoffMarker = null; }
-            }
+            if (type === 'jemput') { pickupCoords = null; if (pickupMarker) { map.removeLayer(pickupMarker); pickupMarker = null; } }
+            if (type === 'tujuan') { dropoffCoords = null; if (dropoffMarker) { map.removeLayer(dropoffMarker); dropoffMarker = null; } }
             calculateFare();
             return;
         }
 
-        const coordRegex = /([-+]?\d{1,2}\.\d+)\s*,\s*([-+]?\d{1,3}\.\d+)/;
-        let match = query.match(coordRegex);
-
-        if (match) {
-            const lat = parseFloat(match[1]);
-            const lng = parseFloat(match[2]);
-            if (lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
-                const newLatLng = L.latLng(lat, lng);
-                if (type === 'jemput') {
-                    pickupCoords = newLatLng;
-                    calculateFare();
-                } else {
-                    handleDestinationChangeAttempt(newLatLng, query);
-                }
-                map.panTo(newLatLng);
-                container.style.display = 'none';
-                renderFixedMarkers();
-                return;
-            }
-        }
-
-        if (query.length >= 3 && !query.startsWith('http')) {
+        if (query.length >= 3) {
             clearTimeout(searchDebounce);
             searchDebounce = setTimeout(() => {
                 fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=id&limit=5`)
@@ -2697,14 +1206,14 @@
                                     if (type === 'jemput') {
                                         document.getElementById('pickupLocation').value = shortName;
                                         pickupCoords = selectedLatLng;
-                                        calculateFare();
                                     } else {
-                                        handleDestinationChangeAttempt(selectedLatLng, shortName);
+                                        document.getElementById('dropoffLocation').value = shortName;
+                                        dropoffCoords = selectedLatLng;
                                     }
-
                                     map.panTo(selectedLatLng);
                                     container.style.display = 'none';
                                     renderFixedMarkers();
+                                    calculateFare();
                                 };
                                 container.appendChild(div);
                             });
@@ -2729,12 +1238,6 @@
         let fare = baseFare;
         const fullKm = Math.floor(extraMeters / 1000);
         fare += fullKm * kmRate;
-        const remainderMeters = Math.round(extraMeters % 1000);
-        if (remainderMeters >= 1 && remainderMeters <= 199) fare += Math.round(kmRate * 0.2);
-        else if (remainderMeters >= 200 && remainderMeters <= 399) fare += Math.round(kmRate * 0.4);
-        else if (remainderMeters >= 400 && remainderMeters <= 599) fare += Math.round(kmRate * 0.6);
-        else if (remainderMeters >= 600 && remainderMeters <= 799) fare += Math.round(kmRate * 0.8);
-        else if (remainderMeters >= 800) fare += kmRate;
         return fare;
     }
 
@@ -2744,7 +1247,6 @@
             document.getElementById('fareText').innerText = "Rp 0";
             return;
         }
-
         const distMeters = map.distance(pickupCoords, dropoffCoords);
         computedTotalFare = computeDistanceFare(distMeters);
         const serviceLabel = (currentSelectedService === 'kurir') ? 'Kurir' : 'Ojek';
@@ -2771,23 +1273,16 @@
         const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
 
         if (activeOrder && activeOrder.status !== 'WAITING') {
-            const passengerGps = JSON.parse(localStorage.getItem('iqbike_passenger_gps')) || { lat: userCurrentLat, lng: userCurrentLng };
-            const passengerSharlokUrl = `https://maps.google.com/?q=${passengerGps.lat},${passengerGps.lng}`;
-
+            const driverGps = activeOrder.assignedDriverWa ? { lat: userCurrentLat, lng: userCurrentLng } : null;
             const text = `Halo iqDriver iqBike, saya mau order layanan ${activeOrder.serviceType.toUpperCase()}:\n\n` +
                          `👤 *Nama:* ${activeOrder.passengerName}\n` +
                          `📱 *WA Penumpang:* ${activeOrder.passengerPhone}\n` +
                          `📍 *Jemput:* ${activeOrder.pickup}\n` +
-                         `🗺️ *Link Titik Jemput:* ${passengerSharlokUrl}\n` +
                          `🏁 *Tujuan:* ${activeOrder.dropoff}\n` +
-                         `⏱️ *Dijemput:* Secepatnya / Instan\n` +
                          `💰 *Estimasi Ongkos:* Rp ${activeOrder.fare.toLocaleString('id-ID')}\n` +
                          `📝 *Catatan:* ${activeOrder.note}\n\n` +
-                         `Mohon konfirmasinya ya, terima kasih!`;
-
-            const targetWa = activeOrder.assignedDriverWa || currentDriverWa;
-            const waUrl = `whatsapp://send?phone=${targetWa}&text=${encodeURIComponent(text)}`;
-            window.location.href = waUrl;
+                         `Terima kasih!`;
+            window.location.href = `whatsapp://send?phone=${activeOrder.assignedDriverWa}&text=${encodeURIComponent(text)}`;
             return;
         }
 
@@ -2813,7 +1308,7 @@
         const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
 
         if (!order || !order.acceptedDrivers || order.acceptedDrivers.length === 0) {
-            container.innerHTML = '<p style="font-size: 11px; color: #a0a0a0; text-align:center; padding:12px;">Belum ada iqDriver yang mengajukan diri. Mohon tunggu sebentar...</p>';
+            container.innerHTML = '<p style="font-size: 11px; color: #a0a0a0; text-align:center; padding:12px;">Belum ada iqDriver yang mengajukan diri. Mohon tunggu...</p>';
             return;
         }
 
@@ -2821,74 +1316,45 @@
 
         db.collection("iqbike_drivers").get().then((snapshot) => {
             let driversWithDistance = [];
-
             snapshot.forEach((doc) => {
                 const dData = doc.data();
                 const matchedAccepted = order.acceptedDrivers.find(d => d.wa === doc.id);
-
                 if (matchedAccepted && dData.lat && dData.lng) {
                     const driverLatLng = L.latLng(dData.lat, dData.lng);
                     const distanceMeters = map ? map.distance(driverLatLng, pickupLatLng) : 0;
                     const distanceKm = distanceMeters / 1000;
-                    
-                    let pickupExtraFee = 0;
-                    if (distanceKm > 2.0) {
-                        pickupExtraFee = Math.ceil(distanceKm - 2.0) * 2000;
-                    }
+                    let pickupExtraFee = (distanceKm > 2.0) ? Math.ceil(distanceKm - 2.0) * 2000 : 0;
 
                     driversWithDistance.push({
-                        wa: doc.id,
-                        distanceMeters: distanceMeters,
-                        distanceKm: distanceKm,
+                        wa: doc.id, distanceMeters, distanceKm,
                         distanceText: (distanceMeters >= 1000) ? distanceKm.toFixed(1) + " km" : Math.round(distanceMeters) + " meter",
-                        pickupExtraFee: pickupExtraFee
+                        pickupExtraFee
                     });
                 }
             });
 
             driversWithDistance.sort((a, b) => a.distanceMeters - b.distanceMeters);
-
             container.innerHTML = '';
-            
-            if (driversWithDistance.length === 0) {
-                container.innerHTML = '<p style="font-size: 11px; color: #a0a0a0; text-align:center; padding:12px;">Memuat posisi jarak iqDriver...</p>';
-                return;
-            }
 
-            if (driversWithDistance.length === 1 && driversWithDistance[0].distanceKm < 3.0) {
-                setTimeout(() => {
-                    passengerSelectDriver(driversWithDistance[0].wa, driversWithDistance[0].pickupExtraFee);
-                }, 300);
+            if (driversWithDistance.length === 0) {
+                container.innerHTML = '<p style="font-size: 11px; color: #a0a0a0; text-align:center; padding:12px;">Memuat posisi iqDriver...</p>';
                 return;
             }
 
             driversWithDistance.forEach((driver) => {
                 const card = document.createElement('div');
                 card.style.cssText = "background:#2a2a2a; padding:10px; border-radius:8px; border:1px solid #444; display:flex; flex-direction:column; gap:6px;";
-                
-                let extraFeeInfoHtml = '';
-                if (driver.pickupExtraFee > 0) {
-                    extraFeeInfoHtml = `<div style="color:#f2994a; font-size:11px;">⚠️ Jarak jemput &gt; 2 km (+Biaya Jemput: Rp ${driver.pickupExtraFee.toLocaleString('id-ID')})</div>`;
-                } else {
-                    extraFeeInfoHtml = `<div style="color:#27ae60; font-size:11px;">✨ Biaya Jemput: GRATIS (&le; 2 km)</div>`;
-                }
-
                 card.innerHTML = `
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <span><i class="fa-solid fa-motorcycle" style="color:var(--primary-green);"></i> <strong>iqDriver WA:</strong> ${driver.wa}</span>
-                        <span style="background:#0288d1; color:#fff; padding:2px 6px; border-radius:6px; font-size:10px; font-weight:bold;">
-                            <i class="fa-solid fa-location-arrow"></i> Jarak Jemput: ${driver.distanceText}
-                        </span>
+                        <span style="background:#0288d1; color:#fff; padding:2px 6px; border-radius:6px; font-size:10px; font-weight:bold;">Jarak: ${driver.distanceText}</span>
                     </div>
-                    ${extraFeeInfoHtml}
                     <button onclick="passengerSelectDriver('${driver.wa}', ${driver.pickupExtraFee})" style="background:var(--whatsapp-green); color:#fff; border:none; padding:8px; border-radius:6px; font-weight:bold; font-size:12px; cursor:pointer;">
-                        <i class="fa-solid fa-check-circle"></i> Pilih iqDriver Ini ${driver.pickupExtraFee > 0 ? '(+Rp ' + driver.pickupExtraFee.toLocaleString('id-ID') + ')' : ''}
+                        <i class="fa-solid fa-check-circle"></i> Pilih iqDriver Ini
                     </button>
                 `;
                 container.appendChild(card);
             });
-        }).catch(err => {
-            console.log("Error fetching drivers distance:", err);
         });
     }
 
@@ -2898,47 +1364,14 @@
 
         order.status = 'HEADING_PICKUP';
         order.assignedDriverWa = driverWa;
-        if (extraPickupFee > 0) {
-            order.fare += extraPickupFee;
-            if (!order.routeChanges) order.routeChanges = [];
-            order.routeChanges.push({
-                from: "Biaya Tambahan Jemput",
-                to: "Titik Jemput Jauh (>2km)",
-                extraFare: extraPickupFee
-            });
-        }
-        order.acceptedDrivers = []; 
+        if (extraPickupFee > 0) order.fare += extraPickupFee;
+        order.acceptedDrivers = [];
 
         localStorage.setItem('iqbike_active_order', JSON.stringify(order));
         syncOrderToCloud(order);
         closeDriverSelectionModal();
-
         updatePassengerAppUI();
-        updateDriverAppUI();
-        showCustomAlert("Berhasil", `iqDriver (${driverWa}) berhasil dipilih! Total ongkos disesuaikan.`);
-    }
-
-    function openPassengerWa(passengerPhone, passengerName, assignedDriverWa) {
-        const driverGps = JSON.parse(localStorage.getItem('iqbike_driver_gps')) || { lat: userCurrentLat, lng: userCurrentLng };
-        const driverSharlokUrl = `https://maps.google.com/?q=${driverGps.lat},${driverGps.lng}`;
-        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order')) || {};
-
-        const text = `Halo Kak *${passengerName}*, saya iqDriver iqBike (*${assignedDriverWa || currentDriverWa}*) yang akan menangani pesanan Anda.\n\n` +
-                     `📍 *Lokasi Terkini iqDriver:*\n${driverSharlokUrl}\n\n` +
-                     `Saya sedang menuju ke titik penjemputan. Mohon ditunggu ya Kak, terima kasih!`;
-
-        const waUrl = `whatsapp://send?phone=${passengerPhone}&text=${encodeURIComponent(text)}`;
-        
-        if (activeOrder && activeOrder.status === 'WAITING') {
-            activeOrder.status = 'HEADING_PICKUP';
-            activeOrder.assignedDriverWa = currentDriverWa;
-            localStorage.setItem('iqbike_active_order', JSON.stringify(activeOrder));
-            syncOrderToCloud(activeOrder);
-            updateDriverAppUI();
-            updatePassengerAppUI();
-        }
-
-        window.location.href = waUrl;
+        showCustomAlert("Berhasil", `iqDriver (${driverWa}) berhasil dipilih!`);
     }
 
     function sendOrderToCloudRadar() {
@@ -2949,44 +1382,36 @@
         const note = document.getElementById('passengerNote').value.trim() || "-";
 
         if (!pickup || !pickupCoords) {
-            showCustomAlert("Peringatan", "⚠️ LOKASI JEMPUT KOSONG!\n\nHarap klik tombol 'Set JEMPUT' untuk menentukan titik jemput.");
+            showCustomAlert("Peringatan", "⚠️ Harap tentukan titik lokasi jemput di peta.");
             return;
         }
-
         if (!dropoff || !dropoffCoords) {
-            showCustomAlert("Peringatan", "⚠️ LOKASI TUJUAN KOSONG!\n\nHarap klik tombol 'Set TUJUAN' untuk menentukan titik tujuan.");
+            showCustomAlert("Peringatan", "⚠️ Harap tentukan titik lokasi tujuan di peta.");
             return;
         }
-
         if (!name) {
             showCustomAlert("Peringatan", "Harap masukkan Nama Anda!");
             return;
         }
-
         if (!rawPhone || rawPhone.length < 10) {
-            showCustomAlert("Peringatan", "⚠️ Nomor WhatsApp Penumpang belum terverifikasi! Harap klik tombol 'Verif WA' terlebih dahulu.");
+            showCustomAlert("Peringatan", "⚠️ Nomor WhatsApp Penumpang belum terverifikasi!");
             return;
         }
 
         const newOrder = {
             id: Date.now(),
-            deviceUuid: passengerDeviceUuid, 
+            deviceUuid: passengerDeviceUuid,
             serviceType: currentSelectedService,
-            passengerName: name, 
+            passengerName: name,
             passengerPhone: rawPhone,
             pickup, dropoff,
             pickupLat: pickupCoords.lat, pickupLng: pickupCoords.lng,
             dropoffLat: dropoffCoords.lat, dropoffLng: dropoffCoords.lng,
             fare: computedTotalFare,
-            initialFare: computedTotalFare, 
-            initialDropoff: dropoff,        
-            status: 'WAITING', 
-            note: note,
-            routeChanges: [],
-            routeVersion: Date.now(),
-            triggerPopupForDriver: false,
-            acceptedDrivers: [], 
-            assignedDriverWa: null, 
+            status: 'WAITING',
+            note,
+            acceptedDrivers: [],
+            assignedDriverWa: null,
             timestamp: Date.now(),
             timeReceived: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
             dateString: new Date().toLocaleDateString()
@@ -2995,111 +1420,28 @@
         localStorage.setItem('iqbike_active_order', JSON.stringify(newOrder));
         syncOrderToCloud(newOrder);
 
-        playSpecificSoundChoice(getStoredSoundChoice('radar'));
-        triggerCustomVibration('long');
-
         let passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
-        passHistory.forEach(item => {
-            if (item.status !== 'FINISHED' && item.status !== 'CANCELLED') {
-                item.status = 'FINISHED';
-            }
-        });
         passHistory.unshift(newOrder);
         localStorage.setItem('iqbike_passenger_history', JSON.stringify(passHistory));
 
         updatePassengerAppUI();
-        updateDriverAppUI();
         renderPassengerHistory();
-
-        showCustomAlert("Informasi", "📡 Pesanan dikirim ke Radar iqDriver.\nMenunggu iqDriver online merespons...");
+        showCustomAlert("Informasi", "📡 Pesanan dikirim ke radar iqDriver terdekat.");
     }
 
     function cancelActiveOrder() {
         const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
         if (!order) return;
 
-        const confirmCancel = confirm("⚠️ KONFIRMASI PEMBATALAN\n\nApakah Anda benar-benar ingin membatalkan pesanan ini? Aksi ini akan menghentikan proses pencarian/pengantaran iqDriver.");
-        if (!confirmCancel) return;
-
-        let targetDriverWa = order.assignedDriverWa;
-        const cancelTimeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        
-        order.status = 'CANCELLED_BY_PASSENGER';
-        order.cancelTime = cancelTimeStr;
-        syncOrderToCloud(order);
-
-        let passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
-        passHistory.forEach(item => {
-            if (item.id === order.id) {
-                item.status = 'CANCELLED';
-            }
-        });
-        localStorage.setItem('iqbike_passenger_history', JSON.stringify(passHistory));
-
-        let history = JSON.parse(localStorage.getItem('iqbike_history') || '[]');
-        history.unshift({
-            id: order.id,
-            type: 'EXPENSE',
-            isCancelledOrder: true,
-            serviceType: order.serviceType || 'ojek',
-            passengerName: order.passengerName,
-            passengerPhone: order.passengerPhone,
-            pickup: order.pickup,
-            dropoff: order.dropoff,
-            note: `Order Batal (${order.passengerName})`,
-            amount: 0,
-            timestamp: Date.now(),
-            timeReceived: order.timeReceived || '-',
-            timeCancelled: cancelTimeStr,
-            dateString: new Date().toLocaleDateString()
-        });
-        localStorage.setItem('iqbike_history', JSON.stringify(history));
-
-        localStorage.removeItem('iqbike_active_order');
-        
-        setTimeout(() => {
-            removeOrderFromCloud();
-        }, 4000);
-
-        resetAddressAndFare();
-        updatePassengerAppUI();
-        updateDriverAppUI();
-        renderFinanceAndHistory();
-        renderPassengerHistory();
-
-        if (targetDriverWa) {
-            const cancelMsg = `Halo iqDriver iqBike (${targetDriverWa}), mohon maaf saya *membatalkan* pesanan saya sebelumnya dengan rute:\n` +
-                              `📍 Jemput: ${order.pickup}\n` +
-                              `🏁 Tujuan: ${order.dropoff}\n` +
-                              `Terima kasih dan mohon maklum.`;
-            const waUrl = `whatsapp://send?phone=${targetDriverWa}&text=${encodeURIComponent(cancelMsg)}`;
-            window.location.href = waUrl;
-        } else {
-            showCustomAlert("Berhasil", "Pesanan berhasil dibatalkan.");
-        }
-    }
-
-    function closePassengerCancelledModal() {
-        document.getElementById('passengerCancelledModal').style.display = 'none';
-        localStorage.removeItem('iqbike_active_order');
-        removeOrderFromCloud();
-        updateDriverAppUI();
-    }
-
-    function driverCancelActiveOrder() {
-        const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
-        if (!order) return;
-
-        if (confirm("Batalkan penanganan pesanan ini?")) {
-            order.status = 'WAITING';
-            order.assignedDriverWa = null;
-            order.acceptedDrivers = (order.acceptedDrivers || []).filter(d => d.wa !== currentDriverWa);
-            localStorage.setItem('iqbike_active_order', JSON.stringify(order));
+        if (confirm("⚠️ Batalkan pesanan ini?")) {
+            order.status = 'CANCELLED_BY_PASSENGER';
             syncOrderToCloud(order);
+            localStorage.removeItem('iqbike_active_order');
+            setTimeout(() => { removeOrderFromCloud(); }, 3000);
 
-            updateDriverAppUI();
+            resetAddressAndFare();
             updatePassengerAppUI();
-            showCustomAlert("Berhasil", "Pesanan dibatalkan dari penanganan Anda.");
+            showCustomAlert("Berhasil", "Pesanan dibatalkan.");
         }
     }
 
@@ -3112,68 +1454,9 @@
         document.getElementById('passengerHistoryModal').style.display = 'none';
     }
 
-    function swapRouteFromHistory(itemIndex) {
-        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
-        if (activeOrder) {
-            showCustomAlert("Peringatan", "⚠️ Tidak dapat mengubah rute saat ada pesanan yang sedang aktif!");
-            return;
-        }
-
-        const passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
-        const item = passHistory[itemIndex];
-
-        if (!item) return;
-
-        document.getElementById('pickupLocation').value = item.dropoff;
-        document.getElementById('dropoffLocation').value = item.pickup;
-
-        document.getElementById('passengerName').value = item.passengerName || '';
-        document.getElementById('passengerPhone').value = item.passengerPhone || '';
-        document.getElementById('passengerNote').value = (item.note && item.note !== '-') ? item.note : '';
-
-        pickupCoords = L.latLng(item.dropoffLat, item.dropoffLng);
-        dropoffCoords = L.latLng(item.pickupLat, item.pickupLng);
-
-        closePassengerHistoryModal();
-        renderFixedMarkers();
-        calculateFare();
-        map.fitBounds(L.latLngBounds(pickupCoords, dropoffCoords), {padding: [40, 40]});
-        showCustomAlert("Berhasil", "Rute PP berhasil dimuat!");
-    }
-
-    function repeatOrderFromHistory(itemIndex) {
-        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
-        if (activeOrder) {
-            showCustomAlert("Peringatan", "⚠️ Tidak dapat mengulang pesanan saat ada pesanan yang sedang aktif!");
-            return;
-        }
-
-        const passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
-        const item = passHistory[itemIndex];
-
-        if (!item) return;
-
-        document.getElementById('pickupLocation').value = item.pickup;
-        document.getElementById('dropoffLocation').value = item.dropoff;
-
-        document.getElementById('passengerName').value = item.passengerName || '';
-        document.getElementById('passengerPhone').value = item.passengerPhone || '';
-        document.getElementById('passengerNote').value = (item.note && item.note !== '-') ? item.note : '';
-
-        pickupCoords = L.latLng(item.pickupLat, item.pickupLng);
-        dropoffCoords = L.latLng(item.dropoffLat, item.dropoffLng);
-
-        closePassengerHistoryModal();
-        renderFixedMarkers();
-        calculateFare();
-        map.fitBounds(L.latLngBounds(pickupCoords, dropoffCoords), {padding: [40, 40]});
-        showCustomAlert("Berhasil", "Pesanan berhasil diulang!");
-    }
-
     function renderPassengerHistory() {
         const container = document.getElementById('passengerHistoryContainer');
         let passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
-        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
 
         if (passHistory.length === 0) {
             container.innerHTML = '<p style="font-size: 11px; color: #a0a0a0; text-align:center;">Belum ada riwayat pesanan.</p>';
@@ -3181,524 +1464,21 @@
         }
 
         container.innerHTML = '';
-        passHistory.forEach((item, index) => {
+        passHistory.forEach((item) => {
             const card = document.createElement('div');
             card.className = 'history-card';
-            
-            let statusBadge = '';
-            let isItemActive = activeOrder && activeOrder.id === item.id;
-
-            if (item.status === 'CANCELLED') {
-                statusBadge = `<span style="background:#fce8e6; color:#eb5757; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">DIBATALKAN</span>`;
-            } else if (item.status === 'FINISHED') {
-                statusBadge = `<span style="background:#eef7e8; color:#2e7d32; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">SELESAI</span>`;
-            } else {
-                if (!isItemActive) {
-                    item.status = 'FINISHED';
-                    statusBadge = `<span style="background:#eef7e8; color:#2e7d32; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">SELESAI</span>`;
-                } else {
-                    statusBadge = `<span style="background:#e3f2fd; color:#1565c0; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">AKTIF / PROSES</span>`;
-                }
-            }
-
-            let actionButtonsHTML = '';
-            if (isItemActive) {
-                let chatWaButton = '';
-                if (item.assignedDriverWa) {
-                    chatWaButton = `
-                        <button class="btn-whatsapp" onclick="openPassengerWa('${item.passengerPhone}', '${item.passengerName}', '${item.assignedDriverWa}')" style="margin-top:4px;">
-                            <i class="fa-brands fa-whatsapp"></i> Chat WhatsApp ke iqDriver (${item.assignedDriverWa})
-                        </button>
-                    `;
-                }
-                actionButtonsHTML = `
-                    <div style="display:flex; flex-direction:column; gap:4px; margin-top:6px;">
-                        <div style="background:#fff3e0; color:#e65100; font-size:10px; font-weight:bold; padding:4px; border-radius:4px; text-align:center;">
-                            📌 Pesanan Sedang Aktif / Berlangsung
-                        </div>
-                        ${chatWaButton}
-                        <button class="btn-cancel" onclick="cancelActiveOrder()" style="padding:6px; font-size:11px; margin-top:2px;">
-                            <i class="fa-solid fa-xmark"></i> Batalkan Pesanan Ini
-                        </button>
-                    </div>
-                `;
-            } else if (activeOrder) {
-                actionButtonsHTML = `
-                    <div style="background:#fff3e0; color:#e65100; font-size:10px; font-weight:bold; padding:6px; border-radius:6px; text-align:center; margin-top:4px;">
-                        🔒 Tombol dikunci (Ada pesanan aktif lain)
-                    </div>
-                `;
-            } else {
-                actionButtonsHTML = `
-                    <div class="history-action-row" style="display:flex; gap:6px; margin-top:6px;">
-                        <button class="btn-swap-route" onclick="swapRouteFromHistory(${index})">
-                            <i class="fa-solid fa-arrows-rotate"></i> Tukar Rute PP
-                        </button>
-                        <button class="btn-repeat-order" onclick="repeatOrderFromHistory(${index})">
-                            <i class="fa-solid fa-rotate-right"></i> Ulangi Pesanan
-                        </button>
-                    </div>
-                `;
-            }
-
             card.innerHTML = `
-                <div style="display:flex; justify-content:space-between; font-weight:bold; align-items:center;">
-                    <span><i class="fa-solid fa-route"></i> [${(item.serviceType || 'ojek').toUpperCase()}] ${item.timeReceived || item.time || '-'} (${item.passengerName})</span>
-                    ${statusBadge}
+                <div style="display:flex; justify-content:space-between; font-weight:bold;">
+                    <span>[${(item.serviceType || 'ojek').toUpperCase()}] ${item.timeReceived || '-'}</span>
+                    <span style="color:#27ae60;">Rp ${item.fare.toLocaleString('id-ID')}</span>
                 </div>
-                <div style="color:#666; font-size:11px; margin-top:4px;">
-                    <div><strong><i class="fa-solid fa-location-dot" style="color:#eb5757;"></i> Jemput:</strong> ${item.pickup}</div>
-                    <div><strong><i class="fa-solid fa-flag-checkered"></i> Tujuan Akhir:</strong> ${item.dropoff}</div>
-                    <div style="color:#27ae60; font-weight:bold; margin-top:2px;"><i class="fa-solid fa-money-bill-wave"></i> Total Keseluruhan Ongkos: Rp ${item.fare.toLocaleString('id-ID')}</div>
+                <div style="color:#666; font-size:11px;">
+                    <div><strong>Jemput:</strong> ${item.pickup}</div>
+                    <div><strong>Tujuan:</strong> ${item.dropoff}</div>
                 </div>
-                ${actionButtonsHTML}
             `;
             container.appendChild(card);
         });
-    }
-
-    function driverTakeOrder(orderId) {
-        let order = JSON.parse(localStorage.getItem('iqbike_active_order'));
-        if (!order || order.id !== orderId) return;
-
-        if (!order.acceptedDrivers) order.acceptedDrivers = [];
-        if (!order.acceptedDrivers.some(d => d.wa === currentDriverWa)) {
-            order.acceptedDrivers.push({ wa: currentDriverWa, time: Date.now() });
-        }
-
-        localStorage.setItem('iqbike_active_order', JSON.stringify(order));
-        syncOrderToCloud(order);
-
-        playSpecificSoundChoice(getStoredSoundChoice('other'));
-        triggerCustomVibration('short');
-
-        updateDriverAppUI();
-        updatePassengerAppUI();
-
-        showCustomAlert("Berhasil", "✅ Anda telah mengajukan diri mengambil orderan. Menunggu penumpang memilih iqDriver di aplikasinya.");
-    }
-
-    function setOrderStatus(newStatus) {
-        let order = JSON.parse(localStorage.getItem('iqbike_active_order'));
-        if (!order) return;
-
-        if (newStatus === 'FINISHED') {
-            order.timeFinished = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            order.dateFinished = new Date().toLocaleDateString();
-
-            document.getElementById('recName').innerText = order.passengerName;
-            document.getElementById('recPhone').innerText = order.passengerPhone;
-            document.getElementById('recPickup').innerText = order.pickup;
-            document.getElementById('recDropoff').innerText = order.dropoff;
-            document.getElementById('recFare').innerText = `Rp ${order.fare.toLocaleString('id-ID')}`;
-            
-            const routeChangesInfoEl = document.getElementById('recRouteChangesInfo');
-            if (order.routeChanges && order.routeChanges.length > 0) {
-                let initialFare = order.initialFare !== undefined ? order.initialFare : (order.fare - order.routeChanges.reduce((acc, cur) => acc + cur.extraFare, 0));
-                let initialDropoff = order.initialDropoff || order.routeChanges[0].from;
-
-                let changesText = `<strong>Rincian Perjalanan & Perubahan Rute:</strong><br>`;
-                changesText += `• Tujuan Awal: ${initialDropoff} (Rp ${initialFare.toLocaleString('id-ID')})<br>`;
-                order.routeChanges.forEach((ch, idx) => {
-                    changesText += `• ${ch.from} ke: ${ch.to} (+Rp ${ch.extraFare.toLocaleString('id-ID')})<br>`;
-                });
-                routeChangesInfoEl.innerHTML = changesText;
-                routeChangesInfoEl.style.display = 'block';
-            } else {
-                routeChangesInfoEl.style.display = 'none';
-            }
-
-            document.getElementById('receiptModal').style.display = 'flex';
-
-            let history = JSON.parse(localStorage.getItem('iqbike_history') || '[]');
-            order.type = 'INCOME';
-            order.timestamp = Date.now();
-            history.unshift(order);
-            localStorage.setItem('iqbike_history', JSON.stringify(history));
-
-            let passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
-            passHistory.forEach(item => {
-                if (item.id === order.id) {
-                    item.status = 'FINISHED';
-                }
-            });
-            localStorage.setItem('iqbike_passenger_history', JSON.stringify(passHistory));
-
-            localStorage.removeItem('iqbike_active_order');
-            removeOrderFromCloud();
-            
-            pickupCoords = null;
-            dropoffCoords = null;
-            computedTotalFare = 0;
-            document.getElementById('pickupLocation').value = '';
-            document.getElementById('dropoffLocation').value = '';
-            document.getElementById('fareText').innerText = "Rp 0";
-
-            if (pickupMarker) { map.removeLayer(pickupMarker); pickupMarker = null; }
-            if (dropoffMarker) { map.removeLayer(dropoffMarker); dropoffMarker = null; }
-            if (routingControl) { map.removeControl(routingControl); routingControl = null; }
-        } else {
-            order.status = newStatus;
-            localStorage.setItem('iqbike_active_order', JSON.stringify(order));
-            syncOrderToCloud(order);
-        }
-
-        playSpecificSoundChoice(getStoredSoundChoice('other'));
-        triggerCustomVibration('short');
-
-        updateDriverAppUI();
-        updatePassengerAppUI();
-        renderFinanceAndHistory();
-        renderPassengerHistory();
-    }
-
-    function closeReceiptModal() {
-        document.getElementById('receiptModal').style.display = 'none';
-        updatePassengerAppUI();
-    }
-
-    function openExpenseModal() {
-        document.getElementById('expenseModal').style.display = 'flex';
-    }
-
-    function openExpenseModalFromDetail() {
-        closeHistoryDetailsModal();
-        openExpenseModal();
-    }
-
-    function closeExpenseModal() {
-        document.getElementById('expenseModal').style.display = 'none';
-    }
-
-    function saveExpense() {
-        const note = document.getElementById('expenseNote').value;
-        const amount = parseFloat(document.getElementById('expenseAmount').value);
-
-        if (!note || isNaN(amount) || amount < 0) {
-            showCustomAlert("Peringatan", "Harap isi keterangan dan jumlah pengeluaran dengan benar!");
-            return;
-        }
-
-        const expenseItem = {
-            id: Date.now(),
-            type: 'EXPENSE',
-            isCancelledOrder: false,
-            note: note,
-            amount: amount,
-            timestamp: Date.now(),
-            time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-            dateString: new Date().toLocaleDateString()
-        };
-
-        let history = JSON.parse(localStorage.getItem('iqbike_history') || '[]');
-        history.unshift(expenseItem);
-        localStorage.setItem('iqbike_history', JSON.stringify(history));
-
-        document.getElementById('expenseNote').value = '';
-        document.getElementById('expenseAmount').value = '';
-        closeExpenseModal();
-        renderFinanceAndHistory();
-        showCustomAlert("Berhasil", "Pengeluaran berhasil dicatat!");
-    }
-
-    let currentOpenHistoryModalType = 'INCOME';
-
-    function openHistoryDetailsModal(filterType) {
-        currentOpenHistoryModalType = filterType;
-        const history = JSON.parse(localStorage.getItem('iqbike_history') || '[]');
-        const modalContainer = document.getElementById('historyDetailsListContainer');
-        const modalTitle = document.getElementById('historyModalTitle');
-        const expenseActionBtn = document.getElementById('expenseActionContainer');
-        const pdfActionBtn = document.getElementById('pdfActionContainer');
-
-        if (filterType === 'INCOME') {
-            modalTitle.innerText = "Rincian Hasil Narik (+)";
-            expenseActionBtn.style.display = 'none';
-            pdfActionBtn.style.display = 'block';
-        } else {
-            modalTitle.innerText = "Rincian Pengeluaran Operasional (-)";
-            expenseActionBtn.style.display = 'block';
-            pdfActionBtn.style.display = 'none';
-        }
-
-        modalContainer.innerHTML = '';
-
-        const filteredList = history.filter(item => {
-            if (filterType === 'INCOME') return item.type === 'INCOME';
-            return item.type === 'EXPENSE';
-        });
-
-        if (filteredList.length === 0) {
-            modalContainer.innerHTML = '<p style="font-size:12px; color:#888; text-align:center; padding:16px;">Belum ada riwayat tercatat dalam kategori ini.</p>';
-        } else {
-            filteredList.forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'history-card';
-
-                if (item.type === 'EXPENSE') {
-                    if (item.isCancelledOrder) {
-                        card.innerHTML = `
-                            <div style="display:flex; justify-content:space-between; font-weight:bold; align-items:center;">
-                                <span style="color:#eb5757;"><i class="fa-solid fa-triangle-exclamation"></i> [${(item.serviceType || 'ojek').toUpperCase()}] Order Batal (${item.passengerName})</span>
-                                <span style="color:#eb5757;">Rp 0</span>
-                            </div>
-                            <div style="color:#555; font-size:11px; margin-top:4px; display:flex; flex-direction:column; gap:2px;">
-                                <div><strong>Waktu Masuk:</strong> ${item.dateString || ''} ${item.timeReceived || '-'} | <strong>Waktu Batal:</strong> ${item.timeCancelled || item.time || '-'}</div>
-                                <div><strong>WhatsApp:</strong> <a href="whatsapp://send?phone=${item.passengerPhone}" style="color:#25D366; font-weight:bold;">${item.passengerPhone}</a></div>
-                                <div><strong>Titik Jemput:</strong> ${item.pickup}</div>
-                                <div><strong>Titik Tujuan:</strong> ${item.dropoff}</div>
-                                <div style="color:#eb5757; font-weight:bold; margin-top:2px;">Status: Dibatalkan (Dicatat Biaya Rp 0)</div>
-                            </div>
-                        `;
-                    } else {
-                        card.innerHTML = `
-                            <div style="display:flex; justify-content:space-between; font-weight:bold;">
-                                <span style="color:#eb5757;"><i class="fa-solid fa-receipt"></i> ${item.note} (${item.dateString || ''} ${item.time || ''})</span>
-                                <span style="color:#eb5757;">-Rp ${item.amount.toLocaleString('id-ID')}</span>
-                            </div>
-                        `;
-                    }
-                } else {
-                    let routeChangesHtml = '';
-                    if (item.routeChanges && item.routeChanges.length > 0) {
-                        routeChangesHtml = `<div style="margin-top:2px; color:#0288d1;"><strong>Perubahan Rute:</strong>`;
-                        item.routeChanges.forEach(rc => {
-                            routeChangesHtml += `<br>• ${rc.from} ➔ ${rc.to} (+Rp ${rc.extraFare.toLocaleString('id-ID')})`;
-                        });
-                        routeChangesHtml += `</div>`;
-                    }
-
-                    card.innerHTML = `
-                        <div style="display:flex; justify-content:space-between; font-weight:bold; align-items:center;">
-                            <span><i class="fa-solid fa-user"></i> [${(item.serviceType || 'ojek').toUpperCase()}] ${item.passengerName}</span>
-                            <span style="color:#27ae60; font-size:13px;">Rp ${item.fare.toLocaleString('id-ID')}</span>
-                        </div>
-                        <div style="color:#555; font-size:11px; margin-top:4px; display:flex; flex-direction:column; gap:2px;">
-                            <div><strong>Waktu Masuk:</strong> ${item.dateString || ''} ${item.timeReceived || '-'} | <strong>Selesai:</strong> ${item.timeFinished || '-'}</div>
-                            <div><strong>WhatsApp:</strong> <a href="whatsapp://send?phone=${item.passengerPhone}" style="color:#25D366; font-weight:bold;">${item.passengerPhone}</a></div>
-                            <div><strong>Titik Jemput:</strong> ${item.pickup}</div>
-                            <div><strong>Titik Tujuan:</strong> ${item.dropoff}</div>
-                            <div><strong>Ongkos Dasar/Normal:</strong> Rp ${(item.initialFare || item.fare).toLocaleString('id-ID')}</div>
-                            ${routeChangesHtml}
-                        </div>
-                    `;
-                }
-                modalContainer.appendChild(card);
-            });
-        }
-
-        document.getElementById('historyDetailsModal').style.display = 'flex';
-    }
-
-    function closeHistoryDetailsModal() {
-        document.getElementById('historyDetailsModal').style.display = 'none';
-    }
-
-    function clearHistorySpecific() {
-        const typeName = currentOpenHistoryModalType === 'INCOME' ? 'Hasil Narik (+)' : 'Pengeluaran (-)';
-        if (confirm(`⚠️ Hapus semua data pada kategori ${typeName}?`)) {
-            const history = JSON.parse(localStorage.getItem('iqbike_history') || '[]');
-            let newHistory = [];
-
-            if (currentOpenHistoryModalType === 'INCOME') {
-                newHistory = history.filter(item => item.type !== 'INCOME');
-            } else {
-                newHistory = history.filter(item => item.type !== 'EXPENSE');
-            }
-
-            localStorage.setItem('iqbike_history', JSON.stringify(newHistory));
-            closeHistoryDetailsModal();
-            renderFinanceAndHistory();
-            showCustomAlert("Berhasil", `Semua data ${typeName} berhasil dihapus.`);
-        }
-    }
-
-    function exportStatementPdf() {
-        const history = JSON.parse(localStorage.getItem('iqbike_history') || '[]');
-        const incomes = history.filter(item => item.type === 'INCOME');
-        const expenses = history.filter(item => item.type === 'EXPENSE');
-
-        let totalGross = incomes.reduce((sum, i) => sum + i.fare, 0);
-        let totalExp = expenses.reduce((sum, e) => sum + e.amount, 0);
-        let totalNet = totalGross - totalExp;
-
-        let printWindow = window.open('', '_blank');
-        let htmlContent = `
-            <!DOCTYPE html>
-            <html lang="id">
-            <head>
-                <meta charset="UTF-8">
-                <title>Rekening Koran / Laporan Keuangan iqDriver iqBike</title>
-                <style>
-                    body { font-family: Arial, sans-serif; padding: 20px; color: #111; max-width: 800px; margin: auto; }
-                    .header-box { text-align: center; border-bottom: 2px solid #333; padding-bottom: 12px; margin-bottom: 20px; }
-                    .header-box h2 { margin: 0; color: #27ae60; }
-                    .info-grid { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 20px; background: #f8f9fa; padding: 12px; border-radius: 6px; }
-                    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 11px; }
-                    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                    th { background-color: #2c3e50; color: white; }
-                    .summary-box { background: #eef7e8; border: 1px solid #c8e6b8; padding: 12px; border-radius: 6px; font-size: 13px; margin-bottom: 20px; }
-                    .summary-box div { display: flex; justify-content: space-between; margin-bottom: 4px; }
-                    .footer { text-align: center; font-size: 10px; color: #777; margin-top: 40px; border-top: 1px solid #ddd; padding-top: 10px; }
-                    @media print {
-                        body { padding: 0; }
-                        .no-print { display: none; }
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="no-print" style="text-align: right; margin-bottom: 15px;">
-                    <button onclick="window.print()" style="background: #27ae60; color: white; border: none; padding: 10px 20px; font-weight: bold; border-radius: 6px; cursor: pointer;">Cetak / Simpan sebagai PDF</button>
-                </div>
-
-                <div class="header-box">
-                    <h2>REKENING KORAN / LAPORAN PENDAPATAN iqDriver iqBike</h2>
-                    <p style="font-size: 12px; color: #555; margin: 4px 0;">Sistem Cloud Multi-Driver iqBike Resmi</p>
-                </div>
-
-                <div class="info-grid">
-                    <div>
-                        <strong>Nomor WA iqDriver:</strong> ${currentDriverWa}<br>
-                        <strong>Tanggal Cetak:</strong> ${new Date().toLocaleString()}
-                    </div>
-                    <div style="text-align: right;">
-                        <strong>Status Akun:</strong> Aktif Terverifikasi<br>
-                        <strong>Mata Uang:</strong> IDR (Rupiah)
-                    </div>
-                </div>
-
-                <div class="summary-box">
-                    <div><strong>Total Pendapatan Kotor (Hasil Narik):</strong> <span>Rp ${totalGross.toLocaleString('id-ID')}</span></div>
-                    <div><strong>Total Pengeluaran Operasional:</strong> <span style="color:red;">-Rp ${totalExp.toLocaleString('id-ID')}</span></div>
-                    <div style="border-top: 1px solid #ccc; padding-top: 4px; font-weight: bold; font-size: 14px; color: #27ae60;">
-                        <span>KEUNTUNGAN BERSIH (NET INCOME):</span> <span>Rp ${totalNet.toLocaleString('id-ID')}</span>
-                    </div>
-                </div>
-
-                <h3>Rincian Riwayat Transaksi Pendapatan Perjalanan</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>No</th>
-                            <th>Waktu & Tanggal</th>
-                            <th>Layanan & Penumpang</th>
-                            <th>Rute Perjalanan (Jemput ➔ Tujuan)</th>
-                            <th>WhatsApp</th>
-                            <th>Nominal (Rp)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-        `;
-
-        if (incomes.length === 0) {
-            htmlContent += `<tr><td colspan="6" style="text-align:center; color:#777;">Belum ada riwayat pendapatan tercatat.</td></tr>`;
-        } else {
-            incomes.forEach((inc, idx) => {
-                let routeDesc = `${inc.pickup} ➔ ${inc.dropoff}`;
-                if (inc.routeChanges && inc.routeChanges.length > 0) {
-                    inc.routeChanges.forEach(rc => {
-                        routeDesc += `<br><small style="color:#0288d1;">[Ubah] ${rc.from} ➔ ${rc.to} (+Rp ${rc.extraFare.toLocaleString('id-ID')})</small>`;
-                    });
-                }
-                htmlContent += `
-                    <tr>
-                        <td>${idx + 1}</td>
-                        <td>${inc.dateString || ''} ${inc.timeReceived || inc.time || '-'}</td>
-                        <td><strong>[${(inc.serviceType || 'ojek').toUpperCase()}]</strong><br>${inc.passengerName}</td>
-                        <td>${routeDesc}</td>
-                        <td>${inc.passengerPhone || '-'}</td>
-                        <td style="color:#27ae60; font-weight:bold;">Rp ${inc.fare.toLocaleString('id-ID')}</td>
-                    </tr>
-                `;
-            });
-        }
-
-        htmlContent += `
-                    </tbody>
-                </table>
-
-                <h3>Rincian Pengeluaran Operasional & Catatan Order Batal</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>No</th>
-                            <th>Waktu & Tanggal</th>
-                            <th>Keterangan Pengeluaran</th>
-                            <th>Jumlah (Rp)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-        `;
-
-        if (expenses.length === 0) {
-            htmlContent += `<tr><td colspan="4" style="text-align:center; color:#777;">Belum ada riwayat pengeluaran operasional.</td></tr>`;
-        } else {
-            expenses.forEach((exp, idx) => {
-                let ket = exp.isCancelledOrder ? `Order Batal ([${(exp.serviceType||'ojek').toUpperCase()}] ${exp.passengerName})` : exp.note;
-                let nominalStr = exp.amount === 0 ? 'Rp 0' : `-Rp ${exp.amount.toLocaleString('id-ID')}`;
-                htmlContent += `
-                    <tr>
-                        <td>${idx + 1}</td>
-                        <td>${exp.dateString || ''} ${exp.timeCancelled || exp.time || '-'}</td>
-                        <td>${ket}</td>
-                        <td style="color:${exp.amount === 0 ? '#555' : '#eb5757'}; font-weight:bold;">${nominalStr}</td>
-                    </tr>
-                `;
-            });
-        }
-
-        htmlContent += `
-                    </tbody>
-                </table>
-
-                <div class="footer">
-                    Dokumen ini digenerate secara otomatis oleh sistem iqBike WebApp Cloud. Sah dan valid untuk keperluan audit mandiri iqDriver.
-                </div>
-            </body>
-            </html>
-        `;
-
-        printWindow.document.write(htmlContent);
-        printWindow.document.close();
-    }
-
-    function renderFinanceAndHistory() {
-        const filter = document.getElementById('timeFilter').value;
-        const history = JSON.parse(localStorage.getItem('iqbike_history') || '[]');
-
-        const now = Date.now();
-        const startOfToday = new Date().setHours(0,0,0,0);
-        const startOfWeek = new Date().setDate(new Date().getDate() - new Date().getDay());
-
-        let grossIncome = 0;
-        let totalExpense = 0;
-
-        const filteredList = history.filter(item => {
-            const itemTime = item.timestamp || 0;
-            if (filter === 'today') return itemTime >= startOfToday;
-            if (filter === 'week') return itemTime >= startOfWeek;
-            if (filter === '7days') return itemTime >= (now - (7 * 86400000));
-            if (filter === '30days') return itemTime >= (now - (30 * 86400000));
-            return true;
-        });
-
-        filteredList.forEach(item => {
-            if (item.type === 'EXPENSE') {
-                totalExpense += item.amount;
-            } else if (item.type === 'INCOME') {
-                grossIncome += item.fare;
-            }
-        });
-
-        const netIncome = grossIncome - totalExpense;
-        document.getElementById('grossIncomeText').innerText = `Rp ${grossIncome.toLocaleString('id-ID')}`;
-        document.getElementById('totalExpenseText').innerText = `Rp ${totalExpense.toLocaleString('id-ID')}`;
-        document.getElementById('netIncomeText').innerText = `Rp ${netIncome.toLocaleString('id-ID')}`;
-    }
-
-    function openGoogleMapsNav(targetLat, targetLng) {
-        const gmapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${targetLat},${targetLng}&travelmode=bicycling`;
-        window.open(gmapsUrl, '_blank');
     }
 
     function updatePassengerAppUI() {
@@ -3717,9 +1497,7 @@
         if (!order || (order.deviceUuid && order.deviceUuid !== passengerDeviceUuid) || order.status === 'CANCELLED_BY_PASSENGER') {
             btnSend.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Cari & Kirim Pesanan ke iqDriver`;
             btnSend.disabled = false;
-            btnSend.classList.remove('btn-disabled');
             btnCancel.style.display = 'none';
-
             btnJemput.disabled = false;
             pickupInput.disabled = false;
             nameInput.disabled = false;
@@ -3738,19 +1516,15 @@
         if (order.status === 'WAITING') {
             const countAccepted = order.acceptedDrivers ? order.acceptedDrivers.length : 0;
             btnSend.innerHTML = `<i class="fa-solid fa-motorcycle"></i> Lihat Pilihan iqDriver Terdekat (${countAccepted} Mengajukan)`;
-            btnSend.disabled = false;
             btnCancel.style.display = 'flex';
-        } else if (order.status !== 'WAITING') {
+        } else {
             nameInput.disabled = true;
             phoneInput.disabled = true;
             noteInput.disabled = true;
             pickupInput.disabled = true;
             btnJemput.disabled = true;
-
             btnCancel.style.display = 'flex';
-            btnCancel.innerHTML = `<i class="fa-solid fa-xmark"></i> Batalkan Pesanan Ini`;
             btnSend.innerHTML = `<i class="fa-brands fa-whatsapp"></i> Chat WhatsApp ke iqDriver (${order.assignedDriverWa})`;
-            btnSend.disabled = false;
             btnSend.style.backgroundColor = 'var(--whatsapp-green)';
         }
 
@@ -3761,114 +1535,10 @@
         renderFixedMarkers();
     }
 
-    function updateDriverAppUI() {
-        const container = document.getElementById('orderListContainer');
-        const floatingPanel = document.getElementById('floatingRadarPanel');
-        const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
-
-        if (!order || order.status === 'CANCELLED_BY_PASSENGER') {
-            floatingPanel.style.display = 'none';
-            container.innerHTML = '';
-            setTimeout(() => { if (map) map.invalidateSize(); }, 200);
-            return;
-        }
-
-        if (order.status !== 'WAITING' && order.assignedDriverWa && order.assignedDriverWa !== currentDriverWa) {
-            floatingPanel.style.display = 'none';
-            container.innerHTML = '';
-            setTimeout(() => { if (map) map.invalidateSize(); }, 200);
-            return;
-        }
-
-        floatingPanel.style.display = 'flex';
-
-        let actionBtnHTML = '';
-        let navBtnHTML = '';
-        let driverCancelBtnHTML = '';
-
-        let waBtnHTML = `
-            <button class="btn-whatsapp" onclick="openPassengerWa('${order.passengerPhone}', '${order.passengerName}', '${order.assignedDriverWa}')">
-                <i class="fa-brands fa-whatsapp"></i> Hubungi Penumpang via WA (${order.passengerPhone})
-            </button>
-        `;
-
-        const isAlreadyAccepted = order.acceptedDrivers && order.acceptedDrivers.some(d => d.wa === currentDriverWa);
-
-        if (order.status === 'WAITING') {
-            if (!isAlreadyAccepted) {
-                actionBtnHTML = `
-                    <button class="driver-step-btn btn-accept" onclick="driverTakeOrder(${order.id})">
-                        <i class="fa-solid fa-motorcycle"></i> Terima / Ajukan Diri Ambil Orderan
-                    </button>`;
-            } else {
-                actionBtnHTML = `
-                    <div style="background:#eef7e8; color:#2e7d32; font-size:11px; font-weight:bold; padding:8px; border-radius:6px; text-align:center;">
-                        ✅ Anda sudah mengajukan diri. Menunggu konfirmasi pemilihan oleh Penumpang...
-                    </div>`;
-            }
-        } else if (order.status === 'HEADING_PICKUP') {
-            navBtnHTML = `
-                <button class="btn-nav-gmaps" onclick="openGoogleMapsNav(${order.pickupLat}, ${order.pickupLng})">
-                    <i class="fa-solid fa-location-arrow"></i> Navigasi Google Maps (Menuju Titik Jemput)
-                </button>`;
-            actionBtnHTML = `
-                <button class="driver-step-btn btn-arrived" onclick="setOrderStatus('ARRIVED')">
-                    <i class="fa-solid fa-location-dot"></i> Saya Sudah Tiba di Titik Jemput
-                </button>`;
-            driverCancelBtnHTML = `
-                <button class="driver-step-btn btn-driver-cancel" onclick="driverCancelActiveOrder()">
-                    <i class="fa-solid fa-xmark"></i> Batalkan & Keluar dari Penanganan
-                </button>`;
-        } else if (order.status === 'ARRIVED') {
-            actionBtnHTML = `
-                <button class="driver-step-btn btn-trip" onclick="setOrderStatus('ON_TRIP')">
-                    <i class="fa-solid fa-motorcycle"></i> Mulai Perjalanan (Berangkat)
-                </button>`;
-        } else if (order.status === 'ON_TRIP') {
-            navBtnHTML = `
-                <button class="btn-step-btn btn-nav-gmaps" onclick="openGoogleMapsNav(${order.dropoffLat}, ${order.dropoffLng})">
-                    <i class="fa-solid fa-location-arrow"></i> Navigasi Google Maps (Rute Tujuan)
-                </button>`;
-            actionBtnHTML = `
-                <button class="driver-step-btn btn-finish" onclick="setOrderStatus('FINISHED')">
-                    <i class="fa-solid fa-circle-check"></i> Selesaikan Perjalanan
-                </button>`;
-        }
-
-        container.innerHTML = `
-            <div class="order-card-driver">
-                <div style="display:flex; justify-content:space-between; font-weight:700;">
-                    <span><i class="fa-solid fa-user"></i> [${(order.serviceType || 'ojek').toUpperCase()}] ${order.passengerName}</span>
-                    <span style="color: var(--primary-green-hover); font-size:16px;"><i class="fa-solid fa-money-bill-wave"></i> Rp ${order.fare.toLocaleString('id-ID')}</span>
-                </div>
-                <div style="font-size:12px; background:#f9f9f9; padding:8px; border-radius:6px; display:flex; flex-direction:column; gap:4px;">
-                    <p><strong style="color:#eb5757;"><i class="fa-solid fa-location-dot"></i> Jemput:</strong> ${order.pickup}</p>
-                    <p><strong style="color:#111;"><i class="fa-solid fa-flag-checkered"></i> Tujuan:</strong> ${order.dropoff}</p>
-                    <p><strong><i class="fa-solid fa-note-sticky"></i> Catatan:</strong> ${order.note || '-'}</p>
-                    <p><strong>Status Order:</strong> <span style="color:var(--accent-blue); font-weight:bold;">${order.status === 'WAITING' ? 'Menunggu Konfirmasi Penumpang' : (order.status === 'HEADING_PICKUP' ? 'Menuju Titik Penjemputan' : 'Sedang Anda Proses')}</span></p>
-                </div>
-                ${order.status !== 'WAITING' ? waBtnHTML : ''}
-                ${navBtnHTML}
-                ${actionBtnHTML}
-                ${driverCancelBtnHTML}
-            </div>
-        `;
-
-        setTimeout(() => { if (map) map.invalidateSize(); }, 200);
-    }
-
     window.onload = function() {
         initMap();
-        ensureDriverCloudPresence();
-
-        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
-        const savedRole = localStorage.getItem('iqbike_saved_role');
-
-        if ((activeOrder && activeOrder.status !== 'WAITING') || savedRole === 'driver') {
-            selectUserRole('driver');
-        } else {
-            selectUserRole('penumpang');
-        }
+        updatePassengerAppUI();
+        renderPassengerHistory();
     };
 </script>
 
