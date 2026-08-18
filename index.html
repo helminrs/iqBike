@@ -452,7 +452,7 @@
             background: #fafafa;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 6px;
         }
 
         .modal-detail-card {
@@ -1456,6 +1456,48 @@
         document.getElementById('passengerHistoryModal').style.display = 'none';
     }
 
+    // Fungsi Tukar Rute (PP) dari Item Riwayat
+    function swapHistoryRoute(pickupText, pickupLat, pickupLng, dropoffText, dropoffLat, dropoffLng, serviceType) {
+        selectService(serviceType || 'ojek');
+        
+        // Tukar posisi jemput dan tujuan
+        document.getElementById('pickupLocation').value = dropoffText;
+        document.getElementById('dropoffLocation').value = pickupText;
+        
+        pickupCoords = L.latLng(dropoffLat, dropoffLng);
+        dropoffCoords = L.latLng(pickupLat, pickupLng);
+
+        closePassengerHistoryModal();
+        renderFixedMarkers();
+        calculateFare();
+        if (map && pickupCoords) {
+            map.panTo(pickupCoords);
+        }
+        showCustomAlert("Berhasil", "🔄 Rute berhasil dibalik (Pulang-Pergi)!");
+    }
+
+    // Fungsi Ulangi Pesanan dari Item Riwayat
+    function repeatHistoryOrder(pickupText, pickupLat, pickupLng, dropoffText, dropoffLat, dropoffLng, serviceType, noteText) {
+        selectService(serviceType || 'ojek');
+        
+        document.getElementById('pickupLocation').value = pickupText;
+        document.getElementById('dropoffLocation').value = dropoffText;
+        if (noteText && noteText !== '-') {
+            document.getElementById('passengerNote').value = noteText;
+        }
+        
+        pickupCoords = L.latLng(pickupLat, pickupLng);
+        dropoffCoords = L.latLng(dropoffLat, dropoffLng);
+
+        closePassengerHistoryModal();
+        renderFixedMarkers();
+        calculateFare();
+        if (map && pickupCoords) {
+            map.panTo(pickupCoords);
+        }
+        showCustomAlert("Berhasil", "✨ Rute dimuat ulang! Silakan klik tombol 'Cari & Kirim Pesanan'.");
+    }
+
     function renderPassengerHistory() {
         const container = document.getElementById('passengerHistoryContainer');
         let passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
@@ -1469,14 +1511,31 @@
         passHistory.forEach((item) => {
             const card = document.createElement('div');
             card.className = 'history-card';
+            
+            // Pengaman data koordinat jika kosong
+            const pLat = item.pickupLat || userCurrentLat;
+            const pLng = item.pickupLng || userCurrentLng;
+            const dLat = item.dropoffLat || userCurrentLat;
+            const dLng = item.dropoffLng || userCurrentLng;
+            const sType = item.serviceType || 'ojek';
+            const noteVal = item.note || '-';
+
             card.innerHTML = `
                 <div style="display:flex; justify-content:space-between; font-weight:bold;">
-                    <span>[${(item.serviceType || 'ojek').toUpperCase()}] ${item.timeReceived || '-'}</span>
-                    <span style="color:#27ae60;">Rp ${item.fare.toLocaleString('id-ID')}</span>
+                    <span>[${sType.toUpperCase()}] ${item.timeReceived || '-'} (${item.dateString || ''})</span>
+                    <span style="color:#27ae60;">Rp ${(item.fare || 0).toLocaleString('id-ID')}</span>
                 </div>
-                <div style="color:#666; font-size:11px;">
+                <div style="color:#666; font-size:11px; display:flex; flex-direction:column; gap:2px;">
                     <div><strong>Jemput:</strong> ${item.pickup}</div>
                     <div><strong>Tujuan:</strong> ${item.dropoff}</div>
+                </div>
+                <div style="display:flex; gap:6px; margin-top:4px;">
+                    <button type="button" onclick="swapHistoryRoute('${item.pickup.replace(/'/g, "\\'")}', ${pLat}, ${pLng}, '${item.dropoff.replace(/'/g, "\\'")}', ${dLat}, ${dLng}, '${sType}')" style="flex:1; background:#0288d1; color:white; border:none; padding:6px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">
+                        <i class="fa-solid fa-right-left"></i> Tukar Rute PP
+                    </button>
+                    <button type="button" onclick="repeatHistoryOrder('${item.pickup.replace(/'/g, "\\'")}', ${pLat}, ${pLng}, '${item.dropoff.replace(/'/g, "\\'")}', ${dLat}, ${dLng}, '${sType}', '${noteVal.replace(/'/g, "\\'")}')" style="flex:1; background:var(--primary-green); color:#111; border:none; padding:6px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">
+                        <i class="fa-solid fa-rotate-right"></i> Ulangi Pesanan
+                    </button>
                 </div>
             `;
             container.appendChild(card);
