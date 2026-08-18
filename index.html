@@ -1274,9 +1274,10 @@
     }
 
     function computeDistanceFare(distanceInMeters) {
-        let baseFare = (currentSelectedService === 'kurir') ? 11000 : 9000;
-        let kmRate = 2500; 
-        let baseDistanceMeters = 4500; 
+        // Disesuaikan agar tarif lebih realistis dengan jalur jalan raya
+        let baseFare = (currentSelectedService === 'kurir') ? 13000 : 11000;
+        let kmRate = 3000; 
+        let baseDistanceMeters = 3000; 
 
         if (distanceInMeters <= baseDistanceMeters) {
             return baseFare;
@@ -1288,16 +1289,10 @@
 
         let fare = baseFare + (fullKm * kmRate);
 
-        if (remainderMeters > 0 && remainderMeters <= 199) {
-            fare += 500;
-        } else if (remainderMeters >= 200 && remainderMeters <= 399) {
-            fare += 1000;
-        } else if (remainderMeters >= 400 && remainderMeters <= 599) {
+        if (remainderMeters > 0 && remainderMeters <= 499) {
             fare += 1500;
-        } else if (remainderMeters >= 600 && remainderMeters <= 799) {
-            fare += 2000;
-        } else if (remainderMeters >= 800) {
-            fare += 2500;
+        } else if (remainderMeters >= 500) {
+            fare += 3000;
         }
 
         return fare;
@@ -1380,7 +1375,7 @@
                     let pickupExtraFee = 0;
                     if (distanceKm > 2.0 && distanceKm <= 25.0) {
                         let extraMeters = distanceMeters - 2000;
-                        pickupExtraFee = computeDistanceFare(extraMeters + 4500) - (currentSelectedService === 'kurir' ? 11000 : 9000);
+                        pickupExtraFee = computeDistanceFare(extraMeters + 3000) - (currentSelectedService === 'kurir' ? 13000 : 11000);
                     }
 
                     driversWithDistance.push({
@@ -1603,7 +1598,7 @@
 
         const oldDropoffLatLng = L.latLng(order.dropoffLat, order.dropoffLng);
         const additionalDistMeters = map.distance(oldDropoffLatLng, tempNewDropoffCoords);
-        const additionalFare = computeDistanceFare(additionalDistMeters + 4500) - (order.serviceType === 'kurir' ? 11000 : 9000);
+        const additionalFare = computeDistanceFare(additionalDistMeters + 3000) - (order.serviceType === 'kurir' ? 13000 : 11000);
 
         order.dropoff = document.getElementById('newDestinationInput').value;
         order.dropoffLat = tempNewDropoffCoords.lat;
