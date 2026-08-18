@@ -873,7 +873,7 @@
                 <h3 style="font-size:15px; font-weight:bold; color:var(--primary-green);"><i class="fa-solid fa-motorcycle"></i> Pilih Driver Terdekat</h3>
                 <button onclick="closeDriverSelectionModal()" style="background:none; border:none; font-size:18px; color:#aaa; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <p style="font-size:11px; color:#aaa;">Berikut daftar driver siap yang diurutkan berdasarkan jarak terdekat rute map (Jemput $\le 2$ km gratis, $> 2$ km tambah Rp 2rb/km):</p>
+            <p style="font-size:11px; color:#aaa;">Berikut daftar driver siap yang diurutkan berdasarkan jarak terdekat rute map (Jemput &le; 2 km gratis, &gt; 2 km tambah Rp 2rb/km):</p>
             
             <div id="availableDriversListContainer" style="display:flex; flex-direction:column; gap:8px; max-height:50vh; overflow-y:auto;">
                 <p style="font-size: 11px; color: #a0a0a0; text-align:center;">Menunggu driver merespons...</p>
@@ -2610,9 +2610,9 @@
                 
                 let extraFeeInfoHtml = '';
                 if (driver.pickupExtraFee > 0) {
-                    extraFeeInfoHtml = `<div style="color:#f2994a; font-size:11px;">⚠️ Jarak jemput > 2 km (+Biaya Jemput: Rp ${driver.pickupExtraFee.toLocaleString('id-ID')})</div>`;
+                    extraFeeInfoHtml = `<div style="color:#f2994a; font-size:11px;">⚠️ Jarak jemput &gt; 2 km (+Biaya Jemput: Rp ${driver.pickupExtraFee.toLocaleString('id-ID')})</div>`;
                 } else {
-                    extraFeeInfoHtml = `<div style="color:#27ae60; font-size:11px;">✨ Biaya Jemput: GRATIS (≤ 2 km)</div>`;
+                    extraFeeInfoHtml = `<div style="color:#27ae60; font-size:11px;">✨ Biaya Jemput: GRATIS (&le; 2 km)</div>`;
                 }
 
                 card.innerHTML = `
@@ -2740,6 +2740,12 @@
         triggerCustomVibration('radarOrder');
 
         let passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
+        // Tandai riwayat lama yang masih aktif menjadi selesai/batal agar tidak menumpuk status aktif
+        passHistory.forEach(item => {
+            if (item.status !== 'FINISHED' && item.status !== 'CANCELLED') {
+                item.status = 'FINISHED';
+            }
+        });
         passHistory.unshift(newOrder);
         localStorage.setItem('iqbike_passenger_history', JSON.stringify(passHistory));
 
@@ -2755,6 +2761,14 @@
         if (!order) return;
 
         if (confirm("Apakah Anda yakin ingin membatalkan pesanan ini?")) {
+            let passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
+            passHistory.forEach(item => {
+                if (item.id === order.id) {
+                    item.status = 'CANCELLED';
+                }
+            });
+            localStorage.setItem('iqbike_passenger_history', JSON.stringify(passHistory));
+
             localStorage.removeItem('iqbike_active_order');
             removeOrderFromCloud();
             
@@ -2854,7 +2868,7 @@
 
     function renderPassengerHistory() {
         const container = document.getElementById('passengerHistoryContainer');
-        const passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
+        let passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
         const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
 
         if (passHistory.length === 0) {
@@ -2868,17 +2882,24 @@
             card.className = 'history-card';
             
             let statusBadge = '';
+            let isItemActive = activeOrder && activeOrder.id === item.id;
+
             if (item.status === 'CANCELLED') {
                 statusBadge = `<span style="background:#fce8e6; color:#eb5757; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">DIBATALKAN</span>`;
             } else if (item.status === 'FINISHED') {
                 statusBadge = `<span style="background:#eef7e8; color:#2e7d32; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">SELESAI</span>`;
             } else {
-                statusBadge = `<span style="background:#e3f2fd; color:#1565c0; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">AKTIF / PROSES</span>`;
+                if (!isItemActive) {
+                    // Jika tercatat aktif di history tapi tidak ada di activeOrder, anggap sudah selesai agar tidak menumpuk
+                    item.status = 'FINISHED';
+                    statusBadge = `<span style="background:#eef7e8; color:#2e7d32; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">SELESAI</span>`;
+                } else {
+                    statusBadge = `<span style="background:#e3f2fd; color:#1565c0; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">AKTIF / PROSES</span>`;
+                }
             }
 
             let actionButtonsHTML = '';
-            // Jika item ini adalah pesanan yang sedang aktif/proses
-            if (activeOrder && activeOrder.id === item.id) {
+            if (isItemActive) {
                 let chatWaButton = '';
                 if (item.assignedDriverWa) {
                     chatWaButton = `
@@ -2989,10 +3010,12 @@
             localStorage.setItem('iqbike_history', JSON.stringify(history));
 
             let passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
-            if (passHistory.length > 0) {
-                passHistory[0].status = 'FINISHED';
-                localStorage.setItem('iqbike_passenger_history', JSON.stringify(passHistory));
-            }
+            passHistory.forEach(item => {
+                if (item.id === order.id) {
+                    item.status = 'FINISHED';
+                }
+            });
+            localStorage.setItem('iqbike_passenger_history', JSON.stringify(passHistory));
 
             localStorage.removeItem('iqbike_active_order');
             removeOrderFromCloud();
@@ -3244,7 +3267,6 @@
             return;
         }
 
-        // Pastikan driver melihat kartu order jika berstatus WAITING atau sedang ditangani oleh driver ini
         if (order.status !== 'WAITING' && order.assignedDriverWa && order.assignedDriverWa !== currentDriverWa) {
             floatingPanel.style.display = 'none';
             container.innerHTML = '';
