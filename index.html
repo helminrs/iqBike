@@ -6,6 +6,7 @@
     <title>iqBike - Multi-Driver Cloud System</title>
 
     <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#8cc63f">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
@@ -126,16 +127,16 @@
         .header-actions {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
         }
 
-        .btn-header-pin, .btn-header-settings {
+        .btn-header-install, .btn-header-pin, .btn-header-settings {
             background: #222;
             color: var(--primary-green);
             border: 1px solid #444;
             padding: 5px 8px;
-            border-radius: 10px;
-            font-size: 11px;
+            border-radius: 8px;
+            font-size: 10px;
             font-weight: 700;
             cursor: pointer;
             display: flex;
@@ -148,8 +149,8 @@
             color: var(--primary-green);
             border: 1px solid #444;
             padding: 5px 8px;
-            border-radius: 10px;
-            font-size: 11px;
+            border-radius: 8px;
+            font-size: 10px;
             font-weight: 700;
             cursor: pointer;
         }
@@ -827,6 +828,64 @@
             <button class="role-btn role-driver" onclick="openDriverPinModal()">
                 <i class="fa-solid fa-id-card"></i> Masuk Sebagai DRIVER (Bisa Banyak Driver)
             </button>
+            <button class="role-btn" onclick="openInstallGuideModal()" style="background:#0288d1; color:#fff; font-size:13px; margin-top:4px;">
+                <i class="fa-solid fa-download"></i> Cara Instal WebApp di HP (Tanpa Play Store)
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL PANDUAN INSTAL PWA (WEB APP) TANPA PLAY STORE -->
+    <div id="installGuideModal" class="modal-overlay" style="display: none;">
+        <div class="modal-detail-card" style="background:#222; color:#fff; border:1px solid #444; text-align:left;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #444; padding-bottom:10px;">
+                <h3 style="font-size:15px; font-weight:bold; color:var(--primary-green);"><i class="fa-solid fa-mobile-screen-button"></i> Cara Instal iqBike di HP</h3>
+                <button onclick="closeInstallGuideModal()" style="background:none; border:none; font-size:18px; color:#aaa; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <p style="font-size:11px; color:#aaa; margin-top:4px;">Aplikasi ini berbasis WebApp (PWA). Anda dapat menginstalnya di layar utama ponsel Android/iPhone tanpa perlu mendownload dari Play Store:</p>
+            
+            <div id="pwaNativeInstallBox" style="display:none; background:#2a2a2a; padding:12px; border-radius:8px; border:1px solid var(--primary-green); text-align:center; margin-top:6px;">
+                <p style="font-size:12px; font-weight:bold; color:#fff; margin-bottom:8px;">✨ Tombol Pintas Instalasi Otomatis:</p>
+                <button onclick="triggerPwaInstallPrompt()" class="btn-submit" style="background:var(--primary-green); color:#111; font-size:13px; font-weight:bold;">
+                    <i class="fa-solid fa-circle-down"></i> Instal Aplikasi ke Layar Utama
+                </button>
+            </div>
+
+            <div style="font-size:11px; display:flex; flex-direction:column; gap:8px; background:#2a2a2a; padding:10px; border-radius:8px; margin-top:6px;">
+                <p style="color:var(--primary-green); font-weight:bold;"><i class="fa-brands fa-android"></i> Pengguna Android (Chrome / Browser):</p>
+                <ol style="padding-left:16px; color:#ddd; display:flex; flex-direction:column; gap:4px;">
+                    <li>Buka menu browser (ikon titik tiga <i class="fa-solid fa-ellipsis-vertical"></i> di kanan atas).</li>
+                    <li>Ketuk opsi <strong>"Tambahkan ke Layar Utama"</strong> atau <strong>"Instal Aplikasi"</strong>.</li>
+                    <li>Konfirmasi dengan mengetuk <strong>"Instal"</strong>. Ikon iqBike akan otomatis muncul di menu utama HP Anda.</li>
+                </ol>
+
+                <p style="color:#81d4fa; font-weight:bold; margin-top:4px;"><i class="fa-brands fa-apple"></i> Pengguna iPhone (Safari):</p>
+                <ol style="padding-left:16px; color:#ddd; display:flex; flex-direction:column; gap:4px;">
+                    <li>Buka situs ini melalui browser Safari.</li>
+                    <li>Ketuk tombol <strong>Bagikan (Share)</strong> di bagian bawah layar.</li>
+                    <li>Gulir dan pilih <strong>"Tambahkan ke Layar Utama" (Add to Home Screen)</strong>.</li>
+                </ol>
+            </div>
+
+            <button onclick="closeInstallGuideModal()" style="width:100%; padding:10px; background:#444; color:white; border:none; border-radius:8px; font-size:12px; font-weight:bold; margin-top:6px; cursor:pointer;">Tutup Panduan</button>
+        </div>
+    </div>
+
+    <!-- MODAL NOTIFIKASI PEMBATALAN ORDER OLEH PENUMPANG -->
+    <div id="passengerCancelledModal" class="modal-overlay" style="display: none;">
+        <div class="login-card" style="background:#fff; color:#222; text-align:left; border:2px solid var(--accent-red);">
+            <div style="text-align:center; border-bottom:1px solid #eee; padding-bottom:10px;">
+                <i class="fa-solid fa-triangle-exclamation" style="font-size:40px; color:var(--accent-red);"></i>
+                <h3 style="margin-top:8px; color:var(--accent-red);">Pesanan Dibatalkan Penumpang!</h3>
+                <p style="font-size:11px; color:#555;">Penumpang telah membatalkan pesanan ini secara aktif.</p>
+            </div>
+            <div style="font-size:12px; display:flex; flex-direction:column; gap:6px; background:#f9f9f9; padding:10px; border-radius:8px;">
+                <p><strong><i class="fa-solid fa-user"></i> Penumpang:</strong> <span id="cancelModalPassName">-</span></p>
+                <p><strong><i class="fa-solid fa-location-dot" style="color:#eb5757;"></i> Rute:</strong> <span id="cancelModalRoute">-</span></p>
+            </div>
+            <button class="btn-submit" onclick="closePassengerCancelledModal()" style="margin-top:6px; background:var(--accent-red); color:#fff; font-size:13px;">
+                <i class="fa-solid fa-check"></i> Mengerti & Kembali Siaga
+            </button>
         </div>
     </div>
 
@@ -1159,6 +1218,9 @@
             <span>iqBike</span>
         </div>
         <div class="header-actions">
+            <button class="btn-header-install" onclick="openInstallGuideModal()" title="Instal Aplikasi">
+                <i class="fa-solid fa-download"></i> Instal
+            </button>
             <button class="btn-header-settings" onclick="openNotificationSettingsModal()">
                 <i class="fa-solid fa-gear"></i> Suara
             </button>
@@ -1356,6 +1418,36 @@
     const db = firebase.firestore();
 
     const ADMIN_MASTER_KEY = "9922";
+    let deferredPwaInstallPrompt = null;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPwaInstallPrompt = e;
+        const nativeBox = document.getElementById('pwaNativeInstallBox');
+        if (nativeBox) nativeBox.style.display = 'block';
+    });
+
+    function openInstallGuideModal() {
+        document.getElementById('installGuideModal').style.display = 'flex';
+    }
+
+    function closeInstallGuideModal() {
+        document.getElementById('installGuideModal').style.display = 'none';
+    }
+
+    function triggerPwaInstallPrompt() {
+        if (deferredPwaInstallPrompt) {
+            deferredPwaInstallPrompt.prompt();
+            deferredPwaInstallPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('Pengguna menerima instalasi PWA');
+                }
+                deferredPwaInstallPrompt = null;
+            });
+        } else {
+            alert("✨ Fitur instalasi otomatis sudah siap! Jika tombol tidak merespons, silakan buka menu titik tiga di browser Anda dan pilih opsi 'Tambahkan ke Layar Utama' atau 'Instal Aplikasi'.");
+        }
+    }
 
     function getStoredPin() {
         return localStorage.getItem('iqbike_driver_pin') || "8899";
@@ -1370,6 +1462,7 @@
     let passengerLiveMarker = null;
     let reverseGeocodeTimeout = null;
     let lastNotifiedOrderId = null;
+    let lastNotifiedCancelId = null;
 
     let pendingNewDropoffCoords = null;
     let pendingNewDropoffName = "";
@@ -2250,6 +2343,19 @@
                     }
                 }
 
+                if (cloudOrder.status === 'CANCELLED_BY_PASSENGER') {
+                    if (userRole === 'driver' && cloudOrder.assignedDriverWa === currentDriverWa) {
+                        if (lastNotifiedCancelId !== cloudOrder.id) {
+                            lastNotifiedCancelId = cloudOrder.id;
+                            document.getElementById('cancelModalPassName').innerText = cloudOrder.passengerName;
+                            document.getElementById('cancelModalRoute').innerText = `${cloudOrder.pickup} ➔ ${cloudOrder.dropoff}`;
+                            document.getElementById('passengerCancelledModal').style.display = 'flex';
+                            playNotificationSound();
+                            triggerCustomVibration('radarOrder');
+                        }
+                    }
+                }
+
                 if (!localOrder || localOrder.id !== cloudOrder.id) {
                     if (userRole === 'driver' || (userRole === 'penumpang' && cloudOrder.deviceUuid === passengerDeviceUuid)) {
                         playNotificationSound();
@@ -2740,7 +2846,6 @@
         triggerCustomVibration('radarOrder');
 
         let passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
-        // Tandai riwayat lama yang masih aktif menjadi selesai/batal agar tidak menumpuk status aktif
         passHistory.forEach(item => {
             if (item.status !== 'FINISHED' && item.status !== 'CANCELLED') {
                 item.status = 'FINISHED';
@@ -2760,26 +2865,55 @@
         const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
         if (!order) return;
 
-        if (confirm("Apakah Anda yakin ingin membatalkan pesanan ini?")) {
-            let passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
-            passHistory.forEach(item => {
-                if (item.id === order.id) {
-                    item.status = 'CANCELLED';
-                }
-            });
-            localStorage.setItem('iqbike_passenger_history', JSON.stringify(passHistory));
+        // Validasi ekstra (konfirmasi ganda) agar penumpang tidak tidak sengaja menekan tombol cancel
+        const confirmCancel = confirm("⚠️ KONFIRMASI PEMBATALAN\n\nApakah Anda benar-benar ingin membatalkan pesanan ini? Aksi ini akan menghentikan proses pencarian/pengantaran driver.");
+        if (!confirmCancel) return;
 
-            localStorage.removeItem('iqbike_active_order');
+        let targetDriverWa = order.assignedDriverWa;
+        
+        // Tandai status di cloud agar driver mendapatkan pop-up alarm pembatalan
+        order.status = 'CANCELLED_BY_PASSENGER';
+        syncOrderToCloud(order);
+
+        let passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
+        passHistory.forEach(item => {
+            if (item.id === order.id) {
+                item.status = 'CANCELLED';
+            }
+        });
+        localStorage.setItem('iqbike_passenger_history', JSON.stringify(passHistory));
+
+        localStorage.removeItem('iqbike_active_order');
+        
+        // Hapus active order dari cloud setelah beberapa saat atau biarkan state cancel terbaca driver
+        setTimeout(() => {
             removeOrderFromCloud();
-            
-            resetAddressAndFare();
-            updatePassengerAppUI();
-            updateDriverAppUI();
-            renderFinanceAndHistory();
-            renderPassengerHistory();
-            
-            alert("Pesanan dibatalkan.");
+        }, 4000);
+
+        resetAddressAndFare();
+        updatePassengerAppUI();
+        updateDriverAppUI();
+        renderFinanceAndHistory();
+        renderPassengerHistory();
+
+        // Jika driver sudah terkonfirmasi/menuju jemput, arahkan otomatis ke WhatsApp untuk konfirmasi pembatalan ke driver
+        if (targetDriverWa) {
+            const cancelMsg = `Halo Driver iqBike (${targetDriverWa}), mohon maaf saya *membatalkan* pesanan saya sebelumnya dengan rute:\n` +
+                              `📍 Jemput: ${order.pickup}\n` +
+                              `🏁 Tujuan: ${order.dropoff}\n` +
+                              `Terima kasih dan mohon maklum.`;
+            const waUrl = `whatsapp://send?phone=${targetDriverWa}&text=${encodeURIComponent(cancelMsg)}`;
+            window.location.href = waUrl;
+        } else {
+            alert("Pesanan berhasil dibatalkan.");
         }
+    }
+
+    function closePassengerCancelledModal() {
+        document.getElementById('passengerCancelledModal').style.display = 'none';
+        localStorage.removeItem('iqbike_active_order');
+        removeOrderFromCloud();
+        updateDriverAppUI();
     }
 
     function driverCancelActiveOrder() {
@@ -2890,7 +3024,6 @@
                 statusBadge = `<span style="background:#eef7e8; color:#2e7d32; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">SELESAI</span>`;
             } else {
                 if (!isItemActive) {
-                    // Jika tercatat aktif di history tapi tidak ada di activeOrder, anggap sudah selesai agar tidak menumpuk
                     item.status = 'FINISHED';
                     statusBadge = `<span style="background:#eef7e8; color:#2e7d32; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">SELESAI</span>`;
                 } else {
@@ -3209,7 +3342,7 @@
 
         updatePassengerWaInputUI();
 
-        if (!order || (order.deviceUuid && order.deviceUuid !== passengerDeviceUuid)) {
+        if (!order || (order.deviceUuid && order.deviceUuid !== passengerDeviceUuid) || order.status === 'CANCELLED_BY_PASSENGER') {
             btnSend.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Cari & Kirim Pesanan ke Driver`;
             btnSend.disabled = false;
             btnSend.classList.remove('btn-disabled');
@@ -3242,7 +3375,8 @@
             pickupInput.disabled = true;
             btnJemput.disabled = true;
 
-            btnCancel.style.display = 'none';
+            btnCancel.style.display = 'flex';
+            btnCancel.innerHTML = `<i class="fa-solid fa-xmark"></i> Batalkan Pesanan Ini`;
             btnSend.innerHTML = `<i class="fa-brands fa-whatsapp"></i> Chat WhatsApp ke Driver (${order.assignedDriverWa})`;
             btnSend.disabled = false;
             btnSend.style.backgroundColor = 'var(--whatsapp-green)';
@@ -3260,7 +3394,7 @@
         const floatingPanel = document.getElementById('floatingRadarPanel');
         const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
 
-        if (!order) {
+        if (!order || order.status === 'CANCELLED_BY_PASSENGER') {
             floatingPanel.style.display = 'none';
             container.innerHTML = '';
             setTimeout(() => { if (map) map.invalidateSize(); }, 200);
