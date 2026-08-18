@@ -841,7 +841,7 @@
                 <i class="fa-solid fa-user"></i> Masuk Sebagai PENUMPANG
             </button>
             <button class="role-btn role-driver" onclick="openDriverPinModal()">
-                <i class="fa-solid fa-id-card"></i> Masuk Sebagai DRIVER (Bisa Banyak Driver)
+                <i class="fa-solid fa-id-card"></i> Masuk Sebagai iqDriver (Bisa Banyak Driver)
             </button>
             <button class="role-btn" onclick="openInstallGuideModal()" style="background:#0288d1; color:#fff; font-size:13px; margin-top:4px;">
                 <i class="fa-solid fa-download"></i> Cara Instal WebApp di HP (Tanpa Play Store)
@@ -857,7 +857,7 @@
                 <button onclick="closeInstallGuideModal()" style="background:none; border:none; font-size:18px; color:#aaa; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
             </div>
             
-            <p style="font-size:11px; color:#aaa; margin-top:4px;">Aplikasi ini berbasis WebApp (PWA). Anda dapat menginstalnya di layar utama ponsel Android/iPhone tanpa perlu mendownload dari Play Store:</p>
+            <p style="font-size:11px; color:#aaa; margin-top:4px;">Aplikasi ini berbasis WebApp (PWA). Anda dapat menginstalnya di layar utama ponsel Android/iPhone:</p>
             
             <div id="pwaNativeInstallBox" style="display:none; background:#2a2a2a; padding:12px; border-radius:8px; border:1px solid var(--primary-green); text-align:center; margin-top:6px;">
                 <p style="font-size:12px; font-weight:bold; color:#fff; margin-bottom:8px;">✨ Tombol Pintas Instalasi Otomatis:</p>
@@ -957,13 +957,13 @@
     <div id="driverSelectionModal" class="modal-overlay" style="display: none;">
         <div class="modal-detail-card" style="background:#222; color:#fff; border:1px solid #444;">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #444; padding-bottom:10px;">
-                <h3 style="font-size:15px; font-weight:bold; color:var(--primary-green);"><i class="fa-solid fa-motorcycle"></i> Pilih Driver Terdekat</h3>
+                <h3 style="font-size:15px; font-weight:bold; color:var(--primary-green);"><i class="fa-solid fa-motorcycle"></i> Pilih iqDriver Terdekat</h3>
                 <button onclick="closeDriverSelectionModal()" style="background:none; border:none; font-size:18px; color:#aaa; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <p style="font-size:11px; color:#aaa;">Berikut daftar driver siap yang diurutkan berdasarkan jarak terdekat rute map (Jemput &le; 2 km gratis, &gt; 2 km tambah Rp 2rb/km):</p>
+            <p style="font-size:11px; color:#aaa;">Berikut daftar iqDriver siap yang diurutkan berdasarkan jarak terdekat rute map (Jemput &le; 2 km gratis, &gt; 2 km tambah Rp 2rb/km):</p>
             
             <div id="availableDriversListContainer" style="display:flex; flex-direction:column; gap:8px; max-height:50vh; overflow-y:auto;">
-                <p style="font-size: 11px; color: #a0a0a0; text-align:center;">Menunggu driver merespons...</p>
+                <p style="font-size: 11px; color: #a0a0a0; text-align:center;">Menunggu iqDriver merespons...</p>
             </div>
 
             <div style="display:flex; justify-content:flex-end; margin-top:8px;">
@@ -972,7 +972,7 @@
         </div>
     </div>
 
-    <!-- MODAL POP-UP ORDERAN TERDEKAT KHUSUS DRIVER ONLINE -->
+    <!-- MODAL POP-UP ORDERAN TERDEKAT KHUSUS iqDriver ONLINE -->
     <div id="driverNearbyOrderModal" class="modal-overlay" style="display: none;">
         <div class="login-card" style="background:#fff; color:#222; text-align:left; position:relative; border:2px solid var(--primary-green);">
             <button onclick="closeDriverNearbyOrderModal()" style="position:absolute; top:12px; right:12px; background:none; border:none; font-size:18px; color:#666; cursor:pointer; font-weight:bold;">
@@ -1009,53 +1009,73 @@
             </button>
             <div style="text-align:center; border-bottom:1px solid #eee; padding-bottom:10px; padding-right:16px;">
                 <i class="fa-solid fa-bell-concierge" style="font-size:32px; color:var(--primary-green);"></i>
-                <h3 style="margin-top:6px; font-size:16px;">Pengaturan Suara Notifikasi</h3>
-                <p style="font-size:11px; color:#777;">Atur nada peringatan pesanan masuk, rute, & getaran</p>
+                <h3 style="margin-top:6px; font-size:16px;">Pengaturan Suara & Notifikasi iqDriver</h3>
+                <p style="font-size:11px; color:#777;">Atur nada & getaran spesifik untuk setiap jenis event</p>
             </div>
 
             <div style="display:flex; flex-direction:column; gap:12px; max-height:55vh; overflow-y:auto; padding-top:4px;">
+                
+                <!-- PILIHAN 1: NADA ORDER RADAR TERDEKAT -->
                 <div>
-                    <div class="settings-section-title">Pilih Nada Suara Order Masuk</div>
-                    <div class="sound-option-group" id="soundSelectionList">
-                        <div class="sound-option-item" onclick="setNotificationSoundChoice('sound1')">
-                            <span>🔔 Beep Ganda 1 (Harmoni Tinggi)</span>
-                            <button type="button" class="sound-preview-btn" onclick="event.stopPropagation(); previewSpecificSound('sound1')"><i class="fa-solid fa-play"></i></button>
+                    <div class="settings-section-title">1. Nada Order Masuk Radar (<span style="color:var(--accent-orange);">Getar Panjang</span>)</div>
+                    <div class="sound-option-group" id="soundRadarList">
+                        <div class="sound-option-item" onclick="setSpecificSoundChoice('radar', 'sound1')">
+                            <span>🔔 Beep Ganda Tinggi</span>
+                            <button type="button" class="sound-preview-btn" onclick="event.stopPropagation(); previewSpecificSound('radar', 'sound1')"><i class="fa-solid fa-play"></i></button>
                         </div>
-                        <div class="sound-option-item" onclick="setNotificationSoundChoice('sound2')">
-                            <span>🎵 Chime Lembut (3 Nada)</span>
-                            <button type="button" class="sound-preview-btn" onclick="event.stopPropagation(); previewSpecificSound('sound2')"><i class="fa-solid fa-play"></i></button>
+                        <div class="sound-option-item" onclick="setSpecificSoundChoice('radar', 'sound2')">
+                            <span>🎵 Chime Lembut 3 Nada</span>
+                            <button type="button" class="sound-preview-btn" onclick="event.stopPropagation(); previewSpecificSound('radar', 'sound2')"><i class="fa-solid fa-play"></i></button>
                         </div>
-                        <div class="sound-option-item" onclick="setNotificationSoundChoice('sound3')">
-                            <span>🛎️ Ding Tinggi (Eksklusif)</span>
-                            <button type="button" class="sound-preview-btn" onclick="event.stopPropagation(); previewSpecificSound('sound3')"><i class="fa-solid fa-play"></i></button>
+                        <div class="sound-option-item" onclick="setSpecificSoundChoice('radar', 'sound3')">
+                            <span>🛎️ Ding Tinggi Eksklusif</span>
+                            <button type="button" class="sound-preview-btn" onclick="event.stopPropagation(); previewSpecificSound('radar', 'sound3')"><i class="fa-solid fa-play"></i></button>
                         </div>
-                        <div class="sound-option-item" onclick="setNotificationSoundChoice('sound4')">
-                            <span>⚡ Ping Cepat (Kilat)</span>
-                            <button type="button" class="sound-preview-btn" onclick="event.stopPropagation(); previewSpecificSound('sound4')"><i class="fa-solid fa-play"></i></button>
+                        <div class="sound-option-item" onclick="setSpecificSoundChoice('radar', 'silent')"><span>🔕 Senyap</span></div>
+                    </div>
+                </div>
+
+                <!-- PILIHAN 2: NADA DIPILIH PENUMPANG -->
+                <div style="border-top:1px solid #eee; padding-top:8px;">
+                    <div class="settings-section-title">2. Nada Saat Dipilih Penumpang (<span style="color:var(--primary-green);">Getar Panjang</span>)</div>
+                    <div class="sound-option-group" id="soundPickedList">
+                        <div class="sound-option-item" onclick="setSpecificSoundChoice('picked', 'sound2')">
+                            <span>🎵 Chime Lembut 3 Nada</span>
+                            <button type="button" class="sound-preview-btn" onclick="event.stopPropagation(); previewSpecificSound('picked', 'sound2')"><i class="fa-solid fa-play"></i></button>
                         </div>
-                        <div class="sound-option-item" onclick="setNotificationSoundChoice('classicbeep')">
+                        <div class="sound-option-item" onclick="setSpecificSoundChoice('picked', 'sound3')">
+                            <span>🛎️ Ding Tinggi Eksklusif</span>
+                            <button type="button" class="sound-preview-btn" onclick="event.stopPropagation(); previewSpecificSound('picked', 'sound3')"><i class="fa-solid fa-play"></i></button>
+                        </div>
+                        <div class="sound-option-item" onclick="setSpecificSoundChoice('picked', 'sound4')">
+                            <span>⚡ Ping Cepat Kilat</span>
+                            <button type="button" class="sound-preview-btn" onclick="event.stopPropagation(); previewSpecificSound('picked', 'sound4')"><i class="fa-solid fa-play"></i></button>
+                        </div>
+                        <div class="sound-option-item" onclick="setSpecificSoundChoice('picked', 'silent')"><span>🔕 Senyap</span></div>
+                    </div>
+                </div>
+
+                <!-- PILIHAN 3: NADA NOTIFIKASI LAIN / OFFLINE -->
+                <div style="border-top:1px solid #eee; padding-top:8px;">
+                    <div class="settings-section-title">3. Notifikasi Lain / Status Offline (<span style="color:#777;">Getar Pendek/Default</span>)</div>
+                    <div class="sound-option-group" id="soundOtherList">
+                        <div class="sound-option-item" onclick="setSpecificSoundChoice('other', 'classicbeep')">
                             <span>📢 Standar Bip Tunggal</span>
-                            <button type="button" class="sound-preview-btn" onclick="event.stopPropagation(); previewSpecificSound('classicbeep')"><i class="fa-solid fa-play"></i></button>
+                            <button type="button" class="sound-preview-btn" onclick="event.stopPropagation(); previewSpecificSound('other', 'classicbeep')"><i class="fa-solid fa-play"></i></button>
                         </div>
-                        <div class="sound-option-item" onclick="setNotificationSoundChoice('customfile')">
-                            <span>📂 Unggah / Pilih File Suara dari HP (MP3/WAV)</span>
-                            <button type="button" class="sound-preview-btn" onclick="event.stopPropagation(); document.getElementById('customAudioFileInput').click()"><i class="fa-solid fa-folder-open"></i></button>
-                        </div>
-                        <input type="file" id="customAudioFileInput" accept="audio/*" style="display:none;" onchange="handleCustomAudioUpload(event)">
-                        
-                        <div class="sound-option-item" onclick="setNotificationSoundChoice('silent')">
-                            <span>🔕 Senyap (Tanpa Suara)</span>
-                            <span style="font-size:11px; color:#888;">Off</span>
-                        </div>
+                        <div class="sound-option-item" onclick="setSpecificSoundChoice('other', 'silent')"><span>🔕 Senyap</span></div>
                     </div>
                 </div>
 
                 <div style="border-top:1px solid #eee; padding-top:8px;">
-                    <div class="settings-section-title">Pengaturan Getaran (Vibration)</div>
-                    <label style="display:flex; align-items:center; gap:8px; font-size:12px; font-weight:normal; cursor:pointer;">
+                    <div class="settings-section-title">Pengaturan Getaran & Push Notifikasi Luar Aplikasi</div>
+                    <label style="display:flex; align-items:center; gap:8px; font-size:12px; font-weight:normal; cursor:pointer; margin-bottom:6px;">
                         <input type="checkbox" id="vibrationToggle" onchange="toggleVibrationSetting()" style="width:16px; height:16px; accent-color:var(--primary-green);">
-                        Aktifkan Getaran Saat Ada Orderan Masuk
+                        Aktifkan Pola Getaran Khusus (Panjang/Pendek)
                     </label>
+                    <button type="button" onclick="requestBrowserNotificationPermission()" style="width:100%; padding:8px; background:#0288d1; color:#fff; border:none; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">
+                        <i class="fa-solid fa-bell"></i> Aktifkan Izin Notifikasi Sistem (Agar Muncul di Luar Aplikasi / WhatsApp)
+                    </button>
                 </div>
             </div>
 
@@ -1068,15 +1088,15 @@
     <div id="driverPinModal" class="modal-overlay" style="display: none;">
         <div class="login-card" style="background:#222; color:#fff; text-align:center;">
             <i class="fa-solid fa-lock" style="font-size:36px; color:var(--primary-green);"></i>
-            <h3 style="margin-top:6px;">Login Mode Driver</h3>
-            <p style="font-size:11px; color:#aaa;">Masukkan PIN Driver Anda (Default: 8899)</p>
+            <h3 style="margin-top:6px;">Login Mode iqDriver</h3>
+            <p style="font-size:11px; color:#aaa;">Masukkan PIN iqDriver Anda (Default: 8899)</p>
             
             <div class="form-group">
                 <input type="password" id="inputDriverPin" class="form-input" placeholder="Masukkan 4 Digit PIN" maxlength="6" style="text-align:center; font-size:18px; letter-spacing:4px;">
             </div>
 
             <div style="display:flex; flex-direction:column; gap:8px;">
-                <button onclick="verifyDriverPin()" class="btn-submit" style="padding:10px; font-size:13px; background:var(--primary-green); color:#111;">Masuk Driver</button>
+                <button onclick="verifyDriverPin()" class="btn-submit" style="padding:10px; font-size:13px; background:var(--primary-green); color:#111;">Masuk iqDriver</button>
                 <button onclick="triggerResetPinWa()" style="background:none; border:none; color:var(--primary-green); font-size:11px; text-decoration:underline; cursor:pointer;">
                     Lupa PIN? Minta Kode Verifikasi via WA Admin
                 </button>
@@ -1088,7 +1108,7 @@
     <div id="resetPinModal" class="modal-overlay" style="display: none;">
         <div class="login-card" style="background:#222; color:#fff; text-align:center;">
             <i class="fa-solid fa-key" style="font-size:36px; color:var(--accent-orange);"></i>
-            <h3 style="margin-top:6px;">Reset PIN Driver</h3>
+            <h3 style="margin-top:6px;">Reset PIN iqDriver</h3>
             <p style="font-size:11px; color:#aaa;">Masukkan Kode Verifikasi dari Admin WA dan buat PIN baru</p>
 
             <div class="form-group">
@@ -1133,7 +1153,7 @@
         </div>
     </div>
 
-    <!-- MODAL DRIVER ROUTE UPDATE -->
+    <!-- MODAL iqDriver ROUTE UPDATE -->
     <div id="driverRouteUpdateModal" class="modal-overlay" style="display: none;">
         <div class="login-card" style="background:#fff; color:#222; text-align:left; position:relative;">
             <button onclick="closeDriverRouteUpdateModal()" style="position:absolute; top:12px; right:12px; background:none; border:none; font-size:18px; color:#666; cursor:pointer; font-weight:bold;">
@@ -1164,7 +1184,7 @@
         <div class="login-card" style="background:#fff; color:#222; text-align:left;">
             <div style="text-align:center; border-bottom:1px solid #eee; padding-bottom:10px;">
                 <i class="fa-solid fa-wallet" style="font-size:36px; color:var(--accent-red);"></i>
-                <h3 style="margin-top:6px;">Tambah Pengeluaran Driver</h3>
+                <h3 style="margin-top:6px;">Tambah Pengeluaran iqDriver</h3>
             </div>
             <div class="form-group">
                 <label class="form-label">Keterangan (Contoh: Bensin, Parkir)</label>
@@ -1276,7 +1296,7 @@
     <main class="content-area">
         <div id="passengerView" class="passenger-view-container" style="display: none;">
             <div id="driverStatusBox" class="status-box status-online">
-                <i class="fa-solid fa-circle"></i> Memeriksa Status Driver...
+                <i class="fa-solid fa-circle"></i> Memeriksa Status iqDriver...
             </div>
 
             <div class="form-group">
@@ -1335,7 +1355,7 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label"><i class="fa-solid fa-note-sticky"></i> Catatan Untuk Driver (Opsional)</label>
+                <label class="form-label"><i class="fa-solid fa-note-sticky"></i> Catatan Untuk iqDriver (Opsional)</label>
                 <input type="text" id="passengerNote" class="form-input" placeholder="Contoh: Pakai helm bawa sendiri / Barang mudah pecah">
             </div>
 
@@ -1345,7 +1365,7 @@
 
             <div style="display:flex; flex-direction:column; gap:5px; flex-shrink:0;">
                 <button id="btnSendOrder" class="btn-submit" type="button" onclick="handleMainActionButton()">
-                    <i class="fa-solid fa-paper-plane"></i> Cari & Kirim Pesanan ke Driver
+                    <i class="fa-solid fa-paper-plane"></i> Cari & Kirim Pesanan ke iqDriver
                 </button>
                 
                 <button id="btnCancelOrder" class="btn-cancel" type="button" onclick="cancelActiveOrder()" style="display:none;">
@@ -1375,7 +1395,7 @@
 
             <div class="finance-card">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:11px; font-weight:bold; color:#aaa;"><i class="fa-solid fa-wallet"></i> RINGKASAN KEUANGAN</span>
+                    <span style="font-size:11px; font-weight:bold; color:#aaa;"><i class="fa-solid fa-wallet"></i> RINGKASAN KEUANGAN iqDriver</span>
                     <select id="timeFilter" class="filter-select" onchange="renderFinanceAndHistory()">
                         <option value="today">Hari Ini</option>
                         <option value="week">Minggu Ini</option>
@@ -1406,7 +1426,7 @@
             <div id="driverMapContainer" class="map-wrapper-full"></div>
 
             <div id="miniGpsBadge" class="mini-gps-badge">
-                <i class="fa-solid fa-signal"></i> <span id="gpsBadgeText">GPS DRIVER ONLINE</span>
+                <i class="fa-solid fa-signal"></i> <span id="gpsBadgeText">GPS iqDriver ONLINE</span>
             </div>
 
             <div id="floatingRadarPanel" class="floating-radar-overlay" style="display:none;">
@@ -1467,6 +1487,39 @@
         if (nativeBox) nativeBox.style.display = 'block';
     });
 
+    function requestBrowserNotificationPermission() {
+        if ("Notification" in window) {
+            Notification.requestPermission().then((permission) => {
+                if (permission === "granted") {
+                    showCustomAlert("Berhasil", "✅ Izin Notifikasi Sistem Berhasil Diaktifkan! Notifikasi akan muncul walau Anda sedang membuka aplikasi lain / WhatsApp.");
+                } else {
+                    showCustomAlert("Ditolak", "⚠️ Izin notifikasi ditolak oleh browser. Anda dapat mengaktifkannya melalui setelan izin situs browser.");
+                }
+            });
+        } else {
+            showCustomAlert("Tidak Didukung", "Browser Anda tidak mendukung Notifikasi Sistem Push.");
+        }
+    }
+
+    function triggerSystemPushNotification(title, bodyText) {
+        if ("Notification" in window && Notification.permission === "granted") {
+            try {
+                navigator.serviceWorker.ready.then((reg) => {
+                    reg.showNotification(title, {
+                        body: bodyText,
+                        icon: 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/motorcycle.svg',
+                        vibrate: [300, 100, 300, 100, 500],
+                        tag: 'iqdriver-order'
+                    });
+                }).catch(() => {
+                    new Notification(title, { body: bodyText });
+                });
+            } catch (e) {
+                new Notification(title, { body: bodyText });
+            }
+        }
+    }
+
     function showCustomAlert(title, message) {
         document.getElementById('customAlertTitle').innerText = title;
         document.getElementById('customAlertMessage').innerText = message;
@@ -1489,13 +1542,10 @@
         if (deferredPwaInstallPrompt) {
             deferredPwaInstallPrompt.prompt();
             deferredPwaInstallPrompt.userChoice.then((choiceResult) => {
-                if (choiceResult.outcome === 'accepted') {
-                    console.log('Pengguna menerima instalasi PWA');
-                }
                 deferredPwaInstallPrompt = null;
             });
         } else {
-            showCustomAlert("Pemberitahuan", "✨ Fitur instalasi otomatis sudah siap! Jika tombol tidak merespons, silakan buka menu titik tiga di browser Anda dan pilih opsi 'Tambahkan ke Layar Utama' atau 'Instal Aplikasi'.");
+            showCustomAlert("Pemberitahuan", "✨ Fitur instalasi otomatis sudah siap! Buka menu titik tiga di browser Anda dan pilih opsi 'Tambahkan ke Layar Utama'.");
         }
     }
 
@@ -1513,6 +1563,7 @@
     let reverseGeocodeTimeout = null;
     let lastNotifiedOrderId = null;
     let lastNotifiedCancelId = null;
+    let lastNotifiedPickedId = null;
 
     let pendingNewDropoffCoords = null;
     let pendingNewDropoffName = "";
@@ -1600,8 +1651,8 @@
 
     function openDriverOtpModal() {
         activeOtpTargetRole = 'driver';
-        document.getElementById('otpModalTitle').innerText = "Verifikasi WhatsApp Driver";
-        document.getElementById('otpModalSubtitle').innerText = "Masukkan nomor WhatsApp Driver yang aktif.";
+        document.getElementById('otpModalTitle').innerText = "Verifikasi WhatsApp iqDriver";
+        document.getElementById('otpModalSubtitle').innerText = "Masukkan nomor WhatsApp iqDriver yang aktif.";
         document.getElementById('otpPhoneInput').value = currentDriverWa.startsWith('62') ? '0' + currentDriverWa.substring(2) : currentDriverWa;
         
         document.getElementById('otpStep1Container').style.display = 'block';
@@ -1680,7 +1731,7 @@
             localStorage.setItem('iqbike_driver_wa', currentDriverWa);
             document.getElementById('driverWaInput').value = currentDriverWa;
             ensureDriverCloudPresence();
-            showCustomAlert("Berhasil", `✅ Nomor WhatsApp Driver (${currentDriverWa}) Berhasil Terverifikasi Aktif & Disimpan!`);
+            showCustomAlert("Berhasil", `✅ Nomor WhatsApp iqDriver (${currentDriverWa}) Berhasil Terverifikasi Aktif & Disimpan!`);
         } else if (activeOtpTargetRole === 'penumpang') {
             passengerVerifiedWa = tempTargetPhone;
             localStorage.setItem('iqbike_passenger_wa', passengerVerifiedWa);
@@ -1691,40 +1742,27 @@
         closeOtpVerificationModal();
     }
 
-    function getStoredSoundChoice() {
-        return localStorage.getItem('iqbike_sound_choice') || 'sound1';
+    // PENGATURAN SUARA & GETAR TERPISAH
+    function getStoredSoundChoice(type) {
+        // type: 'radar', 'picked', 'other'
+        if (type === 'radar') return localStorage.getItem('iqbike_sound_radar') || 'sound1';
+        if (type === 'picked') return localStorage.getItem('iqbike_sound_picked') || 'sound2';
+        return localStorage.getItem('iqbike_sound_other') || 'classicbeep';
+    }
+
+    function setSpecificSoundChoice(type, soundName) {
+        if (type === 'radar') localStorage.setItem('iqbike_sound_radar', soundName);
+        else if (type === 'picked') localStorage.setItem('iqbike_sound_picked', soundName);
+        else localStorage.setItem('iqbike_sound_other', soundName);
+
+        updateSoundSettingsUI();
+        playSpecificSoundChoice(soundName);
+        triggerCustomVibration(type === 'other' ? 'short' : 'long');
     }
 
     function getStoredVibrationChoice() {
         const val = localStorage.getItem('iqbike_vibration_enabled');
         return val !== 'false';
-    }
-
-    function setNotificationSoundChoice(choice) {
-        localStorage.setItem('iqbike_sound_choice', choice);
-        updateSoundSettingsUI();
-        playNotificationSound();
-        triggerCustomVibration('radarOrder');
-    }
-
-    function handleCustomAudioUpload(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const base64Audio = e.target.result;
-            try {
-                localStorage.setItem('iqbike_custom_audio_base64', base64Audio);
-                localStorage.setItem('iqbike_sound_choice', 'customfile');
-                updateSoundSettingsUI();
-                playNotificationSound();
-                showCustomAlert("Berhasil", "✅ File audio berhasil dimuat dan disimpan sebagai nada dering kustom Anda!");
-            } catch (err) {
-                showCustomAlert("Peringatan", "❌ Ukuran file terlalu besar untuk penyimpanan lokal browser. Harap gunakan file audio berukuran lebih kecil.");
-            }
-        };
-        reader.readAsDataURL(file);
     }
 
     function toggleVibrationSetting() {
@@ -1733,20 +1771,26 @@
     }
 
     function updateSoundSettingsUI() {
-        const currentChoice = getStoredSoundChoice();
-        const items = document.querySelectorAll('.sound-option-item');
-        items.forEach(item => {
-            item.classList.remove('selected');
-            const onclickAttr = item.getAttribute('onclick') || "";
-            if (onclickAttr.includes(currentChoice)) {
-                item.classList.add('selected');
-            }
+        const rSound = getStoredSoundChoice('radar');
+        const pSound = getStoredSoundChoice('picked');
+        const oSound = getStoredSoundChoice('other');
+
+        // Tandai UI terpilih
+        document.querySelectorAll('#soundRadarList .sound-option-item').forEach(el => {
+            el.classList.remove('selected');
+            if ((el.getAttribute('onclick')||'').includes(rSound)) el.classList.add('selected');
+        });
+        document.querySelectorAll('#soundPickedList .sound-option-item').forEach(el => {
+            el.classList.remove('selected');
+            if ((el.getAttribute('onclick')||'').includes(pSound)) el.classList.add('selected');
+        });
+        document.querySelectorAll('#soundOtherList .sound-option-item').forEach(el => {
+            el.classList.remove('selected');
+            if ((el.getAttribute('onclick')||'').includes(oSound)) el.classList.add('selected');
         });
 
         const vibToggle = document.getElementById('vibrationToggle');
-        if (vibToggle) {
-            vibToggle.checked = getStoredVibrationChoice();
-        }
+        if (vibToggle) vibToggle.checked = getStoredVibrationChoice();
     }
 
     function openNotificationSettingsModal() {
@@ -1758,29 +1802,13 @@
         document.getElementById('notificationSettingsModal').style.display = 'none';
     }
 
-    function previewSpecificSound(choice) {
-        localStorage.setItem('iqbike_sound_choice', choice);
-        updateSoundSettingsUI();
-        playNotificationSound();
-        triggerCustomVibration('radarOrder');
+    function previewSpecificSound(type, soundName) {
+        playSpecificSoundChoice(soundName);
+        triggerCustomVibration(type === 'other' ? 'short' : 'long');
     }
 
-    function playNotificationSound() {
-        const choice = getStoredSoundChoice();
+    function playSpecificSoundChoice(choice) {
         if (choice === 'silent') return;
-
-        if (choice === 'customfile') {
-            const customData = localStorage.getItem('iqbike_custom_audio_base64');
-            if (customData) {
-                try {
-                    const audio = new Audio(customData);
-                    audio.play().catch(e => console.log("Custom audio play error:", e));
-                    return;
-                } catch (err) {
-                    console.log("Error playing custom audio:", err);
-                }
-            }
-        }
 
         try {
             const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -1824,14 +1852,14 @@
         }
     }
 
-    function triggerCustomVibration(type) {
+    function triggerCustomVibration(vibeType) {
         if (!getStoredVibrationChoice()) return;
         if (navigator.vibrate) {
-            if (type === 'radarOrder') {
-                navigator.vibrate([200, 100, 200, 100, 300]);
-            } else if (type === 'routeConfirmed') {
-                navigator.vibrate([150, 100, 150]);
+            if (vibeType === 'long') {
+                // Getar panjang (untuk order radar / dipilih penumpang)
+                navigator.vibrate([400, 150, 400, 150, 600]);
             } else {
+                // Getar pendek / default
                 navigator.vibrate(150);
             }
         }
@@ -1909,7 +1937,7 @@
         const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
 
         if (mode === 'jemput' && activeOrder && activeOrder.status !== 'WAITING') {
-            showCustomAlert("Terkunci", "🔒 Lokasi Penjemputan telah TERKUNCI karena Driver sudah mengonfirmasi pesanan!");
+            showCustomAlert("Terkunci", "🔒 Lokasi Penjemputan telah TERKUNCI karena iqDriver sudah mengonfirmasi pesanan!");
             return;
         }
 
@@ -2171,7 +2199,7 @@
     }
 
     function triggerResetPinWa() {
-        const message = "Halo Admin iqBike, saya Lupa PIN Driver. Mohon berikan Kode Verifikasi Master untuk reset PIN.";
+        const message = "Halo Admin iqBike, saya Lupa PIN iqDriver. Mohon berikan Kode Verifikasi Master untuk reset PIN.";
         const waUrl = `whatsapp://send?phone=${currentDriverWa}&text=${encodeURIComponent(message)}`;
 
         closeDriverPinModal();
@@ -2230,7 +2258,7 @@
         localStorage.setItem('iqbike_saved_role', role);
 
         document.getElementById('loginOverlay').style.display = 'none';
-        document.getElementById('currentRoleText').innerText = (role === 'penumpang') ? 'Mode: Penumpang' : 'Mode: Driver';
+        document.getElementById('currentRoleText').innerText = (role === 'penumpang') ? 'Mode: Penumpang' : 'Mode: iqDriver';
 
         ensureDriverCloudPresence();
 
@@ -2265,8 +2293,9 @@
                 document.getElementById('driverModalAddFare').innerText = lastChange ? `+Rp ${lastChange.extraFare.toLocaleString('id-ID')}` : `Ada Penambahan Rute`;
                 document.getElementById('driverModalNewFare').innerText = `Rp ${activeOrder.fare.toLocaleString('id-ID')}`;
                 document.getElementById('driverRouteUpdateModal').style.display = 'flex';
-                playNotificationSound();
-                triggerCustomVibration('routeConfirmed');
+                
+                playSpecificSoundChoice(getStoredSoundChoice('other'));
+                triggerCustomVibration('short');
             }
         }
     }
@@ -2279,8 +2308,8 @@
         
         updateDriverAppUI();
 
-        playNotificationSound();
-        triggerCustomVibration('onlineOffline');
+        playSpecificSoundChoice(getStoredSoundChoice('other'));
+        triggerCustomVibration('short');
     }
 
     function updateDriverBadgeUI(online) {
@@ -2302,10 +2331,10 @@
 
         if (online) {
             badge.classList.remove('offline');
-            text.innerText = "GPS DRIVER ONLINE";
+            text.innerText = "GPS iqDriver ONLINE";
         } else {
             badge.classList.add('offline');
-            text.innerText = "GPS DRIVER OFFLINE";
+            text.innerText = "GPS iqDriver OFFLINE";
         }
     }
 
@@ -2379,6 +2408,7 @@
                             localStorage.setItem('iqbike_active_order', JSON.stringify(cloudOrder));
                             updateDriverAppUI();
                             checkAndShowNearbyOrderPopup(cloudOrder);
+                            checkIfPickedByPassenger(cloudOrder);
                         }
                     }
                 }).catch(err => console.log("Periodic refresh error:", err));
@@ -2459,24 +2489,27 @@
                                 renderFinanceAndHistory();
                             }
 
-                            playNotificationSound();
-                            triggerCustomVibration('radarOrder');
+                            playSpecificSoundChoice(getStoredSoundChoice('other'));
+                            triggerCustomVibration('short');
+                            triggerSystemPushNotification("Pesanan Dibatalkan", "Penumpang membatalkan pesanan.");
                         }
                     }
                 }
 
                 if (!localOrder || localOrder.id !== cloudOrder.id) {
                     if (userRole === 'driver' || (userRole === 'penumpang' && cloudOrder.deviceUuid === passengerDeviceUuid)) {
-                        playNotificationSound();
-                        triggerCustomVibration('radarOrder');
+                        playSpecificSoundChoice(getStoredSoundChoice('radar'));
+                        triggerCustomVibration('long');
+                        triggerSystemPushNotification("iqDriver Radar", "Ada orderan baru di sekitar Anda!");
                     }
                 }
-                
-                localStorage.setItem('iqbike_active_order', JSON.stringify(cloudOrder));
 
                 if (userRole === 'driver') {
                     checkAndShowNearbyOrderPopup(cloudOrder);
+                    checkIfPickedByPassenger(cloudOrder);
                 }
+                
+                localStorage.setItem('iqbike_active_order', JSON.stringify(cloudOrder));
 
                 if (userRole === 'driver' && cloudOrder.triggerPopupForDriver) {
                     const lastChange = cloudOrder.routeChanges && cloudOrder.routeChanges.length > 0 ? cloudOrder.routeChanges[cloudOrder.routeChanges.length - 1] : null;
@@ -2484,8 +2517,9 @@
                     document.getElementById('driverModalAddFare').innerText = lastChange ? `+Rp ${lastChange.extraFare.toLocaleString('id-ID')}` : `Ada Penambahan Rute`;
                     document.getElementById('driverModalNewFare').innerText = `Rp ${cloudOrder.fare.toLocaleString('id-ID')}`;
                     document.getElementById('driverRouteUpdateModal').style.display = 'flex';
-                    playNotificationSound();
-                    triggerCustomVibration('routeConfirmed');
+                    
+                    playSpecificSoundChoice(getStoredSoundChoice('other'));
+                    triggerCustomVibration('short');
                 }
             } else {
                 const localOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
@@ -2517,8 +2551,23 @@
             document.getElementById('nearbyModalFare').innerText = `Rp ${order.fare.toLocaleString('id-ID')}`;
 
             document.getElementById('driverNearbyOrderModal').style.display = 'flex';
-            playNotificationSound();
-            triggerCustomVibration('radarOrder');
+            
+            // Suara & Getaran Panjang untuk Radar Terdekat
+            playSpecificSoundChoice(getStoredSoundChoice('radar'));
+            triggerCustomVibration('long');
+            triggerSystemPushNotification("Orderan iqDriver Masuk!", `Ada pesanan dari ${order.passengerName}`);
+        }
+    }
+
+    function checkIfPickedByPassenger(order) {
+        if (userRole === 'driver' && order && order.status === 'HEADING_PICKUP' && order.assignedDriverWa === currentDriverWa) {
+            if (lastNotifiedPickedId !== order.id) {
+                lastNotifiedPickedId = order.id;
+                // Suara & Getaran Panjang Saat Dipilih Penumpang
+                playSpecificSoundChoice(getStoredSoundChoice('picked'));
+                triggerCustomVibration('long');
+                triggerSystemPushNotification("🎉 Anda Dipilih Penumpang!", "Penumpang telah memilih Anda sebagai iqDriver untuk pesanan ini.");
+            }
         }
     }
 
@@ -2530,14 +2579,14 @@
         if (!order) {
             if (anyOnline) {
                 statusBox.className = "status-box status-online";
-                statusBox.innerHTML = `<i class="fa-solid fa-circle"></i> Driver Online & Siap Menerima Order`;
+                statusBox.innerHTML = `<i class="fa-solid fa-circle"></i> iqDriver Online & Siap Menerima Order`;
             } else {
                 statusBox.className = "status-box status-offline";
-                statusBox.innerHTML = `<i class="fa-solid fa-circle"></i> Driver Sedang Offline`;
+                statusBox.innerHTML = `<i class="fa-solid fa-circle"></i> iqDriver Sedang Offline`;
             }
         } else {
             statusBox.className = "status-box status-busy";
-            statusBox.innerHTML = `<i class="fa-solid fa-motorcycle"></i> Status: ${order.status === 'WAITING' ? 'Mencari & Menunggu Driver...' : 'Driver Sedang Menjalankan Pesanan'}`;
+            statusBox.innerHTML = `<i class="fa-solid fa-motorcycle"></i> Status: ${order.status === 'WAITING' ? 'Mencari & Menunggu iqDriver...' : 'iqDriver Sedang Menjalankan Pesanan'}`;
         }
     }
 
@@ -2731,7 +2780,7 @@
             const passengerGps = JSON.parse(localStorage.getItem('iqbike_passenger_gps')) || { lat: userCurrentLat, lng: userCurrentLng };
             const passengerSharlokUrl = `https://maps.google.com/?q=${passengerGps.lat},${passengerGps.lng}`;
 
-            const text = `Halo Driver iqBike, saya mau order layanan ${activeOrder.serviceType.toUpperCase()}:\n\n` +
+            const text = `Halo iqDriver iqBike, saya mau order layanan ${activeOrder.serviceType.toUpperCase()}:\n\n` +
                          `👤 *Nama:* ${activeOrder.passengerName}\n` +
                          `📱 *WA Penumpang:* ${activeOrder.passengerPhone}\n` +
                          `📍 *Jemput:* ${activeOrder.pickup}\n` +
@@ -2770,7 +2819,7 @@
         const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
 
         if (!order || !order.acceptedDrivers || order.acceptedDrivers.length === 0) {
-            container.innerHTML = '<p style="font-size: 11px; color: #a0a0a0; text-align:center; padding:12px;">Belum ada driver yang mengajukan diri. Mohon tunggu sebentar...</p>';
+            container.innerHTML = '<p style="font-size: 11px; color: #a0a0a0; text-align:center; padding:12px;">Belum ada iqDriver yang mengajukan diri. Mohon tunggu sebentar...</p>';
             return;
         }
 
@@ -2808,7 +2857,7 @@
             container.innerHTML = '';
             
             if (driversWithDistance.length === 0) {
-                container.innerHTML = '<p style="font-size: 11px; color: #a0a0a0; text-align:center; padding:12px;">Memuat posisi jarak driver...</p>';
+                container.innerHTML = '<p style="font-size: 11px; color: #a0a0a0; text-align:center; padding:12px;">Memuat posisi jarak iqDriver...</p>';
                 return;
             }
 
@@ -2832,14 +2881,14 @@
 
                 card.innerHTML = `
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span><i class="fa-solid fa-motorcycle" style="color:var(--primary-green);"></i> <strong>Driver WA:</strong> ${driver.wa}</span>
+                        <span><i class="fa-solid fa-motorcycle" style="color:var(--primary-green);"></i> <strong>iqDriver WA:</strong> ${driver.wa}</span>
                         <span style="background:#0288d1; color:#fff; padding:2px 6px; border-radius:6px; font-size:10px; font-weight:bold;">
                             <i class="fa-solid fa-location-arrow"></i> Jarak Jemput: ${driver.distanceText}
                         </span>
                     </div>
                     ${extraFeeInfoHtml}
                     <button onclick="passengerSelectDriver('${driver.wa}', ${driver.pickupExtraFee})" style="background:var(--whatsapp-green); color:#fff; border:none; padding:8px; border-radius:6px; font-weight:bold; font-size:12px; cursor:pointer;">
-                        <i class="fa-solid fa-check-circle"></i> Pilih Driver Ini ${driver.pickupExtraFee > 0 ? '(+Rp ' + driver.pickupExtraFee.toLocaleString('id-ID') + ')' : ''}
+                        <i class="fa-solid fa-check-circle"></i> Pilih iqDriver Ini ${driver.pickupExtraFee > 0 ? '(+Rp ' + driver.pickupExtraFee.toLocaleString('id-ID') + ')' : ''}
                     </button>
                 `;
                 container.appendChild(card);
@@ -2872,7 +2921,7 @@
 
         updatePassengerAppUI();
         updateDriverAppUI();
-        showCustomAlert("Berhasil", `Driver (${driverWa}) berhasil dipilih! Total ongkos disesuaikan.`);
+        showCustomAlert("Berhasil", `iqDriver (${driverWa}) berhasil dipilih! Total ongkos disesuaikan.`);
     }
 
     function openPassengerWa(passengerPhone, passengerName, assignedDriverWa) {
@@ -2880,8 +2929,8 @@
         const driverSharlokUrl = `https://maps.google.com/?q=${driverGps.lat},${driverGps.lng}`;
         const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order')) || {};
 
-        const text = `Halo Kak *${passengerName}*, saya Driver iqBike (*${assignedDriverWa || currentDriverWa}*) yang akan menangani pesanan Anda.\n\n` +
-                     `📍 *Lokasi Terkini Driver:*\n${driverSharlokUrl}\n\n` +
+        const text = `Halo Kak *${passengerName}*, saya iqDriver iqBike (*${assignedDriverWa || currentDriverWa}*) yang akan menangani pesanan Anda.\n\n` +
+                     `📍 *Lokasi Terkini iqDriver:*\n${driverSharlokUrl}\n\n` +
                      `Saya sedang menuju ke titik penjemputan. Mohon ditunggu ya Kak, terima kasih!`;
 
         const waUrl = `whatsapp://send?phone=${passengerPhone}&text=${encodeURIComponent(text)}`;
@@ -2952,8 +3001,8 @@
         localStorage.setItem('iqbike_active_order', JSON.stringify(newOrder));
         syncOrderToCloud(newOrder);
 
-        playNotificationSound();
-        triggerCustomVibration('radarOrder');
+        playSpecificSoundChoice(getStoredSoundChoice('radar'));
+        triggerCustomVibration('long');
 
         let passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
         passHistory.forEach(item => {
@@ -2968,14 +3017,14 @@
         updateDriverAppUI();
         renderPassengerHistory();
 
-        showCustomAlert("Informasi", "📡 Pesanan dikirim ke Radar Driver.\nMenunggu driver online merespons...");
+        showCustomAlert("Informasi", "📡 Pesanan dikirim ke Radar iqDriver.\nMenunggu iqDriver online merespons...");
     }
 
     function cancelActiveOrder() {
         const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
         if (!order) return;
 
-        const confirmCancel = confirm("⚠️ KONFIRMASI PEMBATALAN\n\nApakah Anda benar-benar ingin membatalkan pesanan ini? Aksi ini akan menghentikan proses pencarian/pengantaran driver.");
+        const confirmCancel = confirm("⚠️ KONFIRMASI PEMBATALAN\n\nApakah Anda benar-benar ingin membatalkan pesanan ini? Aksi ini akan menghentikan proses pencarian/pengantaran iqDriver.");
         if (!confirmCancel) return;
 
         let targetDriverWa = order.assignedDriverWa;
@@ -3025,7 +3074,7 @@
         renderPassengerHistory();
 
         if (targetDriverWa) {
-            const cancelMsg = `Halo Driver iqBike (${targetDriverWa}), mohon maaf saya *membatalkan* pesanan saya sebelumnya dengan rute:\n` +
+            const cancelMsg = `Halo iqDriver iqBike (${targetDriverWa}), mohon maaf saya *membatalkan* pesanan saya sebelumnya dengan rute:\n` +
                               `📍 Jemput: ${order.pickup}\n` +
                               `🏁 Tujuan: ${order.dropoff}\n` +
                               `Terima kasih dan mohon maklum.`;
@@ -3164,7 +3213,7 @@
                 if (item.assignedDriverWa) {
                     chatWaButton = `
                         <button class="btn-whatsapp" onclick="openPassengerWa('${item.passengerPhone}', '${item.passengerName}', '${item.assignedDriverWa}')" style="margin-top:4px;">
-                            <i class="fa-brands fa-whatsapp"></i> Chat WhatsApp ke Driver (${item.assignedDriverWa})
+                            <i class="fa-brands fa-whatsapp"></i> Chat WhatsApp ke iqDriver (${item.assignedDriverWa})
                         </button>
                     `;
                 }
@@ -3226,13 +3275,13 @@
         localStorage.setItem('iqbike_active_order', JSON.stringify(order));
         syncOrderToCloud(order);
 
-        playNotificationSound();
-        triggerCustomVibration('routeConfirmed');
+        playSpecificSoundChoice(getStoredSoundChoice('other'));
+        triggerCustomVibration('short');
 
         updateDriverAppUI();
         updatePassengerAppUI();
 
-        showCustomAlert("Berhasil", "✅ Anda telah mengajukan diri mengambil orderan. Menunggu penumpang memilih driver di aplikasinya.");
+        showCustomAlert("Berhasil", "✅ Anda telah mengajukan diri mengambil orderan. Menunggu penumpang memilih iqDriver di aplikasinya.");
     }
 
     function setOrderStatus(newStatus) {
@@ -3300,8 +3349,8 @@
             syncOrderToCloud(order);
         }
 
-        playNotificationSound();
-        triggerCustomVibration('routeConfirmed');
+        playSpecificSoundChoice(getStoredSoundChoice('other'));
+        triggerCustomVibration('short');
 
         updateDriverAppUI();
         updatePassengerAppUI();
@@ -3485,7 +3534,7 @@
             <html lang="id">
             <head>
                 <meta charset="UTF-8">
-                <title>Rekening Koran / Laporan Keuangan Driver iqBike</title>
+                <title>Rekening Koran / Laporan Keuangan iqDriver iqBike</title>
                 <style>
                     body { font-family: Arial, sans-serif; padding: 20px; color: #111; max-width: 800px; margin: auto; }
                     .header-box { text-align: center; border-bottom: 2px solid #333; padding-bottom: 12px; margin-bottom: 20px; }
@@ -3509,13 +3558,13 @@
                 </div>
 
                 <div class="header-box">
-                    <h2>REKENING KORAN / LAPORAN PENDAPATAN DRIVER iqBike</h2>
+                    <h2>REKENING KORAN / LAPORAN PENDAPATAN iqDriver iqBike</h2>
                     <p style="font-size: 12px; color: #555; margin: 4px 0;">Sistem Cloud Multi-Driver iqBike Resmi</p>
                 </div>
 
                 <div class="info-grid">
                     <div>
-                        <strong>Nomor WA Driver:</strong> ${currentDriverWa}<br>
+                        <strong>Nomor WA iqDriver:</strong> ${currentDriverWa}<br>
                         <strong>Tanggal Cetak:</strong> ${new Date().toLocaleString()}
                     </div>
                     <div style="text-align: right;">
@@ -3609,7 +3658,7 @@
                 </table>
 
                 <div class="footer">
-                    Dokumen ini digenerate secara otomatis oleh sistem iqBike WebApp Cloud. Sah dan valid untuk keperluan audit mandiri driver.
+                    Dokumen ini digenerate secara otomatis oleh sistem iqBike WebApp Cloud. Sah dan valid untuk keperluan audit mandiri iqDriver.
                 </div>
             </body>
             </html>
@@ -3672,7 +3721,7 @@
         updatePassengerWaInputUI();
 
         if (!order || (order.deviceUuid && order.deviceUuid !== passengerDeviceUuid) || order.status === 'CANCELLED_BY_PASSENGER') {
-            btnSend.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Cari & Kirim Pesanan ke Driver`;
+            btnSend.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Cari & Kirim Pesanan ke iqDriver`;
             btnSend.disabled = false;
             btnSend.classList.remove('btn-disabled');
             btnCancel.style.display = 'none';
@@ -3694,7 +3743,7 @@
 
         if (order.status === 'WAITING') {
             const countAccepted = order.acceptedDrivers ? order.acceptedDrivers.length : 0;
-            btnSend.innerHTML = `<i class="fa-solid fa-motorcycle"></i> Lihat Pilihan Driver Terdekat (${countAccepted} Mengajukan)`;
+            btnSend.innerHTML = `<i class="fa-solid fa-motorcycle"></i> Lihat Pilihan iqDriver Terdekat (${countAccepted} Mengajukan)`;
             btnSend.disabled = false;
             btnCancel.style.display = 'flex';
         } else if (order.status !== 'WAITING') {
@@ -3706,7 +3755,7 @@
 
             btnCancel.style.display = 'flex';
             btnCancel.innerHTML = `<i class="fa-solid fa-xmark"></i> Batalkan Pesanan Ini`;
-            btnSend.innerHTML = `<i class="fa-brands fa-whatsapp"></i> Chat WhatsApp ke Driver (${order.assignedDriverWa})`;
+            btnSend.innerHTML = `<i class="fa-brands fa-whatsapp"></i> Chat WhatsApp ke iqDriver (${order.assignedDriverWa})`;
             btnSend.disabled = false;
             btnSend.style.backgroundColor = 'var(--whatsapp-green)';
         }
