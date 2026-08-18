@@ -2711,7 +2711,6 @@
 
         const waUrl = `whatsapp://send?phone=${passengerPhone}&text=${encodeURIComponent(text)}`;
         
-        // Update status order otomatis ke HEADING_PICKUP saat tombol WA diklik
         if (activeOrder && activeOrder.status === 'WAITING') {
             activeOrder.status = 'HEADING_PICKUP';
             activeOrder.assignedDriverWa = currentDriverWa;
@@ -3357,9 +3356,12 @@
         initMap();
         ensureDriverCloudPresence();
 
+        const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
         const savedRole = localStorage.getItem('iqbike_saved_role');
-        if (savedRole === 'penumpang' || savedRole === 'driver') {
-            selectUserRole(savedRole);
+
+        // Jika ada pesanan aktif milik driver atau role terakhir driver, langsung arahkan ke driver view
+        if ((activeOrder && activeOrder.status !== 'WAITING') || savedRole === 'driver') {
+            selectUserRole('driver');
         } else {
             selectUserRole('penumpang');
         }
