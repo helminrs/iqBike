@@ -861,7 +861,7 @@
             <div style="font-size:12px; display:flex; flex-direction:column; gap:6px; background:#f9f9f9; padding:10px; border-radius:8px;">
                 <p><strong><i class="fa-solid fa-user"></i> Penumpang:</strong> <span id="cancelModalPassName">-</span></p>
                 <p><strong><i class="fa-solid fa-location-dot" style="color:#eb5757;"></i> Rute:</strong> <span id="cancelModalRoute">-</span></p>
-                <p style="color:#eb5757; font-weight:bold;"><strong>Estimasi Biaya Jemput/Bensin:</strong> -Rp 2.000 (Dicatat di Riwayat Batal)</p>
+                <p style="color:#eb5757; font-weight:bold;"><strong>Status:</strong> Dicatat ke Riwayat Pengeluaran (Biaya Rp 0)</p>
             </div>
             <button class="btn-submit" onclick="closePassengerCancelledModal()" style="margin-top:6px; background:var(--accent-red); color:#fff; font-size:13px;">
                 <i class="fa-solid fa-check"></i> Mengerti & Kembali Siaga
@@ -1119,7 +1119,7 @@
                 <h3 style="margin-top:6px;">Tambah Pengeluaran Driver</h3>
             </div>
             <div class="form-group">
-                <label class="form-label">Keterangan (Contoh: Bensin, Parkir, Jemput Batal)</label>
+                <label class="form-label">Keterangan (Contoh: Bensin, Parkir)</label>
                 <input type="text" id="expenseNote" class="form-input" placeholder="Masukkan keterangan...">
             </div>
             <div class="form-group">
@@ -1352,12 +1352,6 @@
                         <div style="color:#aaa; font-size:10px;"><i class="fa-solid fa-circle-minus" style="color:#eb5757;"></i> Pengeluaran (-) <i class="fa-solid fa-chevron-right" style="font-size:8px;"></i></div>
                         <div style="font-weight:bold; color:#eb5757; font-size:12px;" id="totalExpenseText">Rp 0</div>
                     </div>
-                </div>
-
-                <div style="display:flex; gap:6px; margin-top:2px;">
-                    <button class="btn-history-toggle" onclick="openHistoryDetailsModal('CANCELLED')" style="font-size:10px; padding:6px; background:#2a2a2a; color:#f2994a; border-color:#555;">
-                        <i class="fa-solid fa-ban"></i> Riwayat Order Batal (<span id="cancelledCountBadge">0</span>)
-                    </button>
                 </div>
             </div>
 
@@ -2383,19 +2377,14 @@
                             document.getElementById('cancelModalRoute').innerText = `${cloudOrder.pickup} ➔ ${cloudOrder.dropoff}`;
                             document.getElementById('passengerCancelledModal').style.display = 'flex';
                             
-                            // Simpan otomatis order batal ke history driver beserta pengeluaran cost jemput (-2000)
+                            // Masukkan ke kolom pengeluaran dengan nominal Rp 0
                             let history = JSON.parse(localStorage.getItem('iqbike_history') || '[]');
                             if (!history.some(h => h.id === cloudOrder.id)) {
-                                cloudOrder.type = 'CANCELLED';
-                                cloudOrder.cancelTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                                history.unshift(cloudOrder);
-
-                                // Tambahkan juga catatan pengeluaran cost jemput batal agar tercatat riil
                                 history.unshift({
-                                    id: Date.now() + 1,
+                                    id: cloudOrder.id,
                                     type: 'EXPENSE',
-                                    note: `Cost Jemput Batal (${cloudOrder.passengerName})`,
-                                    amount: 2000,
+                                    note: `Order Batal (${cloudOrder.passengerName}: ${cloudOrder.pickup} ➔ ${cloudOrder.dropoff})`,
+                                    amount: 0,
                                     timestamp: Date.now(),
                                     time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
                                     dateString: new Date().toLocaleDateString()
@@ -2938,22 +2927,17 @@
         });
         localStorage.setItem('iqbike_passenger_history', JSON.stringify(passHistory));
 
-        // Simpan ke riwayat transaksi driver beserta pencatatan cost jemput batal (-2000)
+        // Masukkan ke kolom pengeluaran dengan nominal Rp 0
         let history = JSON.parse(localStorage.getItem('iqbike_history') || '[]');
-        let cancelRecord = { ...order };
-        cancelRecord.type = 'CANCELLED';
-        history.unshift(cancelRecord);
-
         history.unshift({
-            id: Date.now() + 1,
+            id: order.id,
             type: 'EXPENSE',
-            note: `Cost Jemput Batal (${cancelRecord.passengerName})`,
-            amount: 2000,
+            note: `Order Batal (${order.passengerName}: ${order.pickup} ➔ ${order.dropoff})`,
+            amount: 0,
             timestamp: Date.now(),
             time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
             dateString: new Date().toLocaleDateString()
         });
-
         localStorage.setItem('iqbike_history', JSON.stringify(history));
 
         localStorage.removeItem('iqbike_active_order');
@@ -3275,7 +3259,7 @@
         const note = document.getElementById('expenseNote').value;
         const amount = parseFloat(document.getElementById('expenseAmount').value);
 
-        if (!note || !amount || amount <= 0) {
+        if (!note || isNaN(amount) || amount < 0) {
             alert("Harap isi keterangan dan jumlah pengeluaran dengan benar!");
             return;
         }
@@ -3315,13 +3299,9 @@
             modalTitle.innerText = "Rincian Hasil Narik (+)";
             expenseActionBtn.style.display = 'none';
             pdfActionBtn.style.display = 'block';
-        } else if (filterType === 'EXPENSE') {
+        } else {
             modalTitle.innerText = "Rincian Pengeluaran Operasional (-)";
             expenseActionBtn.style.display = 'block';
-            pdfActionBtn.style.display = 'none';
-        } else {
-            modalTitle.innerText = "Riwayat Order Dibatalkan Penumpang";
-            expenseActionBtn.style.display = 'none';
             pdfActionBtn.style.display = 'none';
         }
 
@@ -3329,8 +3309,7 @@
 
         const filteredList = history.filter(item => {
             if (filterType === 'INCOME') return item.type === 'INCOME';
-            if (filterType === 'EXPENSE') return item.type === 'EXPENSE';
-            return item.type === 'CANCELLED';
+            return item.type === 'EXPENSE';
         });
 
         if (filteredList.length === 0) {
@@ -3343,21 +3322,8 @@
                 if (item.type === 'EXPENSE') {
                     card.innerHTML = `
                         <div style="display:flex; justify-content:space-between; font-weight:bold;">
-                            <span style="color:#eb5757;"><i class="fa-solid fa-triangle-exclamation"></i> ${item.note} (${item.dateString || ''} ${item.time || ''})</span>
+                            <span style="color:#eb5757;"><i class="fa-solid fa-receipt"></i> ${item.note} (${item.dateString || ''} ${item.time || ''})</span>
                             <span style="color:#eb5757;">-Rp ${item.amount.toLocaleString('id-ID')}</span>
-                        </div>
-                    `;
-                } else if (item.type === 'CANCELLED') {
-                    card.innerHTML = `
-                        <div style="display:flex; justify-content:space-between; font-weight:bold; align-items:center;">
-                            <span style="color:#eb5757;"><i class="fa-solid fa-ban"></i> [${(item.serviceType || 'ojek').toUpperCase()}] ${item.passengerName} (${item.cancelTime || '-'})</span>
-                            <span style="background:#fce8e6; color:#eb5757; padding:2px 6px; border-radius:4px; font-size:9px;">DIBATALKAN</span>
-                        </div>
-                        <div style="color:#555; font-size:11px; margin-top:4px;">
-                            <div><strong>WhatsApp:</strong> ${item.passengerPhone || '-'}</div>
-                            <div><strong>Jemput:</strong> ${item.pickup}</div>
-                            <div><strong>Tujuan:</strong> ${item.dropoff}</div>
-                            <div style="color:#eb5757; margin-top:2px;"><strong>Cost Jemput Batal:</strong> -Rp 2.000 (Masuk Riwayat Pengeluaran)</div>
                         </div>
                     `;
                 } else {
@@ -3397,17 +3363,15 @@
     }
 
     function clearHistorySpecific() {
-        const typeName = currentOpenHistoryModalType === 'INCOME' ? 'Hasil Narik (+)' : (currentOpenHistoryModalType === 'EXPENSE' ? 'Pengeluaran (-)' : 'Riwayat Order Batal');
+        const typeName = currentOpenHistoryModalType === 'INCOME' ? 'Hasil Narik (+)' : 'Pengeluaran (-)';
         if (confirm(`⚠️ Hapus semua data pada kategori ${typeName}?`)) {
             const history = JSON.parse(localStorage.getItem('iqbike_history') || '[]');
             let newHistory = [];
 
             if (currentOpenHistoryModalType === 'INCOME') {
                 newHistory = history.filter(item => item.type !== 'INCOME');
-            } else if (currentOpenHistoryModalType === 'EXPENSE') {
-                newHistory = history.filter(item => item.type !== 'EXPENSE');
             } else {
-                newHistory = history.filter(item => item.type !== 'CANCELLED');
+                newHistory = history.filter(item => item.type !== 'EXPENSE');
             }
 
             localStorage.setItem('iqbike_history', JSON.stringify(newHistory));
@@ -3473,7 +3437,7 @@
 
                 <div class="summary-box">
                     <div><strong>Total Pendapatan Kotor (Hasil Narik):</strong> <span>Rp ${totalGross.toLocaleString('id-ID')}</span></div>
-                    <div><strong>Total Pengeluaran Operasional & Cost Batal:</strong> <span style="color:red;">-Rp ${totalExp.toLocaleString('id-ID')}</span></div>
+                    <div><strong>Total Pengeluaran Operasional:</strong> <span style="color:red;">-Rp ${totalExp.toLocaleString('id-ID')}</span></div>
                     <div style="border-top: 1px solid #ccc; padding-top: 4px; font-weight: bold; font-size: 14px; color: #27ae60;">
                         <span>KEUNTUNGAN BERSIH (NET INCOME):</span> <span>Rp ${totalNet.toLocaleString('id-ID')}</span>
                     </div>
@@ -3521,7 +3485,7 @@
                     </tbody>
                 </table>
 
-                <h3>Rincian Pengeluaran Operasional & Cost Jemput Batal</h3>
+                <h3>Rincian Pengeluaran Operasional & Catatan Order Batal</h3>
                 <table>
                     <thead>
                         <tr>
@@ -3574,13 +3538,8 @@
 
         let grossIncome = 0;
         let totalExpense = 0;
-        let cancelledCount = 0;
 
         const filteredList = history.filter(item => {
-            if (item.type === 'CANCELLED') {
-                cancelledCount++;
-                return false; 
-            }
             const itemTime = item.timestamp || 0;
             if (filter === 'today') return itemTime >= startOfToday;
             if (filter === 'week') return itemTime >= startOfWeek;
@@ -3601,9 +3560,6 @@
         document.getElementById('grossIncomeText').innerText = `Rp ${grossIncome.toLocaleString('id-ID')}`;
         document.getElementById('totalExpenseText').innerText = `Rp ${totalExpense.toLocaleString('id-ID')}`;
         document.getElementById('netIncomeText').innerText = `Rp ${netIncome.toLocaleString('id-ID')}`;
-        
-        const badgeEl = document.getElementById('cancelledCountBadge');
-        if (badgeEl) badgeEl.innerText = cancelledCount;
     }
 
     function openGoogleMapsNav(targetLat, targetLng) {
