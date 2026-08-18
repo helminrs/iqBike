@@ -484,6 +484,42 @@
             gap: 6px;
         }
 
+        .btn-swap-route {
+            flex: 1;
+            background-color: #e3f2fd;
+            color: #0288d1;
+            border: 1px solid #b3e5fc;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: background 0.2s;
+        }
+        .btn-swap-route:hover { background-color: #bbdefb; }
+
+        .btn-repeat-order {
+            flex: 1;
+            background-color: #eef7e8;
+            color: #2e7d32;
+            border: 1px solid #c8e6b8;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: background 0.2s;
+        }
+        .btn-repeat-order:hover { background-color: #dcedc8; }
+
         .order-card-driver {
             border: 1px solid var(--border-color);
             border-radius: 12px;
@@ -2377,16 +2413,24 @@
                             document.getElementById('cancelModalRoute').innerText = `${cloudOrder.pickup} ➔ ${cloudOrder.dropoff}`;
                             document.getElementById('passengerCancelledModal').style.display = 'flex';
                             
-                            // Masukkan ke kolom pengeluaran dengan nominal Rp 0
+                            // Masukkan ke kolom pengeluaran dengan nominal Rp 0 dan lengkap data
                             let history = JSON.parse(localStorage.getItem('iqbike_history') || '[]');
                             if (!history.some(h => h.id === cloudOrder.id)) {
+                                const cancelTimeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                                 history.unshift({
                                     id: cloudOrder.id,
                                     type: 'EXPENSE',
-                                    note: `Order Batal (${cloudOrder.passengerName}: ${cloudOrder.pickup} ➔ ${cloudOrder.dropoff})`,
+                                    isCancelledOrder: true,
+                                    serviceType: cloudOrder.serviceType || 'ojek',
+                                    passengerName: cloudOrder.passengerName,
+                                    passengerPhone: cloudOrder.passengerPhone,
+                                    pickup: cloudOrder.pickup,
+                                    dropoff: cloudOrder.dropoff,
+                                    note: `Order Batal (${cloudOrder.passengerName})`,
                                     amount: 0,
                                     timestamp: Date.now(),
-                                    time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                                    timeReceived: cloudOrder.timeReceived || '-',
+                                    timeCancelled: cancelTimeStr,
                                     dateString: new Date().toLocaleDateString()
                                 });
 
@@ -2914,9 +2958,10 @@
         if (!confirmCancel) return;
 
         let targetDriverWa = order.assignedDriverWa;
+        const cancelTimeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
         
         order.status = 'CANCELLED_BY_PASSENGER';
-        order.cancelTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        order.cancelTime = cancelTimeStr;
         syncOrderToCloud(order);
 
         let passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
@@ -2927,15 +2972,22 @@
         });
         localStorage.setItem('iqbike_passenger_history', JSON.stringify(passHistory));
 
-        // Masukkan ke kolom pengeluaran dengan nominal Rp 0
+        // Masukkan ke kolom pengeluaran dengan nominal Rp 0 dan lengkap data
         let history = JSON.parse(localStorage.getItem('iqbike_history') || '[]');
         history.unshift({
             id: order.id,
             type: 'EXPENSE',
-            note: `Order Batal (${order.passengerName}: ${order.pickup} ➔ ${order.dropoff})`,
+            isCancelledOrder: true,
+            serviceType: order.serviceType || 'ojek',
+            passengerName: order.passengerName,
+            passengerPhone: order.passengerPhone,
+            pickup: order.pickup,
+            dropoff: order.dropoff,
+            note: `Order Batal (${order.passengerName})`,
             amount: 0,
             timestamp: Date.now(),
-            time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+            timeReceived: order.timeReceived || '-',
+            timeCancelled: cancelTimeStr,
             dateString: new Date().toLocaleDateString()
         });
         localStorage.setItem('iqbike_history', JSON.stringify(history));
@@ -3115,7 +3167,7 @@
                 `;
             } else {
                 actionButtonsHTML = `
-                    <div class="history-action-row" style="display:flex; gap:6px; margin-top:4px;">
+                    <div class="history-action-row" style="display:flex; gap:6px; margin-top:6px;">
                         <button class="btn-swap-route" onclick="swapRouteFromHistory(${index})">
                             <i class="fa-solid fa-arrows-rotate"></i> Tukar Rute PP
                         </button>
@@ -3267,6 +3319,7 @@
         const expenseItem = {
             id: Date.now(),
             type: 'EXPENSE',
+            isCancelledOrder: false,
             note: note,
             amount: amount,
             timestamp: Date.now(),
@@ -3320,12 +3373,28 @@
                 card.className = 'history-card';
 
                 if (item.type === 'EXPENSE') {
-                    card.innerHTML = `
-                        <div style="display:flex; justify-content:space-between; font-weight:bold;">
-                            <span style="color:#eb5757;"><i class="fa-solid fa-receipt"></i> ${item.note} (${item.dateString || ''} ${item.time || ''})</span>
-                            <span style="color:#eb5757;">-Rp ${item.amount.toLocaleString('id-ID')}</span>
-                        </div>
-                    `;
+                    if (item.isCancelledOrder) {
+                        card.innerHTML = `
+                            <div style="display:flex; justify-content:space-between; font-weight:bold; align-items:center;">
+                                <span style="color:#eb5757;"><i class="fa-solid fa-triangle-exclamation"></i> [${(item.serviceType || 'ojek').toUpperCase()}] Order Batal (${item.passengerName})</span>
+                                <span style="color:#eb5757;">Rp 0</span>
+                            </div>
+                            <div style="color:#555; font-size:11px; margin-top:4px; display:flex; flex-direction:column; gap:2px;">
+                                <div><strong>Waktu Masuk:</strong> ${item.dateString || ''} ${item.timeReceived || '-'} | <strong>Waktu Batal:</strong> ${item.timeCancelled || item.time || '-'}</div>
+                                <div><strong>WhatsApp:</strong> <a href="whatsapp://send?phone=${item.passengerPhone}" style="color:#25D366; font-weight:bold;">${item.passengerPhone}</a></div>
+                                <div><strong>Titik Jemput:</strong> ${item.pickup}</div>
+                                <div><strong>Titik Tujuan:</strong> ${item.dropoff}</div>
+                                <div style="color:#eb5757; font-weight:bold; margin-top:2px;">Status: Dibatalkan (Dicatat Biaya Rp 0)</div>
+                            </div>
+                        `;
+                    } else {
+                        card.innerHTML = `
+                            <div style="display:flex; justify-content:space-between; font-weight:bold;">
+                                <span style="color:#eb5757;"><i class="fa-solid fa-receipt"></i> ${item.note} (${item.dateString || ''} ${item.time || ''})</span>
+                                <span style="color:#eb5757;">-Rp ${item.amount.toLocaleString('id-ID')}</span>
+                            </div>
+                        `;
+                    }
                 } else {
                     let routeChangesHtml = '';
                     if (item.routeChanges && item.routeChanges.length > 0) {
@@ -3342,7 +3411,7 @@
                             <span style="color:#27ae60; font-size:13px;">Rp ${item.fare.toLocaleString('id-ID')}</span>
                         </div>
                         <div style="color:#555; font-size:11px; margin-top:4px; display:flex; flex-direction:column; gap:2px;">
-                            <div><strong>Waktu Diterima:</strong> ${item.dateString || ''} ${item.timeReceived || '-'} | <strong>Selesai:</strong> ${item.timeFinished || '-'}</div>
+                            <div><strong>Waktu Masuk:</strong> ${item.dateString || ''} ${item.timeReceived || '-'} | <strong>Selesai:</strong> ${item.timeFinished || '-'}</div>
                             <div><strong>WhatsApp:</strong> <a href="whatsapp://send?phone=${item.passengerPhone}" style="color:#25D366; font-weight:bold;">${item.passengerPhone}</a></div>
                             <div><strong>Titik Jemput:</strong> ${item.pickup}</div>
                             <div><strong>Titik Tujuan:</strong> ${item.dropoff}</div>
@@ -3502,12 +3571,14 @@
             htmlContent += `<tr><td colspan="4" style="text-align:center; color:#777;">Belum ada riwayat pengeluaran operasional.</td></tr>`;
         } else {
             expenses.forEach((exp, idx) => {
+                let ket = exp.isCancelledOrder ? `Order Batal ([${(exp.serviceType||'ojek').toUpperCase()}] ${exp.passengerName})` : exp.note;
+                let nominalStr = exp.amount === 0 ? 'Rp 0' : `-Rp ${exp.amount.toLocaleString('id-ID')}`;
                 htmlContent += `
                     <tr>
                         <td>${idx + 1}</td>
-                        <td>${exp.dateString || ''} ${exp.time || '-'}</td>
-                        <td>${exp.note}</td>
-                        <td style="color:#eb5757; font-weight:bold;">-Rp ${exp.amount.toLocaleString('id-ID')}</td>
+                        <td>${exp.dateString || ''} ${exp.timeCancelled || exp.time || '-'}</td>
+                        <td>${ket}</td>
+                        <td style="color:${exp.amount === 0 ? '#555' : '#eb5757'}; font-weight:bold;">${nominalStr}</td>
                     </tr>
                 `;
             });
