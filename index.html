@@ -861,6 +861,7 @@
             <div style="font-size:12px; display:flex; flex-direction:column; gap:6px; background:#f9f9f9; padding:10px; border-radius:8px;">
                 <p><strong><i class="fa-solid fa-user"></i> Penumpang:</strong> <span id="cancelModalPassName">-</span></p>
                 <p><strong><i class="fa-solid fa-location-dot" style="color:#eb5757;"></i> Rute:</strong> <span id="cancelModalRoute">-</span></p>
+                <p style="color:#eb5757; font-weight:bold;"><strong>Estimasi Biaya Jemput/Bensin:</strong> -Rp 2.000 (Dicatat di Riwayat Batal)</p>
             </div>
             <button class="btn-submit" onclick="closePassengerCancelledModal()" style="margin-top:6px; background:var(--accent-red); color:#fff; font-size:13px;">
                 <i class="fa-solid fa-check"></i> Mengerti & Kembali Siaga
@@ -968,26 +969,32 @@
                 <div>
                     <div class="settings-section-title">Pilih Nada Suara Order Masuk</div>
                     <div class="sound-option-group" id="soundSelectionList">
-                        <div class="sound-option-item" onclick="setNotificationSoundChoice('gopark')">
-                            <span>🔔 Gojek Style (Beep Ganda)</span>
-                            <button type="button" class="sound-preview-btn" onclick="event.stopPropagation(); previewSpecificSound('gopark')"><i class="fa-solid fa-play"></i></button>
+                        <div class="sound-option-item" onclick="setNotificationSoundChoice('sound1')">
+                            <span>🔔 Beep Ganda 1 (Harmoni Tinggi)</span>
+                            <button type="button" class="sound-preview-btn" onclick="event.stopPropagation(); previewSpecificSound('sound1')"><i class="fa-solid fa-play"></i></button>
                         </div>
-                        <div class="sound-option-item" onclick="setNotificationSoundChoice('grabchime')">
-                            <span>🎵 Grab Style (Chime Lembut)</span>
-                            <button type="button" class="sound-preview-btn" onclick="event.stopPropagation(); previewSpecificSound('grabchime')"><i class="fa-solid fa-play"></i></button>
+                        <div class="sound-option-item" onclick="setNotificationSoundChoice('sound2')">
+                            <span>🎵 Chime Lembut (3 Nada)</span>
+                            <button type="button" class="sound-preview-btn" onclick="event.stopPropagation(); previewSpecificSound('sound2')"><i class="fa-solid fa-play"></i></button>
                         </div>
-                        <div class="sound-option-item" onclick="setNotificationSoundChoice('lalamovebell')">
-                            <span>🛎️ Lalamove Style (Ding Tinggi)</span>
-                            <button type="button" class="sound-preview-btn" onclick="event.stopPropagation(); previewSpecificSound('lalamovebell')"><i class="fa-solid fa-play"></i></button>
+                        <div class="sound-option-item" onclick="setNotificationSoundChoice('sound3')">
+                            <span>🛎️ Ding Tinggi (Eksklusif)</span>
+                            <button type="button" class="sound-preview-btn" onclick="event.stopPropagation(); previewSpecificSound('sound3')"><i class="fa-solid fa-play"></i></button>
                         </div>
-                        <div class="sound-option-item" onclick="setNotificationSoundChoice('shopeeping')">
-                            <span>⚡ Shopee Style (Ping Cepat)</span>
-                            <button type="button" class="sound-preview-btn" onclick="event.stopPropagation(); previewSpecificSound('shopeeping')"><i class="fa-solid fa-play"></i></button>
+                        <div class="sound-option-item" onclick="setNotificationSoundChoice('sound4')">
+                            <span>⚡ Ping Cepat (Kilat)</span>
+                            <button type="button" class="sound-preview-btn" onclick="event.stopPropagation(); previewSpecificSound('sound4')"><i class="fa-solid fa-play"></i></button>
                         </div>
                         <div class="sound-option-item" onclick="setNotificationSoundChoice('classicbeep')">
                             <span>📢 Standar Bip Tunggal</span>
                             <button type="button" class="sound-preview-btn" onclick="event.stopPropagation(); previewSpecificSound('classicbeep')"><i class="fa-solid fa-play"></i></button>
                         </div>
+                        <div class="sound-option-item" onclick="setNotificationSoundChoice('customfile')">
+                            <span>📂 Unggah / Pilih File Suara dari HP (MP3/WAV)</span>
+                            <button type="button" class="sound-preview-btn" onclick="event.stopPropagation(); document.getElementById('customAudioFileInput').click()"><i class="fa-solid fa-folder-open"></i></button>
+                        </div>
+                        <input type="file" id="customAudioFileInput" accept="audio/*" style="display:none;" onchange="handleCustomAudioUpload(event)">
+                        
                         <div class="sound-option-item" onclick="setNotificationSoundChoice('silent')">
                             <span>🔕 Senyap (Tanpa Suara)</span>
                             <span style="font-size:11px; color:#888;">Off</span>
@@ -1112,7 +1119,7 @@
                 <h3 style="margin-top:6px;">Tambah Pengeluaran Driver</h3>
             </div>
             <div class="form-group">
-                <label class="form-label">Keterangan (Contoh: Bensin, Parkir)</label>
+                <label class="form-label">Keterangan (Contoh: Bensin, Parkir, Jemput Batal)</label>
                 <input type="text" id="expenseNote" class="form-input" placeholder="Masukkan keterangan...">
             </div>
             <div class="form-group">
@@ -1166,8 +1173,8 @@
             </div>
 
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
-                <button onclick="clearHistory()" style="background:none; border:none; color:red; font-size:11px; cursor:pointer;">
-                    <i class="fa-solid fa-trash"></i> Hapus Riwayat Ini
+                <button onclick="clearHistorySpecific()" style="background:none; border:none; color:red; font-size:11px; cursor:pointer; font-weight:bold;">
+                    <i class="fa-solid fa-trash"></i> Hapus Semua Data Di Sini
                 </button>
                 <button onclick="closeHistoryDetailsModal()" style="padding:8px 16px; background:#333; color:white; border:none; border-radius:6px; font-size:12px; font-weight:bold;">Tutup</button>
             </div>
@@ -1633,7 +1640,7 @@
     }
 
     function getStoredSoundChoice() {
-        return localStorage.getItem('iqbike_sound_choice') || 'gopark';
+        return localStorage.getItem('iqbike_sound_choice') || 'sound1';
     }
 
     function getStoredVibrationChoice() {
@@ -1648,6 +1655,26 @@
         triggerCustomVibration('radarOrder');
     }
 
+    function handleCustomAudioUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const base64Audio = e.target.result;
+            try {
+                localStorage.setItem('iqbike_custom_audio_base64', base64Audio);
+                localStorage.setItem('iqbike_sound_choice', 'customfile');
+                updateSoundSettingsUI();
+                playNotificationSound();
+                alert("✅ File audio berhasil dimuat dan disimpan sebagai nada dering kustom Anda!");
+            } catch (err) {
+                alert("❌ Ukuran file terlalu besar untuk penyimpanan lokal browser. Harap gunakan file audio berukuran lebih kecil.");
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+
     function toggleVibrationSetting() {
         const isChecked = document.getElementById('vibrationToggle').checked;
         localStorage.setItem('iqbike_vibration_enabled', isChecked);
@@ -1658,7 +1685,8 @@
         const items = document.querySelectorAll('.sound-option-item');
         items.forEach(item => {
             item.classList.remove('selected');
-            if (item.getAttribute('onclick').includes(currentChoice)) {
+            const onclickAttr = item.getAttribute('onclick') || "";
+            if (onclickAttr.includes(currentChoice)) {
                 item.classList.add('selected');
             }
         });
@@ -1689,6 +1717,19 @@
         const choice = getStoredSoundChoice();
         if (choice === 'silent') return;
 
+        if (choice === 'customfile') {
+            const customData = localStorage.getItem('iqbike_custom_audio_base64');
+            if (customData) {
+                try {
+                    const audio = new Audio(customData);
+                    audio.play().catch(e => console.log("Custom audio play error:", e));
+                    return;
+                } catch (err) {
+                    console.log("Error playing custom audio:", err);
+                }
+            }
+        }
+
         try {
             const AudioContext = window.AudioContext || window.webkitAudioContext;
             if (!AudioContext) return;
@@ -1710,17 +1751,17 @@
                 osc.stop(ctx.currentTime + start + duration);
             };
 
-            if (choice === 'gopark') {
+            if (choice === 'sound1') {
                 playTone(880, 0, 0.12, 'sine');
                 playTone(1174.66, 0.15, 0.18, 'sine');
-            } else if (choice === 'grabchime') {
+            } else if (choice === 'sound2') {
                 playTone(523.25, 0, 0.1, 'triangle');
                 playTone(659.25, 0.1, 0.1, 'triangle');
                 playTone(783.99, 0.2, 0.2, 'triangle');
-            } else if (choice === 'lalamovebell') {
+            } else if (choice === 'sound3') {
                 playTone(1318.51, 0, 0.08, 'sine');
                 playTone(1567.98, 0.1, 0.25, 'sine');
-            } else if (choice === 'shopeeping') {
+            } else if (choice === 'sound4') {
                 playTone(987.77, 0, 0.08, 'square');
                 playTone(1318.51, 0.09, 0.12, 'square');
             } else {
@@ -2342,12 +2383,24 @@
                             document.getElementById('cancelModalRoute').innerText = `${cloudOrder.pickup} ➔ ${cloudOrder.dropoff}`;
                             document.getElementById('passengerCancelledModal').style.display = 'flex';
                             
-                            // Simpan otomatis order batal ke history driver agar tercatat
+                            // Simpan otomatis order batal ke history driver beserta pengeluaran cost jemput (-2000)
                             let history = JSON.parse(localStorage.getItem('iqbike_history') || '[]');
                             if (!history.some(h => h.id === cloudOrder.id)) {
                                 cloudOrder.type = 'CANCELLED';
                                 cloudOrder.cancelTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                                 history.unshift(cloudOrder);
+
+                                // Tambahkan juga catatan pengeluaran cost jemput batal agar tercatat riil
+                                history.unshift({
+                                    id: Date.now() + 1,
+                                    type: 'EXPENSE',
+                                    note: `Cost Jemput Batal (${cloudOrder.passengerName})`,
+                                    amount: 2000,
+                                    timestamp: Date.now(),
+                                    time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                                    dateString: new Date().toLocaleDateString()
+                                });
+
                                 localStorage.setItem('iqbike_history', JSON.stringify(history));
                                 renderFinanceAndHistory();
                             }
@@ -2885,11 +2938,22 @@
         });
         localStorage.setItem('iqbike_passenger_history', JSON.stringify(passHistory));
 
-        // Simpan ke riwayat transaksi driver otomatis sebagai order batal
+        // Simpan ke riwayat transaksi driver beserta pencatatan cost jemput batal (-2000)
         let history = JSON.parse(localStorage.getItem('iqbike_history') || '[]');
         let cancelRecord = { ...order };
         cancelRecord.type = 'CANCELLED';
         history.unshift(cancelRecord);
+
+        history.unshift({
+            id: Date.now() + 1,
+            type: 'EXPENSE',
+            note: `Cost Jemput Batal (${cancelRecord.passengerName})`,
+            amount: 2000,
+            timestamp: Date.now(),
+            time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+            dateString: new Date().toLocaleDateString()
+        });
+
         localStorage.setItem('iqbike_history', JSON.stringify(history));
 
         localStorage.removeItem('iqbike_active_order');
@@ -3237,7 +3301,10 @@
         alert("Pengeluaran berhasil dicatat!");
     }
 
+    let currentOpenHistoryModalType = 'INCOME';
+
     function openHistoryDetailsModal(filterType) {
+        currentOpenHistoryModalType = filterType;
         const history = JSON.parse(localStorage.getItem('iqbike_history') || '[]');
         const modalContainer = document.getElementById('historyDetailsListContainer');
         const modalTitle = document.getElementById('historyModalTitle');
@@ -3290,6 +3357,7 @@
                             <div><strong>WhatsApp:</strong> ${item.passengerPhone || '-'}</div>
                             <div><strong>Jemput:</strong> ${item.pickup}</div>
                             <div><strong>Tujuan:</strong> ${item.dropoff}</div>
+                            <div style="color:#eb5757; margin-top:2px;"><strong>Cost Jemput Batal:</strong> -Rp 2.000 (Masuk Riwayat Pengeluaran)</div>
                         </div>
                     `;
                 } else {
@@ -3326,6 +3394,27 @@
 
     function closeHistoryDetailsModal() {
         document.getElementById('historyDetailsModal').style.display = 'none';
+    }
+
+    function clearHistorySpecific() {
+        const typeName = currentOpenHistoryModalType === 'INCOME' ? 'Hasil Narik (+)' : (currentOpenHistoryModalType === 'EXPENSE' ? 'Pengeluaran (-)' : 'Riwayat Order Batal');
+        if (confirm(`⚠️ Hapus semua data pada kategori ${typeName}?`)) {
+            const history = JSON.parse(localStorage.getItem('iqbike_history') || '[]');
+            let newHistory = [];
+
+            if (currentOpenHistoryModalType === 'INCOME') {
+                newHistory = history.filter(item => item.type !== 'INCOME');
+            } else if (currentOpenHistoryModalType === 'EXPENSE') {
+                newHistory = history.filter(item => item.type !== 'EXPENSE');
+            } else {
+                newHistory = history.filter(item => item.type !== 'CANCELLED');
+            }
+
+            localStorage.setItem('iqbike_history', JSON.stringify(newHistory));
+            closeHistoryDetailsModal();
+            renderFinanceAndHistory();
+            alert(`Semua data ${typeName} berhasil dihapus.`);
+        }
     }
 
     function exportStatementPdf() {
@@ -3384,7 +3473,7 @@
 
                 <div class="summary-box">
                     <div><strong>Total Pendapatan Kotor (Hasil Narik):</strong> <span>Rp ${totalGross.toLocaleString('id-ID')}</span></div>
-                    <div><strong>Total Pengeluaran Operasional:</strong> <span style="color:red;">-Rp ${totalExp.toLocaleString('id-ID')}</span></div>
+                    <div><strong>Total Pengeluaran Operasional & Cost Batal:</strong> <span style="color:red;">-Rp ${totalExp.toLocaleString('id-ID')}</span></div>
                     <div style="border-top: 1px solid #ccc; padding-top: 4px; font-weight: bold; font-size: 14px; color: #27ae60;">
                         <span>KEUNTUNGAN BERSIH (NET INCOME):</span> <span>Rp ${totalNet.toLocaleString('id-ID')}</span>
                     </div>
@@ -3432,7 +3521,7 @@
                     </tbody>
                 </table>
 
-                <h3>Rincian Pengeluaran Operasional Driver</h3>
+                <h3>Rincian Pengeluaran Operasional & Cost Jemput Batal</h3>
                 <table>
                     <thead>
                         <tr>
@@ -3490,7 +3579,7 @@
         const filteredList = history.filter(item => {
             if (item.type === 'CANCELLED') {
                 cancelledCount++;
-                return false; // Jangan hitung cancelled order ke dalam nominal keuangan
+                return false; 
             }
             const itemTime = item.timestamp || 0;
             if (filter === 'today') return itemTime >= startOfToday;
@@ -3515,26 +3604,6 @@
         
         const badgeEl = document.getElementById('cancelledCountBadge');
         if (badgeEl) badgeEl.innerText = cancelledCount;
-    }
-
-    function clearHistory() {
-        if (confirm("Hapus riwayat dalam kategori ini?")) {
-            const history = JSON.parse(localStorage.getItem('iqbike_history') || '[]');
-            const modalTitle = document.getElementById('historyModalTitle').innerText;
-            
-            let newHistory = [];
-            if (modalTitle.includes('Pendapatan')) {
-                newHistory = history.filter(item => item.type !== 'INCOME');
-            } else if (modalTitle.includes('Pengeluaran')) {
-                newHistory = history.filter(item => item.type !== 'EXPENSE');
-            } else {
-                newHistory = history.filter(item => item.type !== 'CANCELLED');
-            }
-
-            localStorage.setItem('iqbike_history', JSON.stringify(newHistory));
-            closeHistoryDetailsModal();
-            renderFinanceAndHistory();
-        }
     }
 
     function openGoogleMapsNav(targetLat, targetLng) {
