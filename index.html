@@ -447,7 +447,7 @@
             background: #fafafa;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 6px;
         }
 
         .modal-detail-card {
@@ -486,7 +486,7 @@
             cursor: pointer;
             display: none;
         }
-        /* ... (kode CSS lama Anda di atas) ... */
+
         .btn-repeat-order, .btn-swap-route {
             padding: 6px 8px;
             background: #f0f2f5;
@@ -1109,7 +1109,6 @@
                 const data = doc.data();
                 if (data.lat && data.lng && data.isOnline === true) {
                     anyDriverOnline = true;
-                    // Filter maks 25 km dari posisi penumpang untuk menghindari berat ongkos jemput
                     const dLatLng = L.latLng(data.lat, data.lng);
                     const pLatLng = L.latLng(userCurrentLat, userCurrentLng);
                     if (map && map.distance(dLatLng, pLatLng) <= 25000) {
@@ -1258,11 +1257,10 @@
         }
     }
 
-    // RUMUS TARIF PRESISI BARU SESUAI PERMINTAAN
     function computeDistanceFare(distanceInMeters) {
         let baseFare = (currentSelectedService === 'kurir') ? 11000 : 9000;
-        let kmRate = 2500; // Rp 2.500 per km
-        let baseDistanceMeters = 4500; // Minimum mencakup bawah 4.5 km
+        let kmRate = 2500; 
+        let baseDistanceMeters = 4500; 
 
         if (distanceInMeters <= baseDistanceMeters) {
             return baseFare;
@@ -1274,7 +1272,6 @@
 
         let fare = baseFare + (fullKm * kmRate);
 
-        // Penambahan presisi sisa meteran
         if (remainderMeters > 0 && remainderMeters <= 199) {
             fare += 500;
         } else if (remainderMeters >= 200 && remainderMeters <= 399) {
@@ -1322,7 +1319,7 @@
         const activeOrder = JSON.parse(localStorage.getItem('iqbike_active_order'));
 
         if (activeOrder && activeOrder.status !== 'WAITING') {
-            openPassengerHistoryModal(); // Buka opsi ubah tujuan / chat driver
+            openPassengerHistoryModal();
             return;
         }
 
@@ -1364,7 +1361,6 @@
                     const distanceMeters = map ? map.distance(driverLatLng, pickupLatLng) : 0;
                     const distanceKm = distanceMeters / 1000;
 
-                    // Biaya tambahan jemput: jika > 2km, selisih jarak dianggap tambahan (maks 25km)
                     let pickupExtraFee = 0;
                     if (distanceKm > 2.0 && distanceKm <= 25.0) {
                         let extraMeters = distanceMeters - 2000;
@@ -1480,9 +1476,18 @@
         const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
         if (!order) return;
 
-        if (confirm("⚠️ Batalkan pesanan ini?")) {
+        if (confirm("⚠️ Batalkan pesanan ini dan kirim pesan pembatalan ke WhatsApp iqDriver?")) {
             order.status = 'CANCELLED_BY_PASSENGER';
             syncOrderToCloud(order);
+
+            if (order.assignedDriverWa) {
+                const cancelText = `Halo iqDriver (${order.assignedDriverWa}), mohon maaf pesanan iqBike layanan *${order.serviceType.toUpperCase()}* dengan rute:\n` +
+                                   `📍 Jemput: ${order.pickup}\n` +
+                                   `🏁 Tujuan: ${order.dropoff}\n\n` +
+                                   `*DIBATALKAN* oleh penumpang. Terima kasih.`;
+                window.location.href = `whatsapp://send?phone=${order.assignedDriverWa}&text=${encodeURIComponent(cancelText)}`;
+            }
+
             localStorage.removeItem('iqbike_active_order');
             setTimeout(() => { removeOrderFromCloud(); }, 3000);
 
@@ -1492,38 +1497,6 @@
         }
     }
 
-    // --- GANTI FUNGSI LAMA INI ---
-    function renderPassengerHistory() {
-        const container = document.getElementById('passengerHistoryContainer');
-        let passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
-        container.innerHTML = '';
-        
-        passHistory.forEach((item) => {
-            const card = document.createElement('div');
-            card.className = 'history-card';
-            card.innerHTML = `
-                <div style="display:flex; justify-content:space-between; font-weight:bold;">
-                    <span>[${(item.serviceType || 'ojek').toUpperCase()}] ${item.timeReceived || '-'}</span>
-                    <span style="color:#27ae60;">Rp ${item.fare.toLocaleString('id-ID')}</span>
-                </div>
-                <div style="color:#666; font-size:11px;">
-                    <div><strong>Jemput:</strong> ${item.pickup}</div>
-                    <div><strong>Tujuan:</strong> ${item.dropoff}</div>
-                </div>
-                <div style="display:flex; gap:6px; margin-top:4px;">
-                    <button class="btn-repeat-order" onclick="repeatOrderFromHistory('${item.pickup}', '${item.dropoff}', ${item.pickupLat}, ${item.pickupLng}, ${item.dropoffLat}, ${item.dropoffLng}, ${item.fare}, '${item.serviceType || 'ojek'}')">
-                        <i class="fa-solid fa-rotate-right"></i> Ulangi
-                    </button>
-                    <button class="btn-swap-route" onclick="swapRouteFromHistory('${item.pickup}', '${item.dropoff}', ${item.pickupLat}, ${item.pickupLng}, ${item.dropoffLat}, ${item.dropoffLng}, ${item.fare}, '${item.serviceType || 'ojek'}')">
-                        <i class="fa-solid fa-right-left"></i> Tukar PP
-                    </button>
-                </div>
-            `;
-            container.appendChild(card);
-        });
-    }
-
-    // --- TAMBAHKAN FUNGSI BARU INI DI BAWAHNYA ---
     function repeatOrderFromHistory(pickup, dropoff, pLat, pLng, dLat, dLng, fare, service) {
         document.getElementById('pickupLocation').value = pickup;
         document.getElementById('dropoffLocation').value = dropoff;
@@ -1550,28 +1523,13 @@
         showCustomAlert("Rute Ditukar", "🔄 Rute Berhasil Ditukar (Pulang Pergi)! Silakan kirim pesanan.");
     }
 
-    function cancelActiveOrder() {
-        const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
-        if (!order) return;
+    function openPassengerHistoryModal() {
+        document.getElementById('passengerHistoryModal').style.display = 'flex';
+        renderPassengerHistory();
+    }
 
-        if (confirm("⚠️ Batalkan pesanan ini dan kirim pesan pembatalan ke WhatsApp iqDriver?")) {
-            order.status = 'CANCELLED_BY_PASSENGER';
-            syncOrderToCloud(order);
-
-            if (order.assignedDriverWa) {
-                const cancelText = `Halo iqDriver (${order.assignedDriverWa}), mohon maaf pesanan iqBike layanan *${order.serviceType.toUpperCase()}* dengan rute:\n` +
-                                   `📍 Jemput: ${order.pickup}\n` +
-                                   `🏁 Tujuan: ${order.dropoff}\n\n` +
-                                   `*DIBATALKAN* oleh penumpang. Terima kasih.`;
-                window.location.href = `whatsapp://send?phone=${order.assignedDriverWa}&text=${encodeURIComponent(cancelText)}`;
-            }
-
-            localStorage.removeItem('iqbike_active_order');
-            setTimeout(() => { removeOrderFromCloud(); }, 3000);
-            resetAddressAndFare();
-            updatePassengerAppUI();
-            showCustomAlert("Berhasil", "Pesanan dibatalkan.");
-        }
+    function closePassengerHistoryModal() {
+        document.getElementById('passengerHistoryModal').style.display = 'none';
     }
 
     function openChangeDestModal() {
@@ -1682,6 +1640,14 @@
                 <div style="color:#666; font-size:11px;">
                     <div><strong>Jemput:</strong> ${item.pickup}</div>
                     <div><strong>Tujuan:</strong> ${item.dropoff}</div>
+                </div>
+                <div style="display:flex; gap:6px; margin-top:4px;">
+                    <button class="btn-repeat-order" onclick="repeatOrderFromHistory('${item.pickup}', '${item.dropoff}', ${item.pickupLat}, ${item.pickupLng}, ${item.dropoffLat}, ${item.dropoffLng}, ${item.fare}, '${item.serviceType || 'ojek'}')">
+                        <i class="fa-solid fa-rotate-right"></i> Ulangi
+                    </button>
+                    <button class="btn-swap-route" onclick="swapRouteFromHistory('${item.pickup}', '${item.dropoff}', ${item.pickupLat}, ${item.pickupLng}, ${item.dropoffLat}, ${item.dropoffLng}, ${item.fare}, '${item.serviceType || 'ojek'}')">
+                        <i class="fa-solid fa-right-left"></i> Tukar PP
+                    </button>
                 </div>
             `;
             container.appendChild(card);
