@@ -614,6 +614,23 @@
             margin-top: 6px;
         }
 
+        .pdf-export-btn {
+            background: #4285f4;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
         .history-card {
             border: 1px solid #e0e0e0;
             padding: 10px 12px;
@@ -622,44 +639,6 @@
             background: #fafafa;
             display: flex;
             flex-direction: column;
-            gap: 4px;
-        }
-
-        .history-action-row {
-            display: flex;
-            gap: 6px;
-            margin-top: 4px;
-        }
-
-        .btn-swap-route {
-            flex: 1;
-            background: #0288d1;
-            color: white;
-            border: none;
-            padding: 6px 8px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-        }
-
-        .btn-repeat-order {
-            flex: 1;
-            background: #27ae60;
-            color: white;
-            border: none;
-            padding: 6px 8px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             gap: 4px;
         }
 
@@ -1172,7 +1151,7 @@
                 <button onclick="closeHistoryDetailsModal()" style="background:none; border:none; font-size:18px; color:#666; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
-            <div id="historyDetailsListContainer" style="display:flex; flex-direction:column; gap:8px;"></div>
+            <div id="historyDetailsListContainer" style="display:flex; flex-direction:column; gap:8px; max-height:50vh; overflow-y:auto;"></div>
 
             <div id="expenseActionContainer" style="display:none;">
                 <button class="expense-btn" onclick="openExpenseModalFromDetail()">
@@ -1180,9 +1159,15 @@
                 </button>
             </div>
 
+            <div id="pdfActionContainer" style="display:none;">
+                <button class="pdf-export-btn" onclick="exportStatementPdf()">
+                    <i class="fa-solid fa-file-pdf"></i> Cetak / Simpan PDF (Rekening Koran)
+                </button>
+            </div>
+
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
                 <button onclick="clearHistory()" style="background:none; border:none; color:red; font-size:11px; cursor:pointer;">
-                    <i class="fa-solid fa-trash"></i> Hapus Semua
+                    <i class="fa-solid fa-trash"></i> Hapus Riwayat Ini
                 </button>
                 <button onclick="closeHistoryDetailsModal()" style="padding:8px 16px; background:#333; color:white; border:none; border-radius:6px; font-size:12px; font-weight:bold;">Tutup</button>
             </div>
@@ -1197,7 +1182,7 @@
                 <p style="font-size:12px; color:#777;">Rincian Pendapatan Transaksi</p>
             </div>
             <div style="font-size:13px; display:flex; flex-direction:column; gap:8px;">
-                <p><strong><i class="fa-solid fa-user"></i> Penumpang:</strong> <span id="recName">-</span></p>
+                <p><strong><i class="fa-solid fa-user"></i> Penumpang:</strong> <span id="recName">-</span> (<span id="recPhone">-</span>)</p>
                 <p><strong><i class="fa-solid fa-location-dot" style="color:#eb5757;"></i> Jemput:</strong> <span id="recPickup">-</span></p>
                 <p><strong><i class="fa-solid fa-flag-checkered"></i> Tujuan Akhir:</strong> <span id="recDropoff">-</span></p>
                 <div id="recRouteChangesInfo" style="font-size:11px; color:#666; background:#f9f9f9; padding:6px; border-radius:6px; display:none;"></div>
@@ -1360,6 +1345,12 @@
                         <div style="color:#aaa; font-size:10px;"><i class="fa-solid fa-circle-minus" style="color:#eb5757;"></i> Pengeluaran (-) <i class="fa-solid fa-chevron-right" style="font-size:8px;"></i></div>
                         <div style="font-weight:bold; color:#eb5757; font-size:12px;" id="totalExpenseText">Rp 0</div>
                     </div>
+                </div>
+
+                <div style="display:flex; gap:6px; margin-top:2px;">
+                    <button class="btn-history-toggle" onclick="openHistoryDetailsModal('CANCELLED')" style="font-size:10px; padding:6px; background:#2a2a2a; color:#f2994a; border-color:#555;">
+                        <i class="fa-solid fa-ban"></i> Riwayat Order Batal (<span id="cancelledCountBadge">0</span>)
+                    </button>
                 </div>
             </div>
 
@@ -2344,12 +2335,23 @@
                 }
 
                 if (cloudOrder.status === 'CANCELLED_BY_PASSENGER') {
-                    if (userRole === 'driver' && cloudOrder.assignedDriverWa === currentDriverWa) {
+                    if (userRole === 'driver' && (cloudOrder.assignedDriverWa === currentDriverWa || !cloudOrder.assignedDriverWa)) {
                         if (lastNotifiedCancelId !== cloudOrder.id) {
                             lastNotifiedCancelId = cloudOrder.id;
                             document.getElementById('cancelModalPassName').innerText = cloudOrder.passengerName;
                             document.getElementById('cancelModalRoute').innerText = `${cloudOrder.pickup} ➔ ${cloudOrder.dropoff}`;
                             document.getElementById('passengerCancelledModal').style.display = 'flex';
+                            
+                            // Simpan otomatis order batal ke history driver agar tercatat
+                            let history = JSON.parse(localStorage.getItem('iqbike_history') || '[]');
+                            if (!history.some(h => h.id === cloudOrder.id)) {
+                                cloudOrder.type = 'CANCELLED';
+                                cloudOrder.cancelTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                                history.unshift(cloudOrder);
+                                localStorage.setItem('iqbike_history', JSON.stringify(history));
+                                renderFinanceAndHistory();
+                            }
+
                             playNotificationSound();
                             triggerCustomVibration('radarOrder');
                         }
@@ -2836,7 +2838,8 @@
             acceptedDrivers: [], 
             assignedDriverWa: null, 
             timestamp: Date.now(),
-            time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+            timeReceived: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+            dateString: new Date().toLocaleDateString()
         };
 
         localStorage.setItem('iqbike_active_order', JSON.stringify(newOrder));
@@ -2865,14 +2868,13 @@
         const order = JSON.parse(localStorage.getItem('iqbike_active_order'));
         if (!order) return;
 
-        // Validasi ekstra (konfirmasi ganda) agar penumpang tidak tidak sengaja menekan tombol cancel
         const confirmCancel = confirm("⚠️ KONFIRMASI PEMBATALAN\n\nApakah Anda benar-benar ingin membatalkan pesanan ini? Aksi ini akan menghentikan proses pencarian/pengantaran driver.");
         if (!confirmCancel) return;
 
         let targetDriverWa = order.assignedDriverWa;
         
-        // Tandai status di cloud agar driver mendapatkan pop-up alarm pembatalan
         order.status = 'CANCELLED_BY_PASSENGER';
+        order.cancelTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
         syncOrderToCloud(order);
 
         let passHistory = JSON.parse(localStorage.getItem('iqbike_passenger_history') || '[]');
@@ -2883,9 +2885,15 @@
         });
         localStorage.setItem('iqbike_passenger_history', JSON.stringify(passHistory));
 
+        // Simpan ke riwayat transaksi driver otomatis sebagai order batal
+        let history = JSON.parse(localStorage.getItem('iqbike_history') || '[]');
+        let cancelRecord = { ...order };
+        cancelRecord.type = 'CANCELLED';
+        history.unshift(cancelRecord);
+        localStorage.setItem('iqbike_history', JSON.stringify(history));
+
         localStorage.removeItem('iqbike_active_order');
         
-        // Hapus active order dari cloud setelah beberapa saat atau biarkan state cancel terbaca driver
         setTimeout(() => {
             removeOrderFromCloud();
         }, 4000);
@@ -2896,7 +2904,6 @@
         renderFinanceAndHistory();
         renderPassengerHistory();
 
-        // Jika driver sudah terkonfirmasi/menuju jemput, arahkan otomatis ke WhatsApp untuk konfirmasi pembatalan ke driver
         if (targetDriverWa) {
             const cancelMsg = `Halo Driver iqBike (${targetDriverWa}), mohon maaf saya *membatalkan* pesanan saya sebelumnya dengan rute:\n` +
                               `📍 Jemput: ${order.pickup}\n` +
@@ -3060,7 +3067,7 @@
                 `;
             } else {
                 actionButtonsHTML = `
-                    <div class="history-action-row">
+                    <div class="history-action-row" style="display:flex; gap:6px; margin-top:4px;">
                         <button class="btn-swap-route" onclick="swapRouteFromHistory(${index})">
                             <i class="fa-solid fa-arrows-rotate"></i> Tukar Rute PP
                         </button>
@@ -3073,7 +3080,7 @@
 
             card.innerHTML = `
                 <div style="display:flex; justify-content:space-between; font-weight:bold; align-items:center;">
-                    <span><i class="fa-solid fa-route"></i> [${(item.serviceType || 'ojek').toUpperCase()}] ${item.time} (${item.passengerName})</span>
+                    <span><i class="fa-solid fa-route"></i> [${(item.serviceType || 'ojek').toUpperCase()}] ${item.timeReceived || item.time || '-'} (${item.passengerName})</span>
                     ${statusBadge}
                 </div>
                 <div style="color:#666; font-size:11px; margin-top:4px;">
@@ -3113,7 +3120,11 @@
         if (!order) return;
 
         if (newStatus === 'FINISHED') {
+            order.timeFinished = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            order.dateFinished = new Date().toLocaleDateString();
+
             document.getElementById('recName').innerText = order.passengerName;
+            document.getElementById('recPhone').innerText = order.passengerPhone;
             document.getElementById('recPickup').innerText = order.pickup;
             document.getElementById('recDropoff').innerText = order.dropoff;
             document.getElementById('recFare').innerText = `Rp ${order.fare.toLocaleString('id-ID')}`;
@@ -3211,7 +3222,8 @@
             note: note,
             amount: amount,
             timestamp: Date.now(),
-            time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+            time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+            dateString: new Date().toLocaleDateString()
         };
 
         let history = JSON.parse(localStorage.getItem('iqbike_history') || '[]');
@@ -3230,23 +3242,32 @@
         const modalContainer = document.getElementById('historyDetailsListContainer');
         const modalTitle = document.getElementById('historyModalTitle');
         const expenseActionBtn = document.getElementById('expenseActionContainer');
+        const pdfActionBtn = document.getElementById('pdfActionContainer');
 
-        modalTitle.innerText = (filterType === 'INCOME') ? "Rincian Hasil Narik (+)" : "Rincian Pengeluaran (-)";
-        modalContainer.innerHTML = '';
-
-        if (filterType === 'EXPENSE') {
-            expenseActionBtn.style.display = 'block';
-        } else {
+        if (filterType === 'INCOME') {
+            modalTitle.innerText = "Rincian Hasil Narik (+)";
             expenseActionBtn.style.display = 'none';
+            pdfActionBtn.style.display = 'block';
+        } else if (filterType === 'EXPENSE') {
+            modalTitle.innerText = "Rincian Pengeluaran Operasional (-)";
+            expenseActionBtn.style.display = 'block';
+            pdfActionBtn.style.display = 'none';
+        } else {
+            modalTitle.innerText = "Riwayat Order Dibatalkan Penumpang";
+            expenseActionBtn.style.display = 'none';
+            pdfActionBtn.style.display = 'none';
         }
 
+        modalContainer.innerHTML = '';
+
         const filteredList = history.filter(item => {
-            if (filterType === 'INCOME') return item.type !== 'EXPENSE';
-            return item.type === 'EXPENSE';
+            if (filterType === 'INCOME') return item.type === 'INCOME';
+            if (filterType === 'EXPENSE') return item.type === 'EXPENSE';
+            return item.type === 'CANCELLED';
         });
 
         if (filteredList.length === 0) {
-            modalContainer.innerHTML = '<p style="font-size:12px; color:#888; text-align:center; padding:16px;">Belum ada riwayat tercatat.</p>';
+            modalContainer.innerHTML = '<p style="font-size:12px; color:#888; text-align:center; padding:16px;">Belum ada riwayat tercatat dalam kategori ini.</p>';
         } else {
             filteredList.forEach(item => {
                 const card = document.createElement('div');
@@ -3255,19 +3276,44 @@
                 if (item.type === 'EXPENSE') {
                     card.innerHTML = `
                         <div style="display:flex; justify-content:space-between; font-weight:bold;">
-                            <span style="color:#eb5757;"><i class="fa-solid fa-triangle-exclamation"></i> ${item.note} (${item.time})</span>
+                            <span style="color:#eb5757;"><i class="fa-solid fa-triangle-exclamation"></i> ${item.note} (${item.dateString || ''} ${item.time || ''})</span>
                             <span style="color:#eb5757;">-Rp ${item.amount.toLocaleString('id-ID')}</span>
                         </div>
                     `;
-                } else {
+                } else if (item.type === 'CANCELLED') {
                     card.innerHTML = `
                         <div style="display:flex; justify-content:space-between; font-weight:bold; align-items:center;">
-                            <span><i class="fa-solid fa-user"></i> [${(item.serviceType || 'ojek').toUpperCase()}] ${item.passengerName} (${item.time})</span>
+                            <span style="color:#eb5757;"><i class="fa-solid fa-ban"></i> [${(item.serviceType || 'ojek').toUpperCase()}] ${item.passengerName} (${item.cancelTime || '-'})</span>
+                            <span style="background:#fce8e6; color:#eb5757; padding:2px 6px; border-radius:4px; font-size:9px;">DIBATALKAN</span>
+                        </div>
+                        <div style="color:#555; font-size:11px; margin-top:4px;">
+                            <div><strong>WhatsApp:</strong> ${item.passengerPhone || '-'}</div>
+                            <div><strong>Jemput:</strong> ${item.pickup}</div>
+                            <div><strong>Tujuan:</strong> ${item.dropoff}</div>
+                        </div>
+                    `;
+                } else {
+                    let routeChangesHtml = '';
+                    if (item.routeChanges && item.routeChanges.length > 0) {
+                        routeChangesHtml = `<div style="margin-top:2px; color:#0288d1;"><strong>Perubahan Rute:</strong>`;
+                        item.routeChanges.forEach(rc => {
+                            routeChangesHtml += `<br>• ${rc.from} ➔ ${rc.to} (+Rp ${rc.extraFare.toLocaleString('id-ID')})`;
+                        });
+                        routeChangesHtml += `</div>`;
+                    }
+
+                    card.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; font-weight:bold; align-items:center;">
+                            <span><i class="fa-solid fa-user"></i> [${(item.serviceType || 'ojek').toUpperCase()}] ${item.passengerName}</span>
                             <span style="color:#27ae60; font-size:13px;">Rp ${item.fare.toLocaleString('id-ID')}</span>
                         </div>
-                        <div style="color:#666; font-size:11px; margin-top:4px;">
-                            <div><strong><i class="fa-solid fa-location-dot" style="color:#eb5757;"></i> Jemput:</strong> ${item.pickup}</div>
-                            <div><strong><i class="fa-solid fa-flag-checkered"></i> Tujuan Akhir:</strong> ${item.dropoff}</div>
+                        <div style="color:#555; font-size:11px; margin-top:4px; display:flex; flex-direction:column; gap:2px;">
+                            <div><strong>Waktu Diterima:</strong> ${item.dateString || ''} ${item.timeReceived || '-'} | <strong>Selesai:</strong> ${item.timeFinished || '-'}</div>
+                            <div><strong>WhatsApp:</strong> <a href="whatsapp://send?phone=${item.passengerPhone}" style="color:#25D366; font-weight:bold;">${item.passengerPhone}</a></div>
+                            <div><strong>Titik Jemput:</strong> ${item.pickup}</div>
+                            <div><strong>Titik Tujuan:</strong> ${item.dropoff}</div>
+                            <div><strong>Ongkos Dasar/Normal:</strong> Rp ${(item.initialFare || item.fare).toLocaleString('id-ID')}</div>
+                            ${routeChangesHtml}
                         </div>
                     `;
                 }
@@ -3282,6 +3328,153 @@
         document.getElementById('historyDetailsModal').style.display = 'none';
     }
 
+    function exportStatementPdf() {
+        const history = JSON.parse(localStorage.getItem('iqbike_history') || '[]');
+        const incomes = history.filter(item => item.type === 'INCOME');
+        const expenses = history.filter(item => item.type === 'EXPENSE');
+
+        let totalGross = incomes.reduce((sum, i) => sum + i.fare, 0);
+        let totalExp = expenses.reduce((sum, e) => sum + e.amount, 0);
+        let totalNet = totalGross - totalExp;
+
+        let printWindow = window.open('', '_blank');
+        let htmlContent = `
+            <!DOCTYPE html>
+            <html lang="id">
+            <head>
+                <meta charset="UTF-8">
+                <title>Rekening Koran / Laporan Keuangan Driver iqBike</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 20px; color: #111; max-width: 800px; margin: auto; }
+                    .header-box { text-align: center; border-bottom: 2px solid #333; padding-bottom: 12px; margin-bottom: 20px; }
+                    .header-box h2 { margin: 0; color: #27ae60; }
+                    .info-grid { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 20px; background: #f8f9fa; padding: 12px; border-radius: 6px; }
+                    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 11px; }
+                    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                    th { background-color: #2c3e50; color: white; }
+                    .summary-box { background: #eef7e8; border: 1px solid #c8e6b8; padding: 12px; border-radius: 6px; font-size: 13px; margin-bottom: 20px; }
+                    .summary-box div { display: flex; justify-content: space-between; margin-bottom: 4px; }
+                    .footer { text-align: center; font-size: 10px; color: #777; margin-top: 40px; border-top: 1px solid #ddd; padding-top: 10px; }
+                    @media print {
+                        body { padding: 0; }
+                        .no-print { display: none; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="no-print" style="text-align: right; margin-bottom: 15px;">
+                    <button onclick="window.print()" style="background: #27ae60; color: white; border: none; padding: 10px 20px; font-weight: bold; border-radius: 6px; cursor: pointer;">Cetak / Simpan sebagai PDF</button>
+                </div>
+
+                <div class="header-box">
+                    <h2>REKENING KORAN / LAPORAN PENDAPATAN DRIVER iqBike</h2>
+                    <p style="font-size: 12px; color: #555; margin: 4px 0;">Sistem Cloud Multi-Driver iqBike Resmi</p>
+                </div>
+
+                <div class="info-grid">
+                    <div>
+                        <strong>Nomor WA Driver:</strong> ${currentDriverWa}<br>
+                        <strong>Tanggal Cetak:</strong> ${new Date().toLocaleString()}
+                    </div>
+                    <div style="text-align: right;">
+                        <strong>Status Akun:</strong> Aktif Terverifikasi<br>
+                        <strong>Mata Uang:</strong> IDR (Rupiah)
+                    </div>
+                </div>
+
+                <div class="summary-box">
+                    <div><strong>Total Pendapatan Kotor (Hasil Narik):</strong> <span>Rp ${totalGross.toLocaleString('id-ID')}</span></div>
+                    <div><strong>Total Pengeluaran Operasional:</strong> <span style="color:red;">-Rp ${totalExp.toLocaleString('id-ID')}</span></div>
+                    <div style="border-top: 1px solid #ccc; padding-top: 4px; font-weight: bold; font-size: 14px; color: #27ae60;">
+                        <span>KEUNTUNGAN BERSIH (NET INCOME):</span> <span>Rp ${totalNet.toLocaleString('id-ID')}</span>
+                    </div>
+                </div>
+
+                <h3>Rincian Riwayat Transaksi Pendapatan Perjalanan</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Waktu & Tanggal</th>
+                            <th>Layanan & Penumpang</th>
+                            <th>Rute Perjalanan (Jemput ➔ Tujuan)</th>
+                            <th>WhatsApp</th>
+                            <th>Nominal (Rp)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+        if (incomes.length === 0) {
+            htmlContent += `<tr><td colspan="6" style="text-align:center; color:#777;">Belum ada riwayat pendapatan tercatat.</td></tr>`;
+        } else {
+            incomes.forEach((inc, idx) => {
+                let routeDesc = `${inc.pickup} ➔ ${inc.dropoff}`;
+                if (inc.routeChanges && inc.routeChanges.length > 0) {
+                    inc.routeChanges.forEach(rc => {
+                        routeDesc += `<br><small style="color:#0288d1;">[Ubah] ${rc.from} ➔ ${rc.to} (+Rp ${rc.extraFare.toLocaleString('id-ID')})</small>`;
+                    });
+                }
+                htmlContent += `
+                    <tr>
+                        <td>${idx + 1}</td>
+                        <td>${inc.dateString || ''} ${inc.timeReceived || inc.time || '-'}</td>
+                        <td><strong>[${(inc.serviceType || 'ojek').toUpperCase()}]</strong><br>${inc.passengerName}</td>
+                        <td>${routeDesc}</td>
+                        <td>${inc.passengerPhone || '-'}</td>
+                        <td style="color:#27ae60; font-weight:bold;">Rp ${inc.fare.toLocaleString('id-ID')}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        htmlContent += `
+                    </tbody>
+                </table>
+
+                <h3>Rincian Pengeluaran Operasional Driver</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Waktu & Tanggal</th>
+                            <th>Keterangan Pengeluaran</th>
+                            <th>Jumlah (Rp)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+        if (expenses.length === 0) {
+            htmlContent += `<tr><td colspan="4" style="text-align:center; color:#777;">Belum ada riwayat pengeluaran operasional.</td></tr>`;
+        } else {
+            expenses.forEach((exp, idx) => {
+                htmlContent += `
+                    <tr>
+                        <td>${idx + 1}</td>
+                        <td>${exp.dateString || ''} ${exp.time || '-'}</td>
+                        <td>${exp.note}</td>
+                        <td style="color:#eb5757; font-weight:bold;">-Rp ${exp.amount.toLocaleString('id-ID')}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        htmlContent += `
+                    </tbody>
+                </table>
+
+                <div class="footer">
+                    Dokumen ini digenerate secara otomatis oleh sistem iqBike WebApp Cloud. Sah dan valid untuk keperluan audit mandiri driver.
+                </div>
+            </body>
+            </html>
+        `;
+
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+    }
+
     function renderFinanceAndHistory() {
         const filter = document.getElementById('timeFilter').value;
         const history = JSON.parse(localStorage.getItem('iqbike_history') || '[]');
@@ -3292,8 +3485,13 @@
 
         let grossIncome = 0;
         let totalExpense = 0;
+        let cancelledCount = 0;
 
         const filteredList = history.filter(item => {
+            if (item.type === 'CANCELLED') {
+                cancelledCount++;
+                return false; // Jangan hitung cancelled order ke dalam nominal keuangan
+            }
             const itemTime = item.timestamp || 0;
             if (filter === 'today') return itemTime >= startOfToday;
             if (filter === 'week') return itemTime >= startOfWeek;
@@ -3305,7 +3503,7 @@
         filteredList.forEach(item => {
             if (item.type === 'EXPENSE') {
                 totalExpense += item.amount;
-            } else {
+            } else if (item.type === 'INCOME') {
                 grossIncome += item.fare;
             }
         });
@@ -3314,11 +3512,26 @@
         document.getElementById('grossIncomeText').innerText = `Rp ${grossIncome.toLocaleString('id-ID')}`;
         document.getElementById('totalExpenseText').innerText = `Rp ${totalExpense.toLocaleString('id-ID')}`;
         document.getElementById('netIncomeText').innerText = `Rp ${netIncome.toLocaleString('id-ID')}`;
+        
+        const badgeEl = document.getElementById('cancelledCountBadge');
+        if (badgeEl) badgeEl.innerText = cancelledCount;
     }
 
     function clearHistory() {
-        if (confirm("Hapus semua riwayat transaksi & pengeluaran?")) {
-            localStorage.removeItem('iqbike_history');
+        if (confirm("Hapus riwayat dalam kategori ini?")) {
+            const history = JSON.parse(localStorage.getItem('iqbike_history') || '[]');
+            const modalTitle = document.getElementById('historyModalTitle').innerText;
+            
+            let newHistory = [];
+            if (modalTitle.includes('Pendapatan')) {
+                newHistory = history.filter(item => item.type !== 'INCOME');
+            } else if (modalTitle.includes('Pengeluaran')) {
+                newHistory = history.filter(item => item.type !== 'EXPENSE');
+            } else {
+                newHistory = history.filter(item => item.type !== 'CANCELLED');
+            }
+
+            localStorage.setItem('iqbike_history', JSON.stringify(newHistory));
             closeHistoryDetailsModal();
             renderFinanceAndHistory();
         }
