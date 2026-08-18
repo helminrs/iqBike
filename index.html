@@ -811,7 +811,7 @@
     let reverseGeocodeTimeout = null;
     let currentSelectedService = 'ojek';
     let lastKnownAcceptedCount = 0;
-    let currentRouteDistanceMeters = 0; // Menyimpan jarak rute mobil aktual
+    let currentRouteDistanceMeters = 0;
 
     let passengerDeviceUuid = localStorage.getItem('iqbike_device_uuid');
     if (!passengerDeviceUuid) {
@@ -1064,11 +1064,10 @@
                 addWaypoints: false, draggableWaypoints: false, fitSelectedRoutes: false, show: false
             }).addTo(map);
 
-            // Mengambil jarak rute mobil aktual dari Routing Machine
             routingControl.on('routesfound', function(e) {
                 const routes = e.routes;
                 if (routes && routes.length > 0) {
-                    currentRouteDistanceMeters = routes[0].summary.totalDistance; // Jarak rute jalan raya dalam meter
+                    currentRouteDistanceMeters = routes[0].summary.totalDistance;
                     calculateFare();
                 }
             });
@@ -1286,10 +1285,10 @@
     }
 
     function computeDistanceFare(distanceInMeters) {
-        // Tarif dasar awal: Ojek Rp 9.000, Kurir Rp 11.000, Tarif per km Rp 2.500
-        let baseFare = (currentSelectedService === 'kurir') ? 11000 : 9000;
-        let kmRate = 2500; 
-        let baseDistanceMeters = 3000; // 3 km pertama masuk tarif dasar
+        // Disetarakan dengan inDrive (Tarif Ojek dasar Rp 8.000 untuk 3 km pertama, tarif per km Rp 2.000)
+        let baseFare = (currentSelectedService === 'kurir') ? 10000 : 8000;
+        let kmRate = 2000; 
+        let baseDistanceMeters = 3000; 
 
         if (distanceInMeters <= baseDistanceMeters) {
             return baseFare;
@@ -1302,9 +1301,9 @@
         let fare = baseFare + (fullKm * kmRate);
 
         if (remainderMeters > 0 && remainderMeters <= 499) {
-            fare += 1250;
+            fare += 1000;
         } else if (remainderMeters >= 500) {
-            fare += 2500;
+            fare += 2000;
         }
 
         return fare;
@@ -1312,7 +1311,6 @@
 
     function calculateFare() {
         if (!pickupCoords || !dropoffCoords || currentRouteDistanceMeters <= 0) {
-            // Fallback cadangan jika rute belum termuat sempurna: gunakan jarak garis lurus dikali 1.3 untuk estimasi jalur jalan
             if (pickupCoords && dropoffCoords) {
                 const straightDist = map.distance(pickupCoords, dropoffCoords) * 1.3;
                 computedTotalFare = computeDistanceFare(straightDist);
@@ -1396,7 +1394,7 @@
                     let pickupExtraFee = 0;
                     if (distanceKm > 2.0 && distanceKm <= 25.0) {
                         let extraMeters = distanceMeters - 2000;
-                        pickupExtraFee = computeDistanceFare(extraMeters + 3000) - (currentSelectedService === 'kurir' ? 11000 : 9000);
+                        pickupExtraFee = computeDistanceFare(extraMeters + 3000) - (currentSelectedService === 'kurir' ? 10000 : 8000);
                     }
 
                     driversWithDistance.push({
@@ -1619,7 +1617,7 @@
 
         const oldDropoffLatLng = L.latLng(order.dropoffLat, order.dropoffLng);
         const additionalDistMeters = map.distance(oldDropoffLatLng, tempNewDropoffCoords);
-        const additionalFare = computeDistanceFare(additionalDistMeters + 3000) - (order.serviceType === 'kurir' ? 11000 : 9000);
+        const additionalFare = computeDistanceFare(additionalDistMeters + 3000) - (order.serviceType === 'kurir' ? 10000 : 8000);
 
         order.dropoff = document.getElementById('newDestinationInput').value;
         order.dropoffLat = tempNewDropoffCoords.lat;
