@@ -8,11 +8,10 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#8cc63f">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
     
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+    <!-- MapLibre GL CSS & JS (Peta Vektor Modern ala inDrive, Cepat & Gratis) -->
+    <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
+    <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -606,8 +605,8 @@
             <h3 style="font-size:15px; color:var(--primary-green);"><i class="fa-solid fa-flag-checkered"></i> Ubah Titik Tujuan Perjalanan</h3>
             <p style="font-size:11px; color:#aaa;">Masukkan atau pilih titik tujuan baru Anda. Ongkos akan bertambah secara otomatis dari tujuan awal.</p>
             <div class="form-group">
-                <label class="form-label" style="color:#ccc;">Tujuan Baru</label>
-                <input type="text" id="newDestinationInput" class="form-input" placeholder="Ketik tujuan baru..." oninput="handleNewDestSearchInput()">
+                <label class="form-label" style="color:#ccc;">Tujuan Baru / Paste Link Maps</label>
+                <input type="text" id="newDestinationInput" class="form-input" placeholder="Ketik atau paste link Google Maps..." oninput="handleNewDestSearchInput()">
                 <div id="newDestSearchResults" class="search-results"></div>
             </div>
             <div style="display:flex; gap:8px; margin-top:6px;">
@@ -679,14 +678,14 @@
             <div id="passengerMapWrapper" class="map-wrapper"></div>
 
             <div class="form-group">
-                <label class="form-label"><i class="fa-solid fa-location-dot" style="color:#eb5757;"></i> Lokasi Penjemputan <span style="color:red">*</span></label>
-                <input type="text" id="pickupLocation" class="form-input" placeholder="Pilih lokasi jemput..." oninput="handleSearchOrPaste('jemput')">
+                <label class="form-label"><i class="fa-solid fa-location-dot" style="color:#eb5757;"></i> Lokasi Penjemputan / Paste Link Maps <span style="color:red">*</span></label>
+                <input type="text" id="pickupLocation" class="form-input" placeholder="Ketik lokasi / paste link Google Maps..." oninput="handleSearchOrPaste('jemput')">
                 <div id="pickupSearchResults" class="search-results"></div>
             </div>
 
             <div class="form-group">
-                <label class="form-label"><i class="fa-solid fa-flag-checkered"></i> Lokasi Tujuan <span style="color:red">*</span></label>
-                <input type="text" id="dropoffLocation" class="form-input" placeholder="Pilih lokasi tujuan..." oninput="handleSearchOrPaste('tujuan')">
+                <label class="form-label"><i class="fa-solid fa-flag-checkered"></i> Lokasi Tujuan / Paste Link Maps <span style="color:red">*</span></label>
+                <input type="text" id="dropoffLocation" class="form-input" placeholder="Ketik lokasi / paste link Google Maps..." oninput="handleSearchOrPaste('tujuan')">
                 <div id="dropoffSearchResults" class="search-results"></div>
             </div>
 
@@ -802,9 +801,9 @@
     }
 
     let map;
-    let routingControl = null;
     let currentPinMode = null;
     let pickupCoords = null, dropoffCoords = null;
+    let pickupMarkerEl = null, dropoffMarkerEl = null;
     let pickupMarker = null, dropoffMarker = null;
     let driverMarkersMap = {}; 
     let passengerLiveMarker = null;
@@ -929,26 +928,6 @@
         showCustomAlert("Berhasil", `✅ Nomor WhatsApp (${passengerVerifiedWa}) Berhasil Terverifikasi!`);
     }
 
-    const redPinIcon = L.divIcon({
-        html: '<i class="fa-solid fa-location-dot" style="font-size:26px; color:#eb5757; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4));"></i>',
-        iconSize: [26, 26], iconAnchor: [13, 26], className: 'custom-pin'
-    });
-
-    const finishFlagIcon = L.divIcon({
-        html: '<i class="fa-solid fa-flag-checkered" style="font-size:24px; color:#111; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4));"></i>',
-        iconSize: [24, 24], iconAnchor: [12, 12], className: 'custom-flag-nobg'
-    });
-
-    const driverMotorIcon = L.divIcon({
-        html: '<i class="fa-solid fa-motorcycle" style="font-size:12px; color:#fff; background:#27ae60; padding:5px; border-radius:50%; border:2px solid #ffffff; box-shadow:0 2px 6px rgba(0,0,0,0.4);"></i>',
-        iconSize: [24, 24], iconAnchor: [12, 12], className: 'driver-motor-icon'
-    });
-
-    const passengerBlueDotIcon = L.divIcon({
-        html: '<i class="fa-solid fa-circle" style="font-size:14px; color:#0288d1; background:#ffffff; padding:3px; border-radius:50%; border:2px solid #0288d1; box-shadow:0 2px 6px rgba(0,0,0,0.4);"></i>',
-        iconSize: [20, 20], iconAnchor: [10, 10], className: 'passenger-blue-icon'
-    });
-
     function initMap() {
         const masterEl = document.getElementById('masterMapElement');
         const targetContainer = document.getElementById('passengerMapWrapper');
@@ -957,8 +936,13 @@
             masterEl.style.display = 'block';
         }
         
-        map = L.map('map', { zoomControl: false }).setView([userCurrentLat, userCurrentLng], 16);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+        // Inisialisasi MapLibre GL dengan gaya OpenFreeMap (Vektor komersial modern, mulus, gratis)
+        map = new maplibregl.Map({
+            container: 'map',
+            style: 'https://tiles.openfreemap.org/styles/liberty',
+            center: [userCurrentLng, userCurrentLat],
+            zoom: 15
+        });
 
         map.on('movestart', () => {
             if (currentPinMode) {
@@ -968,13 +952,54 @@
 
         map.on('moveend', () => {
             const center = map.getCenter();
+            const centerLatLng = { lat: center.lat, lng: center.lng };
             const btn = document.getElementById('btnMyLocation');
-            const dist = map.distance(center, L.latLng(userCurrentLat, userCurrentLng));
+            
+            // Hitung perkiraan jarak dari posisi GPS
+            const R = 6371e3;
+            const φ1 = userCurrentLat * Math.PI/180;
+            const φ2 = center.lat * Math.PI/180;
+            const Δφ = (center.lat-userCurrentLat) * Math.PI/180;
+            const Δλ = (center.lng-userCurrentLng) * Math.PI/180;
+            const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const dist = R * c;
+
             btn.style.color = (dist > 50) ? 'var(--accent-red)' : 'var(--accent-blue)';
 
             if (currentPinMode) {
-                handleMapCenterChange(center);
+                handleMapCenterChange(centerLatLng);
             }
+        });
+
+        // Tambahkan layer rute kosong
+        map.on('load', () => {
+            map.addSource('route', {
+                'type': 'geojson',
+                'data': {
+                    'type': 'Feature',
+                    'properties': {},
+                    'geometry': {
+                        'type': 'LineString',
+                        'coordinates': []
+                    }
+                }
+            });
+
+            map.addLayer({
+                'id': 'route',
+                'type': 'line',
+                'source': 'route',
+                'layout': {
+                    'line-join': 'round',
+                    'line-cap': 'round'
+                },
+                'paint': {
+                    'line-color': '#0288d1',
+                    'line-width': 5,
+                    'line-opacity': 0.8
+                }
+            });
         });
 
         startLiveGpsTracking();
@@ -1007,15 +1032,15 @@
             btnJemput.className = 'btn-pin-mode active-mode';
             btnTujuan.className = 'btn-pin-mode';
             pinIcon.innerHTML = '<i class="fa-solid fa-location-dot" style="color:#eb5757;"></i>';
-            if (pickupCoords) map.panTo(pickupCoords);
+            if (pickupCoords) map.flyTo({ center: [pickupCoords.lng, pickupCoords.lat], zoom: 16 });
         } else {
             btnJemput.className = 'btn-pin-mode';
             btnTujuan.className = 'btn-pin-mode active-mode';
             pinIcon.innerHTML = '<i class="fa-solid fa-flag-checkered" style="color:#111;"></i>';
-            if (dropoffCoords) map.panTo(dropoffCoords);
+            if (dropoffCoords) map.flyTo({ center: [dropoffCoords.lng, dropoffCoords.lat], zoom: 16 });
         }
 
-        handleMapCenterChange(map.getCenter());
+        handleMapCenterChange({ lat: map.getCenter().lat, lng: map.getCenter().lng });
     }
 
     function confirmLocationSelection() {
@@ -1055,36 +1080,48 @@
     }
 
     function renderFixedMarkers() {
-        if (pickupCoords && dropoffCoords) {
-            if (routingControl) map.removeControl(routingControl);
-            routingControl = L.Routing.control({
-                waypoints: [L.latLng(pickupCoords.lat, pickupCoords.lng), L.latLng(dropoffCoords.lat, dropoffCoords.lng)],
-                createMarker: function() { return null; },
-                lineOptions: { styles: [{ color: '#0288d1', opacity: 0.8, weight: 5 }] },
-                addWaypoints: false, draggableWaypoints: false, fitSelectedRoutes: false, show: false
-            }).addTo(map);
+        if (pickupCoords) {
+            if (!pickupMarker) {
+                const el = document.createElement('div');
+                el.innerHTML = '<i class="fa-solid fa-location-dot" style="font-size:26px; color:#eb5757; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4));"></i>';
+                pickupMarker = new maplibregl.Marker({ element: el }).setLngLat([pickupCoords.lng, pickupCoords.lat]).addTo(map);
+            } else {
+                pickupMarker.setLngLat([pickupCoords.lng, pickupCoords.lat]);
+            }
+        }
 
-            routingControl.on('routesfound', function(e) {
-                const routes = e.routes;
-                if (routes && routes.length > 0) {
-                    currentRouteDistanceMeters = routes[0].summary.totalDistance;
-                    calculateFare();
-                }
-            });
-        } else if (routingControl) {
-            map.removeControl(routingControl);
-            routingControl = null;
+        if (dropoffCoords) {
+            if (!dropoffMarker) {
+                const el = document.createElement('div');
+                el.innerHTML = '<i class="fa-solid fa-flag-checkered" style="font-size:24px; color:#111; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4));"></i>';
+                dropoffMarker = new maplibregl.Marker({ element: el }).setLngLat([dropoffCoords.lng, dropoffCoords.lat]).addTo(map);
+            } else {
+                dropoffMarker.setLngLat([dropoffCoords.lng, dropoffCoords.lat]);
+            }
+        }
+
+        if (pickupCoords && dropoffCoords) {
+            // Ambil rute menggunakan OSRM publik gratis
+            fetch(`https://router.project-osrm.org/route/v1/driving/${pickupCoords.lng},${pickupCoords.lat};${dropoffCoords.lng},${dropoffCoords.lat}?overview=full&geometries=geojson`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.routes && data.routes.length > 0) {
+                        const route = data.routes[0];
+                        currentRouteDistanceMeters = route.distance;
+                        calculateFare();
+
+                        if (map.getSource('route')) {
+                            map.getSource('route').setData({
+                                'type': 'Feature',
+                                'properties': {},
+                                'geometry': route.geometry
+                            });
+                        }
+                    }
+                }).catch(() => {});
+        } else {
             currentRouteDistanceMeters = 0;
             calculateFare();
-        }
-
-        if (pickupCoords) {
-            if (!pickupMarker) pickupMarker = L.marker(pickupCoords, {icon: redPinIcon}).addTo(map);
-            else pickupMarker.setLatLng(pickupCoords);
-        }
-        if (dropoffCoords) {
-            if (!dropoffMarker) dropoffMarker = L.marker(dropoffCoords, {icon: finishFlagIcon}).addTo(map);
-            else dropoffMarker.setLatLng(dropoffCoords);
         }
     }
 
@@ -1096,15 +1133,15 @@
                 userCurrentLng = currentPos.lng;
                 localStorage.setItem('iqbike_last_known_pos', JSON.stringify(currentPos));
 
-                if (!isInitialMapCenterDone) {
-                    map.setView([userCurrentLat, userCurrentLng], 16);
+                if (!isInitialMapCenterDone && map) {
+                    map.setCenter([userCurrentLng, userCurrentLat]);
                     document.getElementById('btnMyLocation').style.color = 'var(--accent-blue)';
                     isInitialMapCenterDone = true;
                 }
 
                 localStorage.setItem('iqbike_passenger_gps', JSON.stringify(currentPos));
                 syncPassengerGpsToCloud(currentPos);
-                renderPassengerLocalMarkers();
+                renderPassengerLocalMarkers(currentPos);
             }, null, { enableHighAccuracy: true });
         }
     }
@@ -1136,9 +1173,18 @@
                 const data = doc.data();
                 if (data.lat && data.lng && data.isOnline === true) {
                     anyDriverOnline = true;
-                    const dLatLng = L.latLng(data.lat, data.lng);
-                    const pLatLng = L.latLng(userCurrentLat, userCurrentLng);
-                    if (map && map.distance(dLatLng, pLatLng) <= 25000) {
+                    const dLatLng = { lat: data.lat, lng: data.lng };
+                    
+                    // Hitung jarak ke penumpang
+                    const R = 6371e3;
+                    const φ1 = userCurrentLat * Math.PI/180;
+                    const φ2 = dLatLng.lat * Math.PI/180;
+                    const Δφ = (dLatLng.lat-userCurrentLat) * Math.PI/180;
+                    const Δλ = (dLatLng.lng-userCurrentLng) * Math.PI/180;
+                    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
+                    const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+                    if (map && dist <= 25000) {
                         activeDriversList[doc.id] = data;
                     }
                 }
@@ -1190,7 +1236,7 @@
         if (!map) return;
         Object.keys(driverMarkersMap).forEach(wa => {
             if (!driversObj[wa]) {
-                map.removeLayer(driverMarkersMap[wa]);
+                driverMarkersMap[wa].remove();
                 delete driverMarkersMap[wa];
             }
         });
@@ -1198,29 +1244,63 @@
         Object.keys(driversObj).forEach(wa => {
             const dData = driversObj[wa];
             if (!driverMarkersMap[wa]) {
-                driverMarkersMap[wa] = L.marker([dData.lat, dData.lng], {icon: driverMotorIcon, zIndexOffset: 1000}).addTo(map);
+                const el = document.createElement('div');
+                el.innerHTML = '<i class="fa-solid fa-motorcycle" style="font-size:12px; color:#fff; background:#27ae60; padding:5px; border-radius:50%; border:2px solid #ffffff; box-shadow:0 2px 6px rgba(0,0,0,0.4);"></i>';
+                driverMarkersMap[wa] = new maplibregl.Marker({ element: el }).setLngLat([dData.lng, dData.lat]).addTo(map);
             } else {
-                driverMarkersMap[wa].setLatLng([dData.lat, dData.lng]);
+                driverMarkersMap[wa].setLngLat([dData.lng, dData.lat]);
             }
         });
     }
 
-    function renderPassengerLocalMarkers() {
-        const passengerGps = JSON.parse(localStorage.getItem('iqbike_passenger_gps'));
-        if (passengerGps && map) {
+    function renderPassengerLocalMarkers(pos) {
+        if (pos && map) {
             if (!passengerLiveMarker) {
-                passengerLiveMarker = L.marker([passengerGps.lat, passengerGps.lng], {icon: passengerBlueDotIcon, zIndexOffset: 900}).addTo(map);
+                const el = document.createElement('div');
+                el.innerHTML = '<i class="fa-solid fa-circle" style="font-size:14px; color:#0288d1; background:#ffffff; padding:3px; border-radius:50%; border:2px solid #0288d1; box-shadow:0 2px 6px rgba(0,0,0,0.4);"></i>';
+                passengerLiveMarker = new maplibregl.Marker({ element: el }).setLngLat([pos.lng, pos.lat]).addTo(map);
             } else {
-                passengerLiveMarker.setLatLng([passengerGps.lat, passengerGps.lng]);
+                passengerLiveMarker.setLngLat([pos.lng, pos.lat]);
             }
         }
     }
 
     function centerToMyLocation() {
-        const currentLatLng = L.latLng(userCurrentLat, userCurrentLng);
-        map.setView(currentLatLng, 16);
-        document.getElementById('btnMyLocation').style.color = 'var(--accent-blue)';
-        if (currentPinMode) handleMapCenterChange(currentLatLng);
+        if (map) {
+            map.flyTo({ center: [userCurrentLng, userCurrentLat], zoom: 16 });
+            document.getElementById('btnMyLocation').style.color = 'var(--accent-blue)';
+            if (currentPinMode) handleMapCenterChange({ lat: userCurrentLat, lng: userCurrentLng });
+        }
+    }
+
+    // Fungsi Pintar untuk Mendeteksi Tautan (Link) Google Maps yang di-Paste
+    function parseGoogleMapsLink(inputString, callback) {
+        const coordMatch = inputString.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || inputString.match(/q=(-?\d+\.\d+),(-?\d+\.\d+)/) || inputString.match(/place\/(-?\d+\.\d+)\D+(-?\d+\.\d+)/);
+        
+        if (coordMatch) {
+            const lat = parseFloat(coordMatch[1]);
+            const lng = parseFloat(coordMatch[2]);
+            callback({ lat, lng }, "Lokasi dari Link Google Maps");
+            return true;
+        }
+
+        if (inputString.includes('goo.gl') || inputString.includes('maps.google.com') || inputString.startsWith('http')) {
+            showCustomAlert("Memproses Link", "⏳ Sedang membaca titik koordinat dari link Google Maps...");
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(inputString)}&limit=1`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.length > 0) {
+                        callback({ lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) }, data[0].display_name);
+                    } else {
+                        showCustomAlert("Gagal Membaca Link", "❌ Link Google Maps tidak valid atau koordinat tidak ditemukan.");
+                    }
+                }).catch(() => {
+                    showCustomAlert("Gagal Membaca Link", "❌ Gagal memuat tautan Google Maps.");
+                });
+            return true;
+        }
+
+        return false;
     }
 
     function handleSearchOrPaste(type) {
@@ -1237,10 +1317,29 @@
 
         if (!query) {
             container.style.display = 'none';
-            if (type === 'jemput') { pickupCoords = null; if (pickupMarker) { map.removeLayer(pickupMarker); pickupMarker = null; } }
-            if (type === 'tujuan') { dropoffCoords = null; if (dropoffMarker) { map.removeLayer(dropoffMarker); dropoffMarker = null; } }
+            if (type === 'jemput') { pickupCoords = null; if (pickupMarker) { pickupMarker.remove(); pickupMarker = null; } }
+            if (type === 'tujuan') { dropoffCoords = null; if (dropoffMarker) { dropoffMarker.remove(); dropoffMarker = null; } }
             currentRouteDistanceMeters = 0;
             calculateFare();
+            return;
+        }
+
+        if (query.includes('http://') || query.includes('https://') || query.includes('goo.gl')) {
+            container.style.display = 'none';
+            parseGoogleMapsLink(query, (latLng, addressName) => {
+                const shortName = addressName.split(',').slice(0, 3).join(',');
+                if (type === 'jemput') {
+                    document.getElementById('pickupLocation').value = shortName;
+                    pickupCoords = latLng;
+                } else {
+                    document.getElementById('dropoffLocation').value = shortName;
+                    dropoffCoords = latLng;
+                }
+                map.flyTo({ center: [latLng.lng, latLng.lat], zoom: 16 });
+                renderFixedMarkers();
+                calculateFare();
+                showCustomAlert("Berhasil", "📍 Titik lokasi berhasil dimuat dari link Google Maps!");
+            });
             return;
         }
 
@@ -1258,7 +1357,7 @@
                                 div.innerText = item.display_name;
                                 div.onclick = function() {
                                     const shortName = item.display_name.split(',').slice(0, 3).join(',');
-                                    const selectedLatLng = L.latLng(parseFloat(item.lat), parseFloat(item.lon));
+                                    const selectedLatLng = { lat: parseFloat(item.lat), lng: parseFloat(item.lon) };
                                     
                                     if (type === 'jemput') {
                                         document.getElementById('pickupLocation').value = shortName;
@@ -1267,7 +1366,7 @@
                                         document.getElementById('dropoffLocation').value = shortName;
                                         dropoffCoords = selectedLatLng;
                                     }
-                                    map.panTo(selectedLatLng);
+                                    map.flyTo({ center: [selectedLatLng.lng, selectedLatLng.lat], zoom: 16 });
                                     container.style.display = 'none';
                                     renderFixedMarkers();
                                 };
@@ -1285,9 +1384,8 @@
     }
 
     function computeDistanceFare(distanceInMeters) {
-        // Disetarakan dengan inDrive (Tarif Ojek dasar Rp 8.000 untuk 3 km pertama, tarif per km Rp 2.000)
         let baseFare = (currentSelectedService === 'kurir') ? 10000 : 8000;
-        let kmRate = 2000; 
+        let kmRate = 1800; 
         let baseDistanceMeters = 3000; 
 
         if (distanceInMeters <= baseDistanceMeters) {
@@ -1295,24 +1393,23 @@
         }
 
         let extraMeters = distanceInMeters - baseDistanceMeters;
-        let fullKm = Math.floor(extraMeters / 1000);
-        let remainderMeters = extraMeters % 1000;
+        let fare = baseFare + (extraMeters / 1000 * kmRate);
 
-        let fare = baseFare + (fullKm * kmRate);
-
-        if (remainderMeters > 0 && remainderMeters <= 499) {
-            fare += 1000;
-        } else if (remainderMeters >= 500) {
-            fare += 2000;
-        }
-
-        return fare;
+        return Math.ceil(fare / 500) * 500;
     }
 
     function calculateFare() {
         if (!pickupCoords || !dropoffCoords || currentRouteDistanceMeters <= 0) {
             if (pickupCoords && dropoffCoords) {
-                const straightDist = map.distance(pickupCoords, dropoffCoords) * 1.3;
+                // Perhitungan estimasi garis lurus cadangan
+                const R = 6371e3;
+                const φ1 = pickupCoords.lat * Math.PI/180;
+                const φ2 = dropoffCoords.lat * Math.PI/180;
+                const Δφ = (dropoffCoords.lat - pickupCoords.lat) * Math.PI/180;
+                const Δλ = (dropoffCoords.lng - pickupCoords.lng) * Math.PI/180;
+                const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
+                const straightDist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)) * 1.3;
+
                 computedTotalFare = computeDistanceFare(straightDist);
                 const serviceLabel = (currentSelectedService === 'kurir') ? 'Kurir' : 'Ojek';
                 document.getElementById('fareText').innerText = `Rp ${computedTotalFare.toLocaleString('id-ID')} (~${(straightDist/1000).toFixed(1)} km - ${serviceLabel})`;
@@ -1339,8 +1436,8 @@
         document.getElementById('dropoffLocation').value = '';
         pickupCoords = null; dropoffCoords = null;
         currentRouteDistanceMeters = 0;
-        if (pickupMarker) { map.removeLayer(pickupMarker); pickupMarker = null; }
-        if (dropoffMarker) { map.removeLayer(dropoffMarker); dropoffMarker = null; }
+        if (pickupMarker) { pickupMarker.remove(); pickupMarker = null; }
+        if (dropoffMarker) { dropoffMarker.remove(); dropoffMarker = null; }
         confirmLocationSelection();
         calculateFare();
     }
@@ -1379,16 +1476,19 @@
             return;
         }
 
-        const pickupLatLng = L.latLng(order.pickupLat, order.pickupLng);
-
         db.collection("iqbike_drivers").get().then((snapshot) => {
             let driversWithDistance = [];
             snapshot.forEach((doc) => {
                 const dData = doc.data();
                 const matchedAccepted = order.acceptedDrivers.find(d => d.wa === doc.id);
                 if (matchedAccepted && dData.lat && dData.lng && dData.isOnline) {
-                    const driverLatLng = L.latLng(dData.lat, dData.lng);
-                    const distanceMeters = map ? map.distance(driverLatLng, pickupLatLng) : 0;
+                    const R = 6371e3;
+                    const φ1 = dData.lat * Math.PI/180;
+                    const φ2 = order.pickupLat * Math.PI/180;
+                    const Δφ = (order.pickupLat - dData.lat) * Math.PI/180;
+                    const Δλ = (order.pickupLng - dData.lng) * Math.PI/180;
+                    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
+                    const distanceMeters = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
                     const distanceKm = distanceMeters / 1000;
 
                     let pickupExtraFee = 0;
@@ -1530,12 +1630,12 @@
     function repeatOrderFromHistory(pickup, dropoff, pLat, pLng, dLat, dLng, fare, service) {
         document.getElementById('pickupLocation').value = pickup;
         document.getElementById('dropoffLocation').value = dropoff;
-        pickupCoords = L.latLng(pLat, pLng);
-        dropoffCoords = L.latLng(dLat, dLng);
+        pickupCoords = { lat: pLat, lng: pLng };
+        dropoffCoords = { lat: dLat, lng: dLng };
         computedTotalFare = fare;
         selectService(service);
         renderFixedMarkers();
-        map.panTo(pickupCoords);
+        map.flyTo({ center: [pLng, pLat], zoom: 16 });
         closePassengerHistoryModal();
         showCustomAlert("Rute Dimuat", "✨ Rute pesanan berhasil dimuat kembali. Silakan klik tombol 'Cari & Kirim Pesanan'.");
     }
@@ -1543,12 +1643,12 @@
     function swapRouteFromHistory(pickup, dropoff, pLat, pLng, dLat, dLng, fare, service) {
         document.getElementById('pickupLocation').value = dropoff;
         document.getElementById('dropoffLocation').value = pickup;
-        pickupCoords = L.latLng(dLat, dLng);
-        dropoffCoords = L.latLng(pLat, pLng);
+        pickupCoords = { lat: dLat, lng: dLng };
+        dropoffCoords = { lat: pLat, lng: pLng };
         computedTotalFare = fare;
         selectService(service);
         renderFixedMarkers();
-        map.panTo(pickupCoords);
+        map.flyTo({ center: [dLng, dLat], zoom: 16 });
         closePassengerHistoryModal();
         showCustomAlert("Rute Ditukar", "🔄 Rute Berhasil Ditukar (Pulang Pergi)! Silakan kirim pesanan.");
     }
@@ -1582,6 +1682,16 @@
             return;
         }
 
+        if (query.includes('http://') || query.includes('https://') || query.includes('goo.gl')) {
+            container.style.display = 'none';
+            parseGoogleMapsLink(query, (latLng, addressName) => {
+                document.getElementById('newDestinationInput').value = addressName.split(',').slice(0, 3).join(',');
+                tempNewDropoffCoords = latLng;
+                showCustomAlert("Berhasil", "📍 Tujuan baru dimuat dari link Google Maps!");
+            });
+            return;
+        }
+
         clearTimeout(newDestSearchDebounce);
         newDestSearchDebounce = setTimeout(() => {
             fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=id&limit=5`)
@@ -1595,7 +1705,7 @@
                             div.innerText = item.display_name;
                             div.onclick = function() {
                                 document.getElementById('newDestinationInput').value = item.display_name.split(',').slice(0, 3).join(',');
-                                tempNewDropoffCoords = L.latLng(parseFloat(item.lat), parseFloat(item.lon));
+                                tempNewDropoffCoords = { lat: parseFloat(item.lat), lng: parseFloat(item.lon) };
                                 container.style.display = 'none';
                             };
                             container.appendChild(div);
@@ -1615,8 +1725,15 @@
             return;
         }
 
-        const oldDropoffLatLng = L.latLng(order.dropoffLat, order.dropoffLng);
-        const additionalDistMeters = map.distance(oldDropoffLatLng, tempNewDropoffCoords);
+        // Hitung jarak tambahan menggunakan Haversine sederhana
+        const R = 6371e3;
+        const φ1 = order.dropoffLat * Math.PI/180;
+        const φ2 = tempNewDropoffCoords.lat * Math.PI/180;
+        const Δφ = (tempNewDropoffCoords.lat - order.dropoffLat) * Math.PI/180;
+        const Δλ = (tempNewDropoffCoords.lng - order.dropoffLng) * Math.PI/180;
+        const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
+        const additionalDistMeters = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
         const additionalFare = computeDistanceFare(additionalDistMeters + 3000) - (order.serviceType === 'kurir' ? 10000 : 8000);
 
         order.dropoff = document.getElementById('newDestinationInput').value;
@@ -1737,8 +1854,8 @@
 
         computedTotalFare = order.fare;
         document.getElementById('fareText').innerText = `Rp ${order.fare.toLocaleString('id-ID')}`;
-        pickupCoords = L.latLng(order.pickupLat, order.pickupLng);
-        dropoffCoords = L.latLng(order.dropoffLat, order.dropoffLng);
+        pickupCoords = { lat: order.pickupLat, lng: order.pickupLng };
+        dropoffCoords = { lat: order.dropoffLat, lng: order.dropoffLng };
         renderFixedMarkers();
     }
 
